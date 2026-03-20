@@ -349,6 +349,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <span>Access Log</span>
     </div>
+    <div class="nav-item admin-only" data-view="companies" onclick="showView('companies',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/></svg>
+      <span>Companies</span>
+    </div>
     <div class="nav-item admin-only" data-view="passwords" onclick="showView('passwords',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       <span>Passwords</span>
@@ -419,7 +423,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="table-header">
         <div class="table-header-title" id="sellers-title">My Entries</div>
         <div style="display:flex;gap:8px;align-items:center">
-          <input type="text" placeholder="Search sellers…" id="seller-search" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;width:180px" oninput="renderSellers()">
+          <input type="text" placeholder="Search sellers…" id="seller-search" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;width:160px" oninput="renderSellers()">
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--txt2);cursor:pointer;white-space:nowrap">
+            <input type="checkbox" id="seller-inactive-cb" onchange="renderSellers()"> Show inactive
+          </label>
           <button class="btn btn-primary btn-sm" onclick="openEntryModal(null)" id="sellers-add-btn">+ Add Entry</button>
         </div>
       </div>
@@ -459,6 +466,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
     <div class="table-card">
       <div class="log-list" id="log-list"></div>
+    </div>
+  </div>
+
+  <!-- COMPANIES VIEW -->
+  <div class="view" id="view-companies">
+    <div class="sec-header">
+      <div><div class="sec-title">Company Management</div><div class="sec-sub">Built-in companies + any custom companies you add</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openAddCompanyModal()">+ Add Company</button>
+    </div>
+    <div class="table-card">
+      <table class="tbl" id="companies-table"></table>
     </div>
   </div>
 
@@ -561,7 +579,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <input type="number" id="em-ach" min="0" placeholder="0">
         </div>
       </div>
-      <div id="em-crm-toggle-row" style="display:none;margin-top:4px">
+      <div class="fld-row" style="margin-top:4px">
+        <div class="fld">
+          <label>Role</label>
+          <input type="text" id="em-role" placeholder="e.g. Account Executive">
+        </div>
+        <div class="fld">
+          <label>Quota Type</label>
+          <div class="sel-wrap">
+            <select id="em-quota-type">
+              <option value="New Name">New Name</option>
+              <option value="Back to Base">Back to Base</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding:10px 14px;background:#fafafa;border-radius:8px;border:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--txt)">Active team member</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:1px">Uncheck if this seller has left the team</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="em-is-active" checked><span class="tog-sl"></span></label>
+      </div>
+      <div id="em-crm-toggle-row" style="display:none;margin-top:10px">
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--txt2)">
           <label class="toggle"><input type="checkbox" id="em-crm-cb" onchange="onCrmToggle()"><span class="tog-sl"></span></label>
           Pull actuals from CRM for this entry
@@ -624,6 +664,45 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('pw-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="savePw()">Save Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD COMPANY MODAL -->
+<div class="modal-backdrop" id="add-co-modal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <h2 id="add-co-title">Add Company</h2>
+      <button class="modal-close" onclick="closeModal('add-co-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fld"><label>Company Name</label><input type="text" id="aco-name" placeholder="e.g. Acme Corp"></div>
+      <div class="fld-row">
+        <div class="fld">
+          <label>Region</label>
+          <div class="sel-wrap"><select id="aco-region" onchange="onAcoRegionChange()">
+            <option>CEE &amp; PL</option><option>DACH</option><option>France</option><option>UK&amp;I</option><option>Spain</option><option>Other</option>
+          </select></div>
+        </div>
+        <div class="fld">
+          <label>Sub-region</label>
+          <input type="text" id="aco-sub" placeholder="e.g. Vistula">
+        </div>
+      </div>
+      <div class="fld">
+        <label>Currency</label>
+        <div class="sel-wrap"><select id="aco-currency">
+          <option value="EUR">EUR — Euro (€)</option>
+          <option value="GBP">GBP — British Pound (£)</option>
+          <option value="PLN">PLN — Polish Złoty (zł)</option>
+          <option value="DKK">DKK — Danish Krone (kr)</option>
+        </select></div>
+      </div>
+      <div class="login-err" id="aco-err" style="text-align:left"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('add-co-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewCompany()">Add Company</button>
     </div>
   </div>
 </div>
@@ -699,9 +778,26 @@ create policy if not exists "r" on company_settings for select using (true);
 create policy if not exists "i" on company_settings for insert with check (true);
 create policy if not exists "u" on company_settings for update using (true);
 
+-- Custom companies (admin-created)
+create table if not exists custom_companies (
+  name text primary key,
+  region text not null,
+  sub_region text not null,
+  currency text default 'EUR',
+  created_at timestamptz default now()
+);
+alter table custom_companies enable row level security;
+create policy if not exists "r" on custom_companies for select using (true);
+create policy if not exists "i" on custom_companies for insert with check (true);
+create policy if not exists "u" on custom_companies for update using (true);
+create policy if not exists "d" on custom_companies for delete using (true);
+
 -- Migrations for existing tables (safe to run multiple times)
 alter table quota_entries add column if not exists crm_pull boolean default false;
-alter table quota_entries add column if not exists currency text default 'EUR';`;
+alter table quota_entries add column if not exists currency text default 'EUR';
+alter table quota_entries add column if not exists role text default '';
+alter table quota_entries add column if not exists quota_type text default 'New Name';
+alter table quota_entries add column if not exists is_active boolean default true;`;
 
 /* ═══════════════════════════════════════
    COMPANY DATA
@@ -755,6 +851,8 @@ let allEntries = [];   // admin only — all entries across companies
 let settings = {};     // {company: {crm_enabled, crm_auto_pull}}
 let passwords = {};    // {company: customPassword}
 let loginLogs = [];
+let customCompanies = []; // admin-created companies from DB
+let dbCols = {crm_pull:true, currency:true, role:true, quota_type:true, is_active:true}; // assume present until proven otherwise
 let pType = 'Monthly';
 let pMonth = new Date().toLocaleString('en-US',{month:'long'});
 let pQuarter = 'Q' + Math.ceil((new Date().getMonth()+1)/3);
@@ -773,7 +871,8 @@ let emPYear = String(new Date().getFullYear());
 ═══════════════════════════════════════ */
 const isAdmin = () => currentUser === '__admin__';
 const myCompany = () => isAdmin() ? drillCompany : currentUser;
-const coData = (name) => COMPANIES.find(c=>c.name===name) || {region:'—',sub:'—'};
+const allCompanies = () => [...COMPANIES, ...customCompanies.filter(c=>!COMPANIES.find(p=>p.name===c.name))];
+const coData = (name) => allCompanies().find(c=>c.name===name) || {region:'—',sub:'—',currency:'EUR'};
 const fmt = n => Number(n||0).toLocaleString('en-US');
 const fmtEur = n => '€'+fmt(n);
 const CURR_SYMBOLS = {EUR:'€',GBP:'£',PLN:'zł',DKK:'kr'};
@@ -874,20 +973,36 @@ function onPeriodChange(){
 ═══════════════════════════════════════ */
 async function init(){
   setBar(10);
-  buildLoginDropdown();
   buildPeriodDropdowns();
   document.getElementById('l-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
-  await Promise.all([loadPasswords(), loadSettings()]);
+  await Promise.all([loadPasswords(), loadSettings(), loadCustomCompanies(), probeDbCols()]);
   setBar(40);
+  buildLoginDropdown();
   const saved=sessionStorage.getItem('qtu');
   if(saved){ await loginAs(saved); }
   setBar(100);
 }
 
+async function probeDbCols(){
+  // Check if new columns exist; degrade gracefully if not
+  const {error} = await db.from('quota_entries').select('crm_pull,currency,role,quota_type,is_active').limit(0);
+  if(error?.code==='PGRST204'){
+    dbCols={crm_pull:false,currency:false,role:false,quota_type:false,is_active:false};
+    console.warn('DB migration needed — some columns missing. Run Setup SQL.');
+  }
+}
+
+async function loadCustomCompanies(){
+  try{
+    const {data,error}=await db.from('custom_companies').select('*').order('name');
+    if(!error && data) customCompanies=data.map(r=>({name:r.name,region:r.region,sub:r.sub_region,currency:r.currency||'EUR',custom:true}));
+  }catch(e){}
+}
+
 function buildLoginDropdown(){
   const sel=document.getElementById('l-company');
   sel.innerHTML='<option value="">Select company…</option>' +
-    COMPANIES.map(c=>`<option value="${c.name}">${c.name}</option>`).join('') +
+    allCompanies().map(c=>`<option value="${c.name}">${c.name}</option>`).join('') +
     '<option value="__admin__">Everfield (Admin)</option>';
 }
 
@@ -926,7 +1041,7 @@ async function loginAs(co){
   document.getElementById('sb-uname').textContent=co==='__admin__'?'Everfield Admin':co;
   // Populate export company dropdown
   const excSel=document.getElementById('export-company');
-  excSel.innerHTML='<option value="">All companies</option>'+COMPANIES.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  excSel.innerHTML='<option value="">All companies</option>'+allCompanies().map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
   await loadData();
   spin(false);
   // Check CRM decision for company users
@@ -1003,39 +1118,64 @@ async function saveEntry(){
   const crmCb = document.getElementById('em-crm-cb').checked;
   const autopull = isAdmin() ? hasAutoPull(co) : (hasAutoPull(currentUser) || crmCb);
   const achieved = autopull ? 0 : parseFloat(document.getElementById('em-ach').value||'0');
-  const err = document.getElementById('em-err');
-  if(!co){err.textContent='Select a company.';return;}
-  if(!seller){err.textContent='Seller name is required.';return;}
-  if(isNaN(quota)||quota<0){err.textContent='Enter a valid quota.';return;}
-  if(!autopull && (isNaN(achieved)||achieved<0)){err.textContent='Enter a valid achieved amount.';return;}
+  const role = document.getElementById('em-role')?.value.trim()||'';
+  const quota_type = document.getElementById('em-quota-type')?.value||'New Name';
+  const is_active = document.getElementById('em-is-active')?.checked !== false;
+  const errEl = document.getElementById('em-err');
+  errEl.textContent='';
+  if(!co){errEl.textContent='Select a company.';return;}
+  if(!seller){errEl.textContent='Seller name is required.';return;}
+  if(isNaN(quota)||quota<0){errEl.textContent='Enter a valid quota.';return;}
+  if(!autopull && (isNaN(achieved)||achieved<0)){errEl.textContent='Enter a valid achieved amount.';return;}
   const cd=coData(co);
-  const regSel=document.getElementById('em-region');
-  const subSel=document.getElementById('em-sub');
-  const region=regSel?.value||cd.region;
-  const sub_region=subSel?.value||cd.sub;
-  const payload={seller_name:seller,company:co,period:emPeriodStr(),region,sub_region,quota,achieved:autopull?0:achieved,crm_pull:autopull||crmCb,currency:coCurrency(co)};
+  const region=document.getElementById('em-region')?.value||cd.region;
+  const sub_region=document.getElementById('em-sub')?.value||cd.sub;
+
+  // Build payload — include new columns only if they exist in DB
+  const base={seller_name:seller,company:co,period:emPeriodStr(),region,sub_region,quota,achieved:autopull?0:achieved};
+  const full={...base};
+  if(dbCols.crm_pull) full.crm_pull=autopull||crmCb;
+  if(dbCols.currency) full.currency=coCurrency(co);
+  if(dbCols.role) full.role=role;
+  if(dbCols.quota_type) full.quota_type=quota_type;
+  if(dbCols.is_active) full.is_active=is_active;
+
   spin(true);
-  try{
+  const doUpsert = async (payload) => {
     if(editEntry){
-      await db.from('quota_entries').update(payload).eq('id',editEntry.id);
-      toast('Entry updated');
+      return await db.from('quota_entries').update(payload).eq('id',editEntry.id);
     } else {
-      await db.from('quota_entries').insert([payload]);
-      toast('Entry added');
+      return await db.from('quota_entries').insert([payload]);
     }
-    closeModal('entry-modal'); editEntry=null;
-    await loadData();
-  } catch(e){ toast('Save failed','error'); }
+  };
+
+  let {error} = await doUpsert(full);
+
+  // If new columns missing, retry with base payload only
+  if(error?.code==='PGRST204'){
+    dbCols={crm_pull:false,currency:false,role:false,quota_type:false,is_active:false};
+    const retry = await doUpsert(base);
+    error = retry.error;
+    if(!error) toast('⚠️ Run Database Setup to unlock all fields','info');
+  }
+
+  if(error){
+    errEl.textContent='Save failed: '+error.message;
+    toast('Save failed — '+error.message,'error');
+    spin(false); return;
+  }
+  toast(editEntry?'Entry updated ✓':'Entry added ✓');
+  closeModal('entry-modal'); editEntry=null;
+  await loadData();
   spin(false);
 }
 
 async function deleteEntry(id){
   if(!confirm('Delete this entry?')) return;
   spin(true);
-  try{
-    await db.from('quota_entries').delete().eq('id',id);
-    toast('Entry deleted'); await loadData();
-  } catch(e){ toast('Delete failed','error'); }
+  const {error}=await db.from('quota_entries').delete().eq('id',id);
+  if(error){ toast('Delete failed: '+error.message,'error'); spin(false); return; }
+  toast('Entry deleted'); await loadData();
   spin(false);
 }
 
@@ -1073,7 +1213,7 @@ function showView(view, el){
   if(el) el.classList.add('active');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
-  const titles={dashboard:'Dashboard',sellers:'Sellers',portfolio:'Portfolio Overview','crm-settings':'CRM Settings','access-log':'Access Log',passwords:'Passwords',export:'Export Data'};
+  const titles={dashboard:'Dashboard',sellers:'Sellers',portfolio:'Portfolio Overview','crm-settings':'CRM Settings','access-log':'Access Log',companies:'Companies',passwords:'Passwords',export:'Export Data'};
   document.getElementById('c-title').textContent=titles[view]||view;
   renderCurrentView();
 }
@@ -1084,6 +1224,7 @@ function renderCurrentView(){
   else if(currentView==='portfolio') renderPortfolio();
   else if(currentView==='crm-settings') renderCrmSettings();
   else if(currentView==='access-log') loadAccessLog();
+  else if(currentView==='companies') renderCompanies();
   else if(currentView==='passwords') renderPasswords();
   else if(currentView==='export') renderExport();
 }
@@ -1205,18 +1346,26 @@ function renderSellers(){
   const title = drillCompany ? `${drillCompany} — All Entries` : (isAdmin() ? 'All Entries' : 'My Entries');
   document.getElementById('sellers-title').textContent=title;
 
+  // Active filter
+  const showInactive = document.getElementById('seller-inactive-cb')?.checked;
+  if(!showInactive) data=data.filter(r=>r.is_active!==false);
+
   const rows=data.map(r=>{
     const p=attPct(r.achieved,r.quota);
     const rc=r.currency||coCurrency(r.company);
     const achCell=r.crm_pull?`<td class="num"><span class="badge badge-crm">🔗 CRM</span></td>`:`<td class="num">${fmtCurr(r.achieved,rc)}</td>`;
     const coCell=isAdmin()?`<td><strong>${r.company}</strong></td>`:'';
+    const activeBadge=r.is_active===false?`<span class="badge badge-red" style="font-size:10px">Inactive</span>`:'';
+    const roleCell=r.role?`<td style="color:var(--txt2);font-size:12px">${r.role}</td>`:`<td></td>`;
+    const qtCell=r.quota_type?`<td><span class="badge badge-${r.quota_type==='New Name'?'blue':'purple'}" style="font-size:10px">${r.quota_type}</span></td>`:`<td></td>`;
     const actions=`<td><div class="row-actions">
       <button class="btn btn-ghost btn-sm btn-icon" onclick='openEntryModal(${JSON.stringify(r)})' title="Edit">✏️</button>
       <button class="btn btn-danger btn-sm btn-icon" onclick="deleteEntry('${r.id}')" title="Delete">🗑</button>
     </div></td>`;
-    return `<tr>
+    return `<tr style="${r.is_active===false?'opacity:.6':''}">
       ${coCell}
-      <td style="font-weight:600">${r.seller_name}</td>
+      <td style="font-weight:600">${r.seller_name} ${activeBadge}</td>
+      ${roleCell}${qtCell}
       <td><span class="badge badge-gray">${r.sub_region}</span></td>
       <td><span class="badge badge-blue">${displayPeriod(r.period)}</span></td>
       <td class="num">${fmtCurr(r.quota,rc)}</td>
@@ -1227,8 +1376,8 @@ function renderSellers(){
   }).join('');
   const coHead=isAdmin()?'<th>Company</th>':'';
   document.getElementById('sellers-table').innerHTML=`
-    <thead><tr>${coHead}<th>Seller</th><th>Sub-region</th><th>Period</th><th style="text-align:right">Quota</th><th style="text-align:right">Achieved</th><th style="text-align:right">Attainment</th><th></th></tr></thead>
-    <tbody>${rows||`<tr class="empty-row"><td colspan="8">No entries found</td></tr>`}</tbody>`;
+    <thead><tr>${coHead}<th>Seller</th><th>Role</th><th>Type</th><th>Sub-region</th><th>Period</th><th style="text-align:right">Quota</th><th style="text-align:right">Achieved</th><th style="text-align:right">Att%</th><th></th></tr></thead>
+    <tbody>${rows||`<tr class="empty-row"><td colspan="10">No entries found</td></tr>`}</tbody>`;
 }
 
 /* ═══════════════════════════════════════
@@ -1241,7 +1390,7 @@ function renderPortfolio(){
   sub.textContent=`${displayPeriod(period)} · ${COMPANIES.length} portfolio companies`;
 
   // Aggregate per company
-  const cards=COMPANIES.map(c=>{
+  const cards=allCompanies().map(c=>{
     const cEntries=entries.filter(e=>e.company===c.name);
     const allCo=allEntries.filter(e=>e.company===c.name);
     const q=cEntries.reduce((s,r)=>s+Number(r.quota),0);
@@ -1343,7 +1492,7 @@ function openEntryModalAdmin(co){
    CRM SETTINGS VIEW
 ═══════════════════════════════════════ */
 function renderCrmSettings(){
-  const rows=COMPANIES.map(c=>{
+  const rows=allCompanies().map(c=>{
     const s=settings[c.name]||{};
     const enabled=s.crm_enabled===true;
     const autopull=s.crm_auto_pull===true;
@@ -1398,10 +1547,83 @@ function renderAccessLog(){
 }
 
 /* ═══════════════════════════════════════
+   COMPANIES VIEW
+═══════════════════════════════════════ */
+function renderCompanies(){
+  const rows=allCompanies().map(c=>{
+    const isCustom=!!c.custom;
+    const deleteBtn=isCustom?`<button class="btn btn-danger btn-sm" onclick="deleteCompany('${c.name}')">Remove</button>`:'<span class="badge badge-gray">Built-in</span>';
+    return `<tr>
+      <td style="font-weight:600">${c.name}</td>
+      <td><span class="badge badge-gray">${c.region}</span></td>
+      <td>${c.sub}</td>
+      <td><span class="badge badge-blue">${c.currency||'EUR'}</span></td>
+      <td>${deleteBtn}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('companies-table').innerHTML=`
+    <thead><tr><th>Company</th><th>Region</th><th>Sub-region</th><th>Currency</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>`;
+}
+
+function openAddCompanyModal(){
+  document.getElementById('aco-name').value='';
+  document.getElementById('aco-sub').value='';
+  document.getElementById('aco-err').textContent='';
+  document.getElementById('aco-region').value='CEE & PL';
+  document.getElementById('aco-currency').value='EUR';
+  openModal('add-co-modal');
+}
+
+function onAcoRegionChange(){
+  const region=document.getElementById('aco-region').value;
+  const defaults={'CEE & PL':'Vistula','DACH':'Danube','France':'France','UK&I':'Tamar','Spain':'Spain'};
+  document.getElementById('aco-sub').value=defaults[region]||'';
+  const currencies={'UK&I':'GBP','CEE & PL':'PLN'};
+  if(currencies[region]) document.getElementById('aco-currency').value=currencies[region];
+  else document.getElementById('aco-currency').value='EUR';
+}
+
+async function saveNewCompany(){
+  const name=document.getElementById('aco-name').value.trim();
+  const region=document.getElementById('aco-region').value;
+  const sub=document.getElementById('aco-sub').value.trim();
+  const currency=document.getElementById('aco-currency').value;
+  const errEl=document.getElementById('aco-err');
+  if(!name){errEl.textContent='Company name is required.';return;}
+  if(!sub){errEl.textContent='Sub-region is required.';return;}
+  if(allCompanies().find(c=>c.name.toLowerCase()===name.toLowerCase())){errEl.textContent='A company with that name already exists.';return;}
+  spin(true);
+  const {error}=await db.from('custom_companies').insert([{name,region,sub_region:sub,currency}]);
+  if(error){errEl.textContent='Save failed: '+error.message;spin(false);return;}
+  // Also create password entry
+  await db.from('company_passwords').upsert([{company:name,password:name.toLowerCase().replace(/\s+/g,'')+'-2026'}]);
+  customCompanies.push({name,region,sub,currency,custom:true});
+  passwords[name]=name.toLowerCase().replace(/\s+/g,'')+'-2026';
+  closeModal('add-co-modal');
+  buildLoginDropdown();
+  renderCompanies();
+  toast('Company "'+name+'" added ✓');
+  spin(false);
+}
+
+async function deleteCompany(name){
+  if(!confirm(`Remove "${name}" from the system? Their entries will remain in the database.`)) return;
+  spin(true);
+  const {error}=await db.from('custom_companies').delete().eq('name',name);
+  if(error){toast('Failed: '+error.message,'error');spin(false);return;}
+  customCompanies=customCompanies.filter(c=>c.name!==name);
+  buildLoginDropdown();
+  renderCompanies();
+  toast('Company removed');
+  spin(false);
+}
+
+/* ═══════════════════════════════════════
    PASSWORDS VIEW
 ═══════════════════════════════════════ */
 function renderPasswords(){
-  const rows=COMPANIES.map(c=>{
+  const rows=allCompanies().map(c=>{
     const custom=passwords[c.name];
     const pw=getPw(c.name);
     return `<tr>
@@ -1480,7 +1702,7 @@ function openEntryModal(entry){
   if(isAdmin() && !drillCompany){
     coWrap.style.display='';
     const emCo=document.getElementById('em-co');
-    emCo.innerHTML=COMPANIES.map(c=>`<option value="${c.name}" ${c.name===co?'selected':''}>${c.name}</option>`).join('');
+    emCo.innerHTML=allCompanies().map(c=>`<option value="${c.name}" ${c.name===co?'selected':''}>${c.name}</option>`).join('');
   } else { coWrap.style.display='none'; }
 
   const effectiveCo = co;
@@ -1508,6 +1730,9 @@ function openEntryModal(entry){
   document.getElementById('em-quota').value=entry?entry.quota:'';
   document.getElementById('em-ach').value=entry?entry.achieved:'';
   document.getElementById('em-crm-cb').checked=entry?!!entry.crm_pull:false;
+  document.getElementById('em-role').value=entry?.role||'';
+  document.getElementById('em-quota-type').value=entry?.quota_type||'New Name';
+  document.getElementById('em-is-active').checked=entry?.is_active!==false;
 
   // CRM UI
   const autopull=effectiveCo && hasAutoPull(effectiveCo);
@@ -1585,14 +1810,15 @@ function emPeriodStr(){
 
 /* ───── MODAL REGION/SUB HELPERS ───── */
 function buildEmRegionSub(co){
-  const uniqueRegions=[...new Set(COMPANIES.map(c=>c.region))];
+  const all=allCompanies();
+  const uniqueRegions=[...new Set(all.map(c=>c.region))];
   const cd=coData(co);
   const regSel=document.getElementById('em-region');
   regSel.innerHTML=uniqueRegions.map(r=>`<option value="${r}" ${r===cd.region?'selected':''}>${r}</option>`).join('');
   buildEmSubForRegion(cd.region, cd.sub);
 }
 function buildEmSubForRegion(region, selectedSub){
-  const subs=[...new Set(COMPANIES.filter(c=>c.region===region).map(c=>c.sub))];
+  const subs=[...new Set(allCompanies().filter(c=>c.region===region).map(c=>c.sub))];
   const subSel=document.getElementById('em-sub');
   subSel.innerHTML=subs.map(s=>`<option value="${s}" ${s===selectedSub?'selected':''}>${s}</option>`).join('');
 }

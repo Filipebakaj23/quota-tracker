@@ -252,6 +252,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 /* SETUP SQL MODAL */
 .sql-block{background:#1e1e2e;color:#a9b8c8;padding:16px;border-radius:8px;font-size:11px;font-family:ui-monospace,monospace;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;line-height:1.6}
 
+/* SELLER MODAL STAT BAR */
+.sm-stat{padding:16px 20px;border-right:1px solid var(--border);text-align:center}
+.sm-stat:last-child{border-right:none}
+.sm-stat-val{font-size:20px;font-weight:800;color:var(--txt);line-height:1}
+.sm-stat-lbl{font-size:11px;color:var(--txt3);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
+
 /* EMPTY STATE */
 .empty-state{text-align:center;padding:60px 20px;color:var(--txt3)}
 .empty-state svg{width:56px;height:56px;margin:0 auto 16px;opacity:.3}
@@ -570,6 +576,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             <select class="period-select" id="em-period-v2" onchange="onEmPeriodChange()" style="font-size:12px"></select>
           </div>
         </div>
+        <div class="fld fld-full">
+          <label>Currency</label>
+          <div class="sel-wrap">
+            <select id="em-currency" onchange="updateEmCurrencyLabels()">
+              <option value="EUR">EUR — Euro (€)</option>
+              <option value="GBP">GBP — British Pound (£)</option>
+              <option value="PLN">PLN — Polish Złoty (zł)</option>
+              <option value="DKK">DKK — Danish Krone (kr)</option>
+            </select>
+          </div>
+        </div>
         <div class="fld">
           <label id="em-quota-lbl">Quota</label>
           <input type="number" id="em-quota" min="0" placeholder="0">
@@ -664,6 +681,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('pw-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="savePw()">Save Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- SELLER PROFILE MODAL -->
+<div class="modal-backdrop" id="seller-modal">
+  <div class="modal modal-lg" style="max-width:720px">
+    <div class="modal-head">
+      <div>
+        <h2 id="sm-title">Seller Profile</h2>
+        <div id="sm-meta" style="font-size:12px;color:var(--txt3);margin-top:2px"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('seller-modal')">×</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <!-- Summary stats bar -->
+      <div id="sm-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--border)"></div>
+      <!-- History table -->
+      <div style="padding:16px 24px 8px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;font-weight:700;color:var(--txt)">Quota History</div>
+        <button class="btn btn-primary btn-sm" id="sm-add-btn" onclick="addEntryForCurrentSeller()">+ Add Period</button>
+      </div>
+      <table class="tbl" id="sm-table" style="margin-bottom:0"></table>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('seller-modal')">Close</button>
     </div>
   </div>
 </div>
@@ -856,7 +899,7 @@ let dbCols = {crm_pull:true, currency:true, role:true, quota_type:true, is_activ
 let pType = 'Monthly';
 let pMonth = new Date().toLocaleString('en-US',{month:'long'});
 let pQuarter = 'Q' + Math.ceil((new Date().getMonth()+1)/3);
-let pYear = String(new Date().getFullYear());
+let pYear = '2026';
 let currentView = 'dashboard';
 let drillCompany = null; // admin drilled into a company
 let editEntry = null;
@@ -864,7 +907,7 @@ let chartInst = null;
 let emPType = 'Monthly';
 let emPMonth = new Date().toLocaleString('en-US',{month:'long'});
 let emPQuarter = 'Q'+Math.ceil((new Date().getMonth()+1)/3);
-let emPYear = String(new Date().getFullYear());
+let emPYear = '2026';
 
 /* ═══════════════════════════════════════
    HELPERS
@@ -948,8 +991,7 @@ function setPeriodType(t){
 }
 function buildPeriodDropdowns(){
   const v1=document.getElementById('period-val-1'), v2=document.getElementById('period-val-2');
-  const yr=new Date().getFullYear();
-  const years=[yr+1,yr,yr-1,yr-2].map(y=>`<option value="${y}"${y==yr?'':''} ${String(y)===pYear?'selected':''}>${y}</option>`).join('');
+  const years=[2027,2026].map(y=>`<option value="${y}" ${String(y)===pYear?'selected':''}>${y}</option>`).join('');
   if(pType==='Monthly'){
     v1.innerHTML=MONTHS.map(m=>`<option value="${m}" ${m===pMonth?'selected':''}>${m}</option>`).join('');
     v2.innerHTML=years; v2.style.display=''; v1.style.display='';
@@ -1034,8 +1076,8 @@ async function loginAs(co){
   document.getElementById('app').style.display='block';
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=isAd?'':'none');
   document.getElementById('sb-admin-label').style.display=isAd?'':'none';
-  document.getElementById('add-btn').style.display=isAd?'none':'';
-  document.getElementById('sellers-add-btn').style.display=isAd?'none':'';
+  document.getElementById('add-btn').style.display='';
+  document.getElementById('sellers-add-btn').style.display='';
   const avatar=co==='__admin__'?'EF':co.substring(0,2).toUpperCase();
   document.getElementById('sb-avatar').textContent=avatar;
   document.getElementById('sb-uname').textContent=co==='__admin__'?'Everfield Admin':co;
@@ -1135,7 +1177,8 @@ async function saveEntry(){
   const base={seller_name:seller,company:co,period:emPeriodStr(),region,sub_region,quota,achieved:autopull?0:achieved};
   const full={...base};
   if(dbCols.crm_pull) full.crm_pull=autopull||crmCb;
-  if(dbCols.currency) full.currency=coCurrency(co);
+  const chosenCurrency=document.getElementById('em-currency')?.value||coCurrency(co);
+  if(dbCols.currency) full.currency=chosenCurrency;
   if(dbCols.role) full.role=role;
   if(dbCols.quota_type) full.quota_type=quota_type;
   if(dbCols.is_active) full.is_active=is_active;
@@ -1288,8 +1331,9 @@ function renderDashboard(){
     const achCell = r.crm_pull
       ? `<td class="num"><span class="badge badge-crm">🔗 CRM</span></td>`
       : `<td class="num">${fmtCurr(r.achieved,rc)}</td>`;
+    const dispCo = co || r.company;
     return `<tr>
-      <td style="font-weight:600">${r.seller_name}</td>
+      <td><span style="font-weight:600;cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px" onclick="openSellerProfile('${r.seller_name.replace(/'/g,"\\'")}','${dispCo.replace(/'/g,"\\'")}') ">${r.seller_name}</span></td>
       <td><span class="badge badge-gray">${r.sub_region}</span></td>
       <td class="num">${fmtCurr(r.quota,rc)}</td>
       ${achCell}
@@ -1364,7 +1408,7 @@ function renderSellers(){
     </div></td>`;
     return `<tr style="${r.is_active===false?'opacity:.6':''}">
       ${coCell}
-      <td style="font-weight:600">${r.seller_name} ${activeBadge}</td>
+      <td><span style="font-weight:600;cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px" onclick="openSellerProfile('${r.seller_name.replace(/'/g,"\\'")}','${r.company.replace(/'/g,"\\'")}') ">${r.seller_name}</span> ${activeBadge}</td>
       ${roleCell}${qtCell}
       <td><span class="badge badge-gray">${r.sub_region}</span></td>
       <td><span class="badge badge-blue">${displayPeriod(r.period)}</span></td>
@@ -1467,7 +1511,7 @@ function renderDrilldown(co){
         <tbody>${cEntries.length?cEntries.map(r=>{
           const rp=attPct(r.achieved,r.quota);
           return `<tr>
-            <td style="font-weight:600">${r.seller_name}</td>
+            <td><span style="font-weight:600;cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px" onclick="openSellerProfile('${r.seller_name.replace(/'/g,"\\'")}','${co.replace(/'/g,"\\'")}') ">${r.seller_name}</span></td>
             <td><span class="badge badge-blue">${displayPeriod(r.period)}</span></td>
             <td class="num">${fmtCurr(r.quota,r.currency||coCurrency(co))}</td>
             <td class="num">${r.crm_pull?'<span class="badge badge-crm">🔗 CRM</span>':fmtCurr(r.achieved,r.currency||coCurrency(co))}</td>
@@ -1544,6 +1588,111 @@ function renderAccessLog(){
       <div><div class="log-co">${l.company}</div><div class="log-time">${new Date(l.logged_at).toLocaleString()}</div></div>
       <div class="log-badge"><span class="badge badge-gray">${relTime(l.logged_at)}</span></div>
     </div>`).join('');
+}
+
+/* ═══════════════════════════════════════
+   SELLER PROFILE MODAL
+═══════════════════════════════════════ */
+let sellerModalName = null;
+let sellerModalCompany = null;
+
+function openSellerProfile(sellerName, company){
+  sellerModalName = sellerName;
+  sellerModalCompany = company;
+  renderSellerProfile();
+  openModal('seller-modal');
+}
+
+function renderSellerProfile(){
+  const name = sellerModalName;
+  const co = sellerModalCompany;
+  // All entries for this seller, all time, sorted by period descending
+  const source = isAdmin() ? allEntries : allEntries;
+  const sellerEntries = source
+    .filter(e => e.seller_name === name && e.company === co)
+    .sort((a,b) => b.period.localeCompare(a.period));
+
+  const rc = sellerEntries[0]?.currency || coCurrency(co);
+  const latestEntry = sellerEntries[0];
+  const role = latestEntry?.role || '';
+  const quotaType = latestEntry?.quota_type || '';
+  const isActive = latestEntry?.is_active !== false;
+
+  // Header
+  document.getElementById('sm-title').textContent = name;
+  document.getElementById('sm-meta').innerHTML =
+    `<strong>${co}</strong>${role?' · '+role:''}${quotaType?' · <span class="badge badge-'+(quotaType==='New Name'?'blue':'purple')+'" style="font-size:10px">'+quotaType+'</span>':''}` +
+    (isActive ? '' : ' <span class="badge badge-red" style="font-size:10px">Inactive</span>');
+
+  // Stat bar
+  const totalQ = sellerEntries.reduce((s,r)=>s+Number(r.quota),0);
+  const totalA = sellerEntries.reduce((s,r)=>s+Number(r.achieved),0);
+  const avgAtt = sellerEntries.length ? Math.round(sellerEntries.reduce((s,r)=>s+attPct(r.achieved,r.quota),0)/sellerEntries.length) : 0;
+  const best = sellerEntries.reduce((b,r)=>{ const p=attPct(r.achieved,r.quota); return p>b?p:b; }, 0);
+  document.getElementById('sm-stats').innerHTML = `
+    <div class="sm-stat"><div class="sm-stat-val">${sellerEntries.length}</div><div class="sm-stat-lbl">Periods Tracked</div></div>
+    <div class="sm-stat"><div class="sm-stat-val">${fmtCurr(totalQ,rc)}</div><div class="sm-stat-lbl">Total Quota</div></div>
+    <div class="sm-stat"><div class="sm-stat-val" style="color:${attColor(avgAtt)}">${avgAtt}%</div><div class="sm-stat-lbl">Avg Attainment</div></div>
+    <div class="sm-stat"><div class="sm-stat-val" style="color:${attColor(best)}">${best}%</div><div class="sm-stat-lbl">Best Period</div></div>`;
+
+  // Show/hide add button for non-admin when it's their company
+  const addBtn = document.getElementById('sm-add-btn');
+  if(addBtn) addBtn.style.display = (isAdmin() || currentUser===co) ? '' : 'none';
+
+  // History table
+  const rows = sellerEntries.map(r => {
+    const p = attPct(r.achieved, r.quota);
+    const achCell = r.crm_pull
+      ? `<td class="num"><span class="badge badge-crm">🔗 CRM</span></td>`
+      : `<td class="num">${fmtCurr(r.achieved, r.currency||rc)}</td>`;
+    const activeCell = r.is_active===false
+      ? `<td><span class="badge badge-red" style="font-size:10px">Inactive</span></td>`
+      : `<td><span class="badge badge-green" style="font-size:10px">Active</span></td>`;
+    return `<tr>
+      <td><span class="badge badge-blue">${displayPeriod(r.period)}</span></td>
+      <td style="font-size:12px;color:var(--txt2)">${r.quota_type||'—'}</td>
+      <td class="num">${fmtCurr(r.quota, r.currency||rc)}</td>
+      ${achCell}
+      <td class="num"><span class="badge badge-${attClass(p)}" style="min-width:44px;text-align:center">${p}%</span></td>
+      ${activeCell}
+      <td><div class="row-actions">
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="editFromProfile(${JSON.stringify(r).replace(/"/g,'&quot;')})" title="Edit">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteFromProfile('${r.id}')" title="Delete">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('sm-table').innerHTML = `
+    <thead><tr><th>Period</th><th>Type</th><th style="text-align:right">Quota</th><th style="text-align:right">Achieved</th><th style="text-align:right">Att%</th><th>Status</th><th></th></tr></thead>
+    <tbody>${rows || '<tr class="empty-row"><td colspan="7">No entries yet — click "+ Add Period" to start</td></tr>'}</tbody>`;
+}
+
+function addEntryForCurrentSeller(){
+  closeModal('seller-modal');
+  // Pre-fill seller name in the entry modal
+  const entry = { seller_name: sellerModalName, company: sellerModalCompany };
+  if(isAdmin()) drillCompany = sellerModalCompany;
+  openEntryModal(null);
+  setTimeout(()=>{ document.getElementById('em-seller').value = sellerModalName; }, 50);
+}
+
+async function editFromProfile(entry){
+  closeModal('seller-modal');
+  if(isAdmin()) drillCompany = entry.company;
+  openEntryModal(entry);
+}
+
+async function deleteFromProfile(id){
+  if(!confirm('Delete this entry?')) return;
+  spin(true);
+  const {error}=await db.from('quota_entries').delete().eq('id',id);
+  if(error){ toast('Delete failed: '+error.message,'error'); spin(false); return; }
+  toast('Entry deleted');
+  await loadData();
+  // Refresh if modal is still conceptually open
+  if(sellerModalName) renderSellerProfile();
+  openModal('seller-modal');
+  spin(false);
 }
 
 /* ═══════════════════════════════════════
@@ -1723,8 +1872,10 @@ function openEntryModal(entry){
   document.querySelectorAll('#em-period-seg button').forEach(b=>b.classList.toggle('active',b.textContent===emPType));
   buildEmPeriodDropdowns();
 
-  // Currency labels
-  if(effectiveCo) updateEmCurrencyLabels(effectiveCo);
+  // Currency selector
+  const currSel=document.getElementById('em-currency');
+  if(currSel) currSel.value=entry?.currency||coCurrency(effectiveCo||'')||'EUR';
+  updateEmCurrencyLabels();
 
   document.getElementById('em-seller').value=entry?entry.seller_name:'';
   document.getElementById('em-quota').value=entry?entry.quota:'';
@@ -1758,7 +1909,9 @@ function openEntryModal(entry){
 function onEmCoChange(){
   const co=document.getElementById('em-co').value;
   buildEmRegionSub(co);
-  updateEmCurrencyLabels(co);
+  const currSel=document.getElementById('em-currency');
+  if(currSel) currSel.value=coCurrency(co);
+  updateEmCurrencyLabels();
   const crm=hasCRM(co), ap=hasAutoPull(co);
   document.getElementById('em-crm-toggle-row').style.display=crm&&!ap?'':'none';
   document.getElementById('em-ach-wrap').style.display=ap?'none':'';
@@ -1783,8 +1936,7 @@ function buildEmPeriodDropdowns(){
   const v1=document.getElementById('em-period-v1');
   const v2=document.getElementById('em-period-v2');
   if(!v1||!v2) return;
-  const yr=new Date().getFullYear();
-  const years=[yr+1,yr,yr-1,yr-2].map(y=>`<option value="${y}" ${String(y)===emPYear?'selected':''}>${y}</option>`).join('');
+  const years=[2027,2026].map(y=>`<option value="${y}" ${String(y)===emPYear?'selected':''}>${y}</option>`).join('');
   if(emPType==='Monthly'){
     v1.innerHTML=MONTHS.map(m=>`<option value="${m}" ${m===emPMonth?'selected':''}>${m}</option>`).join('');
     v2.innerHTML=years; v1.style.display=''; v2.style.display='';
@@ -1823,7 +1975,10 @@ function buildEmSubForRegion(region, selectedSub){
   subSel.innerHTML=subs.map(s=>`<option value="${s}" ${s===selectedSub?'selected':''}>${s}</option>`).join('');
 }
 function updateEmCurrencyLabels(co){
-  const curr=coCurrency(co);
+  // If called from onchange (no argument), read from select; else set select + labels
+  const sel=document.getElementById('em-currency');
+  if(co){ sel.value=coCurrency(co); }
+  const curr=sel?.value||'EUR';
   const sym=CURR_SYMBOLS[curr]||curr;
   document.getElementById('em-quota-lbl').textContent=`Quota (${sym})`;
   document.getElementById('em-ach-lbl').textContent=`Achieved (${sym})`;

@@ -331,35 +331,32 @@
           <option value="">— Select company —</option>
           <option value="__admin__">Everfield (Admin)</option>
           <optgroup label="CEE & PL › Vistula">
-            <option>Booksy</option><option>Brainly</option><option>DocPlanner</option>
-            <option>LiveChat</option><option>Packhelp</option><option>SMSAPI</option>
-            <option>Symmetrical.ai</option>
+            <option>BBT</option><option>GO</option><option>Atmoterm</option>
+            <option>AGroup</option><option>Meditec</option><option>Frontu</option>
+            <option>Motivity</option>
           </optgroup>
           <optgroup label="DACH › Danube">
-            <option>Brainware</option><option>Echobot</option><option>Greentube</option>
-            <option>Runtastic</option><option>Shpock</option>
+            <option>SoCom</option><option>VSX</option><option>ParkHere</option>
+            <option>ondeso</option><option>aequitixx</option><option>Duchting</option>
           </optgroup>
           <optgroup label="DACH › DACH">
-            <option>Adjust</option><option>Contentful</option><option>GetYourGuide</option>
-            <option>HomeToGo</option><option>Mambu</option><option>Staffbase</option>
-            <option>SumUp</option><option>Taxfix</option><option>Zenjob</option>
+            <option>Fenz</option><option>KOST</option><option>helloTess</option>
+            <option>Matrix POS</option>
           </optgroup>
           <optgroup label="France › France">
-            <option>Alan</option><option>Doctolib</option><option>Kyriba</option>
-            <option>Mirakl</option><option>Pennylane</option><option>Spendesk</option>
-            <option>Younited</option>
+            <option>1Check</option><option>Fitnet</option><option>Synergee</option>
+            <option>Visioglobe</option><option>Inforum</option><option>Digifood</option>
           </optgroup>
           <optgroup label="UK&amp;I › Tamar">
-            <option>Behavox</option><option>Cazoo</option><option>Gousto</option>
-            <option>Oaknorth</option><option>Tractable</option>
+            <option>HeapsGO</option><option>Trade Interchange</option><option>Nvolve</option>
+            <option>OnlinePOS</option><option>CIM</option><option>Strategic Thinking</option>
           </optgroup>
           <optgroup label="UK&amp;I › Tees">
-            <option>Bought By Many</option><option>Cleo</option><option>Mindtrace</option>
-            <option>Monzo</option><option>Starling Bank</option>
+            <option>FitFactory</option><option>Depotnet</option><option>MKM</option>
           </optgroup>
           <optgroup label="Spain › Spain">
-            <option>Factorial</option><option>Flywire</option><option>Jobandtalent</option>
-            <option>Typeform</option>
+            <option>4GL</option><option>G-Stock</option><option>Esemtia</option>
+            <option>Vozitel</option><option>Teeone</option>
           </optgroup>
         </select>
       </div>
@@ -551,54 +548,49 @@ const COMPANY_PASS_SUFFIX = '-2026';
 ═══════════════════════════════════════ */
 const COMPANIES = [
   // Vistula
-  {name:'Booksy',         region:'CEE & PL', sub:'Vistula'},
-  {name:'Brainly',        region:'CEE & PL', sub:'Vistula'},
-  {name:'DocPlanner',     region:'CEE & PL', sub:'Vistula'},
-  {name:'LiveChat',       region:'CEE & PL', sub:'Vistula'},
-  {name:'Packhelp',       region:'CEE & PL', sub:'Vistula'},
-  {name:'SMSAPI',         region:'CEE & PL', sub:'Vistula'},
-  {name:'Symmetrical.ai', region:'CEE & PL', sub:'Vistula'},
+  {name:'BBT',      region:'CEE & PL', sub:'Vistula'},
+  {name:'GO',       region:'CEE & PL', sub:'Vistula'},
+  {name:'Atmoterm', region:'CEE & PL', sub:'Vistula'},
+  {name:'AGroup',   region:'CEE & PL', sub:'Vistula'},
+  {name:'Meditec',  region:'CEE & PL', sub:'Vistula'},
+  {name:'Frontu',   region:'CEE & PL', sub:'Vistula'},
+  {name:'Motivity', region:'CEE & PL', sub:'Vistula'},
   // Danube
-  {name:'Brainware',  region:'DACH', sub:'Danube'},
-  {name:'Echobot',    region:'DACH', sub:'Danube'},
-  {name:'Greentube',  region:'DACH', sub:'Danube'},
-  {name:'Runtastic',  region:'DACH', sub:'Danube'},
-  {name:'Shpock',     region:'DACH', sub:'Danube'},
+  {name:'SoCom',    region:'DACH', sub:'Danube'},
+  {name:'VSX',      region:'DACH', sub:'Danube'},
+  {name:'ParkHere', region:'DACH', sub:'Danube'},
+  {name:'ondeso',   region:'DACH', sub:'Danube'},
+  {name:'aequitixx',region:'DACH', sub:'Danube'},
+  {name:'Duchting', region:'DACH', sub:'Danube'},
   // DACH
-  {name:'Adjust',       region:'DACH', sub:'DACH'},
-  {name:'Contentful',   region:'DACH', sub:'DACH'},
-  {name:'GetYourGuide', region:'DACH', sub:'DACH'},
-  {name:'HomeToGo',     region:'DACH', sub:'DACH'},
-  {name:'Mambu',        region:'DACH', sub:'DACH'},
-  {name:'Staffbase',    region:'DACH', sub:'DACH'},
-  {name:'SumUp',        region:'DACH', sub:'DACH'},
-  {name:'Taxfix',       region:'DACH', sub:'DACH'},
-  {name:'Zenjob',       region:'DACH', sub:'DACH'},
+  {name:'Fenz',       region:'DACH', sub:'DACH'},
+  {name:'KOST',       region:'DACH', sub:'DACH'},
+  {name:'helloTess',  region:'DACH', sub:'DACH'},
+  {name:'Matrix POS', region:'DACH', sub:'DACH'},
   // France
-  {name:'Alan',       region:'France', sub:'France'},
-  {name:'Doctolib',   region:'France', sub:'France'},
-  {name:'Kyriba',     region:'France', sub:'France'},
-  {name:'Mirakl',     region:'France', sub:'France'},
-  {name:'Pennylane',  region:'France', sub:'France'},
-  {name:'Spendesk',   region:'France', sub:'France'},
-  {name:'Younited',   region:'France', sub:'France'},
+  {name:'1Check',    region:'France', sub:'France'},
+  {name:'Fitnet',    region:'France', sub:'France'},
+  {name:'Synergee',  region:'France', sub:'France'},
+  {name:'Visioglobe',region:'France', sub:'France'},
+  {name:'Inforum',   region:'France', sub:'France'},
+  {name:'Digifood',  region:'France', sub:'France'},
   // Tamar
-  {name:'Behavox',    region:'UK&I', sub:'Tamar'},
-  {name:'Cazoo',      region:'UK&I', sub:'Tamar'},
-  {name:'Gousto',     region:'UK&I', sub:'Tamar'},
-  {name:'Oaknorth',   region:'UK&I', sub:'Tamar'},
-  {name:'Tractable',  region:'UK&I', sub:'Tamar'},
+  {name:'HeapsGO',            region:'UK&I', sub:'Tamar'},
+  {name:'Trade Interchange',  region:'UK&I', sub:'Tamar'},
+  {name:'Nvolve',             region:'UK&I', sub:'Tamar'},
+  {name:'OnlinePOS',          region:'UK&I', sub:'Tamar'},
+  {name:'CIM',                region:'UK&I', sub:'Tamar'},
+  {name:'Strategic Thinking', region:'UK&I', sub:'Tamar'},
   // Tees
-  {name:'Bought By Many', region:'UK&I', sub:'Tees'},
-  {name:'Cleo',           region:'UK&I', sub:'Tees'},
-  {name:'Mindtrace',      region:'UK&I', sub:'Tees'},
-  {name:'Monzo',          region:'UK&I', sub:'Tees'},
-  {name:'Starling Bank',  region:'UK&I', sub:'Tees'},
+  {name:'FitFactory', region:'UK&I', sub:'Tees'},
+  {name:'Depotnet',   region:'UK&I', sub:'Tees'},
+  {name:'MKM',        region:'UK&I', sub:'Tees'},
   // Spain
-  {name:'Factorial',    region:'Spain', sub:'Spain'},
-  {name:'Flywire',      region:'Spain', sub:'Spain'},
-  {name:'Jobandtalent', region:'Spain', sub:'Spain'},
-  {name:'Typeform',     region:'Spain', sub:'Spain'},
+  {name:'4GL',     region:'Spain', sub:'Spain'},
+  {name:'G-Stock', region:'Spain', sub:'Spain'},
+  {name:'Esemtia', region:'Spain', sub:'Spain'},
+  {name:'Vozitel', region:'Spain', sub:'Spain'},
+  {name:'Teeone',  region:'Spain', sub:'Spain'},
 ];
 
 const SETUP_SQL = `create table if not exists quota_entries (

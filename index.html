@@ -534,22 +534,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         </div>
         <div class="fld" id="em-region-wrap">
           <label>Region</label>
-          <input type="text" id="em-region" readonly style="background:#fafafa;color:var(--txt2)">
+          <div class="sel-wrap"><select id="em-region" disabled style="background:#fafafa;color:var(--txt2)"></select></div>
         </div>
         <div class="fld" id="em-sub-wrap">
           <label>Sub-region</label>
-          <input type="text" id="em-sub" readonly style="background:#fafafa;color:var(--txt2)">
+          <div class="sel-wrap"><select id="em-sub" disabled style="background:#fafafa;color:var(--txt2)"></select></div>
         </div>
         <div class="fld fld-full">
           <label>Period</label>
-          <input type="text" id="em-period" readonly style="background:#fafafa;color:var(--txt2)">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <div class="period-seg" id="em-period-seg">
+              <button type="button" onclick="setEmPeriodType('Monthly')">Monthly</button>
+              <button type="button" onclick="setEmPeriodType('Quarterly')">Quarterly</button>
+              <button type="button" onclick="setEmPeriodType('Yearly')">Yearly</button>
+            </div>
+            <select class="period-select" id="em-period-v1" onchange="onEmPeriodChange()" style="font-size:12px"></select>
+            <select class="period-select" id="em-period-v2" onchange="onEmPeriodChange()" style="font-size:12px"></select>
+          </div>
         </div>
         <div class="fld">
-          <label>Quota (€)</label>
+          <label id="em-quota-lbl">Quota</label>
           <input type="number" id="em-quota" min="0" placeholder="0">
         </div>
         <div class="fld" id="em-ach-wrap">
-          <label>Achieved (€)</label>
+          <label id="em-ach-lbl">Achieved</label>
           <input type="number" id="em-ach" min="0" placeholder="0">
         </div>
       </div>
@@ -689,32 +697,53 @@ create table if not exists company_settings (
 alter table company_settings enable row level security;
 create policy if not exists "r" on company_settings for select using (true);
 create policy if not exists "i" on company_settings for insert with check (true);
-create policy if not exists "u" on company_settings for update using (true);`;
+create policy if not exists "u" on company_settings for update using (true);
+
+-- Migrations for existing tables (safe to run multiple times)
+alter table quota_entries add column if not exists crm_pull boolean default false;
+alter table quota_entries add column if not exists currency text default 'EUR';`;
 
 /* ═══════════════════════════════════════
    COMPANY DATA
 ═══════════════════════════════════════ */
 const COMPANIES = [
-  {name:'BBT',region:'CEE & PL',sub:'Vistula'},{name:'GO',region:'CEE & PL',sub:'Vistula'},
-  {name:'Atmoterm',region:'CEE & PL',sub:'Vistula'},{name:'AGroup',region:'CEE & PL',sub:'Vistula'},
-  {name:'Meditec',region:'CEE & PL',sub:'Vistula'},{name:'Frontu',region:'CEE & PL',sub:'Vistula'},
-  {name:'Motivity',region:'CEE & PL',sub:'Vistula'},
-  {name:'SoCom',region:'DACH',sub:'Danube'},{name:'VSX',region:'DACH',sub:'Danube'},
-  {name:'ParkHere',region:'DACH',sub:'Danube'},{name:'ondeso',region:'DACH',sub:'Danube'},
-  {name:'aequitixx',region:'DACH',sub:'Danube'},{name:'Duchting',region:'DACH',sub:'Danube'},
-  {name:'Fenz',region:'DACH',sub:'DACH'},{name:'KOST',region:'DACH',sub:'DACH'},
-  {name:'helloTess',region:'DACH',sub:'DACH'},{name:'Matrix POS',region:'DACH',sub:'DACH'},
-  {name:'1Check',region:'France',sub:'France'},{name:'Fitnet',region:'France',sub:'France'},
-  {name:'Synergee',region:'France',sub:'France'},{name:'Visioglobe',region:'France',sub:'France'},
-  {name:'Inforum',region:'France',sub:'France'},{name:'Digifood',region:'France',sub:'France'},
-  {name:'HeapsGO',region:'UK&I',sub:'Tamar'},{name:'Trade Interchange',region:'UK&I',sub:'Tamar'},
-  {name:'Nvolve',region:'UK&I',sub:'Tamar'},{name:'OnlinePOS',region:'UK&I',sub:'Tamar'},
-  {name:'CIM',region:'UK&I',sub:'Tamar'},{name:'Strategic Thinking',region:'UK&I',sub:'Tamar'},
-  {name:'FitFactory',region:'UK&I',sub:'Tees'},{name:'Depotnet',region:'UK&I',sub:'Tees'},
-  {name:'MKM',region:'UK&I',sub:'Tees'},
-  {name:'4GL',region:'Spain',sub:'Spain'},{name:'G-Stock',region:'Spain',sub:'Spain'},
-  {name:'Esemtia',region:'Spain',sub:'Spain'},{name:'Vozitel',region:'Spain',sub:'Spain'},
-  {name:'Teeone',region:'Spain',sub:'Spain'},
+  {name:'BBT',region:'CEE & PL',sub:'Vistula',currency:'PLN'},
+  {name:'GO',region:'CEE & PL',sub:'Vistula',currency:'PLN'},
+  {name:'Atmoterm',region:'CEE & PL',sub:'Vistula',currency:'PLN'},
+  {name:'AGroup',region:'CEE & PL',sub:'Vistula',currency:'EUR'},
+  {name:'Meditec',region:'CEE & PL',sub:'Vistula',currency:'EUR'},
+  {name:'Frontu',region:'CEE & PL',sub:'Vistula',currency:'EUR'},
+  {name:'Motivity',region:'CEE & PL',sub:'Vistula',currency:'EUR'},
+  {name:'SoCom',region:'DACH',sub:'Danube',currency:'EUR'},
+  {name:'VSX',region:'DACH',sub:'Danube',currency:'EUR'},
+  {name:'ParkHere',region:'DACH',sub:'Danube',currency:'EUR'},
+  {name:'ondeso',region:'DACH',sub:'Danube',currency:'EUR'},
+  {name:'aequitixx',region:'DACH',sub:'Danube',currency:'EUR'},
+  {name:'Duchting',region:'DACH',sub:'Danube',currency:'EUR'},
+  {name:'Fenz',region:'DACH',sub:'DACH',currency:'EUR'},
+  {name:'KOST',region:'DACH',sub:'DACH',currency:'EUR'},
+  {name:'helloTess',region:'DACH',sub:'DACH',currency:'EUR'},
+  {name:'Matrix POS',region:'DACH',sub:'DACH',currency:'EUR'},
+  {name:'1Check',region:'France',sub:'France',currency:'EUR'},
+  {name:'Fitnet',region:'France',sub:'France',currency:'EUR'},
+  {name:'Synergee',region:'France',sub:'France',currency:'EUR'},
+  {name:'Visioglobe',region:'France',sub:'France',currency:'EUR'},
+  {name:'Inforum',region:'France',sub:'France',currency:'EUR'},
+  {name:'Digifood',region:'France',sub:'France',currency:'EUR'},
+  {name:'HeapsGO',region:'UK&I',sub:'Tamar',currency:'DKK'},
+  {name:'Trade Interchange',region:'UK&I',sub:'Tamar',currency:'GBP'},
+  {name:'Nvolve',region:'UK&I',sub:'Tamar',currency:'GBP'},
+  {name:'OnlinePOS',region:'UK&I',sub:'Tamar',currency:'DKK'},
+  {name:'CIM',region:'UK&I',sub:'Tamar',currency:'GBP'},
+  {name:'Strategic Thinking',region:'UK&I',sub:'Tamar',currency:'GBP'},
+  {name:'FitFactory',region:'UK&I',sub:'Tees',currency:'GBP'},
+  {name:'Depotnet',region:'UK&I',sub:'Tees',currency:'GBP'},
+  {name:'MKM',region:'UK&I',sub:'Tees',currency:'GBP'},
+  {name:'4GL',region:'Spain',sub:'Spain',currency:'EUR'},
+  {name:'G-Stock',region:'Spain',sub:'Spain',currency:'EUR'},
+  {name:'Esemtia',region:'Spain',sub:'Spain',currency:'EUR'},
+  {name:'Vozitel',region:'Spain',sub:'Spain',currency:'EUR'},
+  {name:'Teeone',region:'Spain',sub:'Spain',currency:'EUR'},
 ];
 
 /* ═══════════════════════════════════════
@@ -734,6 +763,10 @@ let currentView = 'dashboard';
 let drillCompany = null; // admin drilled into a company
 let editEntry = null;
 let chartInst = null;
+let emPType = 'Monthly';
+let emPMonth = new Date().toLocaleString('en-US',{month:'long'});
+let emPQuarter = 'Q'+Math.ceil((new Date().getMonth()+1)/3);
+let emPYear = String(new Date().getFullYear());
 
 /* ═══════════════════════════════════════
    HELPERS
@@ -743,6 +776,15 @@ const myCompany = () => isAdmin() ? drillCompany : currentUser;
 const coData = (name) => COMPANIES.find(c=>c.name===name) || {region:'—',sub:'—'};
 const fmt = n => Number(n||0).toLocaleString('en-US');
 const fmtEur = n => '€'+fmt(n);
+const CURR_SYMBOLS = {EUR:'€',GBP:'£',PLN:'zł',DKK:'kr'};
+const coCurrency = co => (coData(co).currency)||'EUR';
+const fmtCurr = (n, curr) => {
+  const c = curr||'EUR';
+  const s = CURR_SYMBOLS[c]||c;
+  return (c==='PLN') ? fmt(n)+'\u00a0'+s : (c==='DKK') ? s+'\u00a0'+fmt(n) : s+fmt(n);
+};
+const fmtCoAmt = (n, co) => fmtCurr(n, coCurrency(co));
+const fmtEntryAmt = (n, entry) => fmtCurr(n, entry?.currency||coCurrency(entry?.company||''));
 const attPct = (ach,quo) => quo ? Math.round((ach/quo)*100) : 0;
 const attClass = p => p>=95?'green':p>=80?'amber':p>=60?'orange':'red';
 const attColor = p => p>=95?'var(--green)':p>=80?'var(--amber)':p>=60?'var(--orange)':'var(--red)';
@@ -867,7 +909,9 @@ async function loginAs(co){
   sessionStorage.setItem('qtu',co);
   // Log access (non-admin)
   if(co!=='__admin__'){
-    db.from('company_logins').insert([{company:co,logged_at:new Date().toISOString()}]).then(()=>{}).catch(()=>{});
+    try {
+      await db.from('company_logins').insert([{company:co,logged_at:new Date().toISOString()}]);
+    } catch(e){ console.warn('Login log failed:',e); }
   }
   // Setup UI
   const isAd=isAdmin();
@@ -953,7 +997,7 @@ async function loadAccessLog(){
    SAVE / DELETE
 ═══════════════════════════════════════ */
 async function saveEntry(){
-  const co = isAdmin() ? document.getElementById('em-co').value : currentUser;
+  const co = isAdmin() ? (drillCompany || document.getElementById('em-co').value) : currentUser;
   const seller = document.getElementById('em-seller').value.trim();
   const quota = parseFloat(document.getElementById('em-quota').value);
   const crmCb = document.getElementById('em-crm-cb').checked;
@@ -965,7 +1009,11 @@ async function saveEntry(){
   if(isNaN(quota)||quota<0){err.textContent='Enter a valid quota.';return;}
   if(!autopull && (isNaN(achieved)||achieved<0)){err.textContent='Enter a valid achieved amount.';return;}
   const cd=coData(co);
-  const payload={seller_name:seller,company:co,period:periodStr(),region:cd.region,sub_region:cd.sub,quota,achieved:autopull?0:achieved,crm_pull:autopull||crmCb};
+  const regSel=document.getElementById('em-region');
+  const subSel=document.getElementById('em-sub');
+  const region=regSel?.value||cd.region;
+  const sub_region=subSel?.value||cd.sub;
+  const payload={seller_name:seller,company:co,period:emPeriodStr(),region,sub_region,quota,achieved:autopull?0:achieved,crm_pull:autopull||crmCb,currency:coCurrency(co)};
   spin(true);
   try{
     if(editEntry){
@@ -1062,6 +1110,7 @@ function renderDashboard(){
   } else { banner.style.display='none'; }
 
   // Stats grid
+  const dispCurr = co ? coCurrency(co) : 'EUR';
   const sg=document.getElementById('stats-grid');
   sg.innerHTML=`
     <div class="stat-card" style="--accent-color:var(--acc);--icon-bg:var(--acc-light)">
@@ -1071,12 +1120,12 @@ function renderDashboard(){
     </div>
     <div class="stat-card" style="--accent-color:var(--blue);--icon-bg:var(--blue-bg)">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-      <div class="stat-val">${fmtEur(totalQ)}</div><div class="stat-lbl">Total Quota</div>
+      <div class="stat-val">${fmtCurr(totalQ,dispCurr)}</div><div class="stat-lbl">Total Quota</div>
       <div class="stat-delta" style="color:var(--txt3)">${displayPeriod(periodStr())}</div>
     </div>
     <div class="stat-card" style="--accent-color:var(--green);--icon-bg:var(--green-bg)">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="stat-val">${fmtEur(totalA)}</div><div class="stat-lbl">Total Achieved</div>
+      <div class="stat-val">${fmtCurr(totalA,dispCurr)}</div><div class="stat-lbl">Total Achieved</div>
       <div class="stat-delta" style="color:${attColor(att)}">${att}% of target</div>
     </div>
     <div class="stat-card" style="--accent-color:${attColor(att)};--icon-bg:${att>=95?'var(--green-bg)':att>=80?'var(--amber-bg)':att>=60?'var(--orange-bg)':'var(--red-bg)'}">
@@ -1094,13 +1143,14 @@ function renderDashboard(){
   // Table
   const tbody = data.map(r=>{
     const p=attPct(r.achieved,r.quota);
+    const rc=r.currency||coCurrency(r.company);
     const achCell = r.crm_pull
       ? `<td class="num"><span class="badge badge-crm">🔗 CRM</span></td>`
-      : `<td class="num">${fmtEur(r.achieved)}</td>`;
+      : `<td class="num">${fmtCurr(r.achieved,rc)}</td>`;
     return `<tr>
       <td style="font-weight:600">${r.seller_name}</td>
       <td><span class="badge badge-gray">${r.sub_region}</span></td>
-      <td class="num">${fmtEur(r.quota)}</td>
+      <td class="num">${fmtCurr(r.quota,rc)}</td>
       ${achCell}
       <td class="num"><span class="badge badge-${attClass(p)}">${p}%</span></td>
     </tr>`;
@@ -1133,9 +1183,9 @@ function renderChart(data){
     options:{
       indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:{display:true,position:'top',labels:{font:{size:11},boxWidth:12,padding:16}},
-        tooltip:{callbacks:{label:ctx=>`€${ctx.parsed.x.toLocaleString()}`}}},
+        tooltip:{callbacks:{label:ctx=>{ const r=sorted[ctx.dataIndex]; const sym=CURR_SYMBOLS[r.currency||coCurrency(r.company)]||'€'; return sym+ctx.parsed.x.toLocaleString(); }}}},
       scales:{
-        x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{callback:v=>'€'+v.toLocaleString(),font:{size:11}}},
+        x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{callback:v=>v.toLocaleString(),font:{size:11}}},
         y:{grid:{display:false},ticks:{font:{size:11}}}
       }
     }
@@ -1157,7 +1207,8 @@ function renderSellers(){
 
   const rows=data.map(r=>{
     const p=attPct(r.achieved,r.quota);
-    const achCell=r.crm_pull?`<td class="num"><span class="badge badge-crm">🔗 CRM</span></td>`:`<td class="num">${fmtEur(r.achieved)}</td>`;
+    const rc=r.currency||coCurrency(r.company);
+    const achCell=r.crm_pull?`<td class="num"><span class="badge badge-crm">🔗 CRM</span></td>`:`<td class="num">${fmtCurr(r.achieved,rc)}</td>`;
     const coCell=isAdmin()?`<td><strong>${r.company}</strong></td>`:'';
     const actions=`<td><div class="row-actions">
       <button class="btn btn-ghost btn-sm btn-icon" onclick='openEntryModal(${JSON.stringify(r)})' title="Edit">✏️</button>
@@ -1168,7 +1219,7 @@ function renderSellers(){
       <td style="font-weight:600">${r.seller_name}</td>
       <td><span class="badge badge-gray">${r.sub_region}</span></td>
       <td><span class="badge badge-blue">${displayPeriod(r.period)}</span></td>
-      <td class="num">${fmtEur(r.quota)}</td>
+      <td class="num">${fmtCurr(r.quota,rc)}</td>
       ${achCell}
       <td class="num"><span class="badge badge-${attClass(p)}">${p}%</span></td>
       ${actions}
@@ -1212,7 +1263,7 @@ function renderPortfolio(){
         <div class="co-card-stats">
           <div class="co-stat"><div class="co-stat-val">${cEntries.length>0?`<span style="color:${clr}">${p}%</span>`:'—'}</div><div class="co-stat-lbl">Attainment</div></div>
           <div class="co-stat"><div class="co-stat-val">${[...new Set(cEntries.map(e=>e.seller_name))].length||'—'}</div><div class="co-stat-lbl">Sellers</div></div>
-          <div class="co-stat"><div class="co-stat-val" style="font-size:12px">${q>0?fmtEur(q):'—'}</div><div class="co-stat-lbl">Quota</div></div>
+          <div class="co-stat"><div class="co-stat-val" style="font-size:12px">${q>0?fmtCurr(q,c.currency):'—'}</div><div class="co-stat-lbl">Quota</div></div>
         </div>
         ${q>0?`<div class="co-att-bar"><div class="co-att-fill" style="width:${Math.min(p,100)}%;background:${clr}"></div></div>`:''}
       </div>
@@ -1254,8 +1305,8 @@ function renderDrilldown(co){
     </div>
     <div class="stats-grid" style="margin-bottom:20px">
       <div class="stat-card"><div class="stat-val">${[...new Set(cEntries.map(e=>e.seller_name))].length}</div><div class="stat-lbl">Sellers</div></div>
-      <div class="stat-card"><div class="stat-val">${fmtEur(q)}</div><div class="stat-lbl">Total Quota</div></div>
-      <div class="stat-card"><div class="stat-val">${fmtEur(a)}</div><div class="stat-lbl">Total Achieved</div></div>
+      <div class="stat-card"><div class="stat-val">${fmtCurr(q,coCurrency(co))}</div><div class="stat-lbl">Total Quota</div></div>
+      <div class="stat-card"><div class="stat-val">${fmtCurr(a,coCurrency(co))}</div><div class="stat-lbl">Total Achieved</div></div>
       <div class="stat-card"><div class="stat-val" style="color:${attColor(p)}">${p}%</div><div class="stat-lbl">Attainment</div></div>
     </div>
     <div class="table-card">
@@ -1269,8 +1320,8 @@ function renderDrilldown(co){
           return `<tr>
             <td style="font-weight:600">${r.seller_name}</td>
             <td><span class="badge badge-blue">${displayPeriod(r.period)}</span></td>
-            <td class="num">${fmtEur(r.quota)}</td>
-            <td class="num">${r.crm_pull?'<span class="badge badge-crm">🔗 CRM</span>':fmtEur(r.achieved)}</td>
+            <td class="num">${fmtCurr(r.quota,r.currency||coCurrency(co))}</td>
+            <td class="num">${r.crm_pull?'<span class="badge badge-crm">🔗 CRM</span>':fmtCurr(r.achieved,r.currency||coCurrency(co))}</td>
             <td class="num"><span class="badge badge-${attClass(rp)}">${rp}%</span></td>
             <td><div class="row-actions">
               <button class="btn btn-ghost btn-sm btn-icon" onclick='openEntryModal(${JSON.stringify(r)})'>✏️</button>
@@ -1433,10 +1484,26 @@ function openEntryModal(entry){
   } else { coWrap.style.display='none'; }
 
   const effectiveCo = co;
-  const cd=coData(effectiveCo||'');
-  document.getElementById('em-region').value=cd.region;
-  document.getElementById('em-sub').value=cd.sub;
-  document.getElementById('em-period').value=displayPeriod(entry?entry.period:periodStr());
+
+  // Build region/sub dropdowns
+  if(effectiveCo) buildEmRegionSub(effectiveCo);
+
+  // Build period dropdowns — init from entry or current header period
+  if(entry){
+    const parts=entry.period.split('|');
+    emPType=parts[0];
+    if(parts[0]==='Monthly'){emPMonth=parts[1];emPYear=parts[2];}
+    else if(parts[0]==='Quarterly'){emPQuarter=parts[1];emPYear=parts[2];}
+    else{emPYear=parts[1];}
+  } else {
+    emPType=pType; emPMonth=pMonth; emPQuarter=pQuarter; emPYear=pYear;
+  }
+  document.querySelectorAll('#em-period-seg button').forEach(b=>b.classList.toggle('active',b.textContent===emPType));
+  buildEmPeriodDropdowns();
+
+  // Currency labels
+  if(effectiveCo) updateEmCurrencyLabels(effectiveCo);
+
   document.getElementById('em-seller').value=entry?entry.seller_name:'';
   document.getElementById('em-quota').value=entry?entry.quota:'';
   document.getElementById('em-ach').value=entry?entry.achieved:'';
@@ -1465,9 +1532,8 @@ function openEntryModal(entry){
 
 function onEmCoChange(){
   const co=document.getElementById('em-co').value;
-  const cd=coData(co);
-  document.getElementById('em-region').value=cd.region;
-  document.getElementById('em-sub').value=cd.sub;
+  buildEmRegionSub(co);
+  updateEmCurrencyLabels(co);
   const crm=hasCRM(co), ap=hasAutoPull(co);
   document.getElementById('em-crm-toggle-row').style.display=crm&&!ap?'':'none';
   document.getElementById('em-ach-wrap').style.display=ap?'none':'';
@@ -1480,6 +1546,61 @@ function onCrmToggle(){
   const checked=document.getElementById('em-crm-cb').checked;
   document.getElementById('em-ach-wrap').style.display=checked?'none':'';
   if(checked) document.getElementById('em-ach').value='0';
+}
+
+/* ───── MODAL PERIOD HELPERS ───── */
+function setEmPeriodType(t){
+  emPType=t;
+  document.querySelectorAll('#em-period-seg button').forEach(b=>b.classList.toggle('active',b.textContent===t));
+  buildEmPeriodDropdowns();
+}
+function buildEmPeriodDropdowns(){
+  const v1=document.getElementById('em-period-v1');
+  const v2=document.getElementById('em-period-v2');
+  if(!v1||!v2) return;
+  const yr=new Date().getFullYear();
+  const years=[yr+1,yr,yr-1,yr-2].map(y=>`<option value="${y}" ${String(y)===emPYear?'selected':''}>${y}</option>`).join('');
+  if(emPType==='Monthly'){
+    v1.innerHTML=MONTHS.map(m=>`<option value="${m}" ${m===emPMonth?'selected':''}>${m}</option>`).join('');
+    v2.innerHTML=years; v1.style.display=''; v2.style.display='';
+  } else if(emPType==='Quarterly'){
+    v1.innerHTML=QUARTERS.map(q=>`<option value="${q}" ${q===emPQuarter?'selected':''}>${q}</option>`).join('');
+    v2.innerHTML=years; v1.style.display=''; v2.style.display='';
+  } else {
+    v1.innerHTML=years; v1.style.display=''; v2.style.display='none';
+  }
+}
+function onEmPeriodChange(){
+  emPMonth=document.getElementById('em-period-v1').value;
+  emPYear=document.getElementById('em-period-v2').value||document.getElementById('em-period-v1').value;
+  if(emPType==='Quarterly') emPQuarter=document.getElementById('em-period-v1').value;
+}
+function emPeriodStr(){
+  const v1=document.getElementById('em-period-v1')?.value;
+  const v2=document.getElementById('em-period-v2')?.value;
+  if(emPType==='Monthly') return `Monthly|${v1||emPMonth}|${v2||emPYear}`;
+  if(emPType==='Quarterly') return `Quarterly|${v1||emPQuarter}|${v2||emPYear}`;
+  return `Yearly|${v1||emPYear}`;
+}
+
+/* ───── MODAL REGION/SUB HELPERS ───── */
+function buildEmRegionSub(co){
+  const uniqueRegions=[...new Set(COMPANIES.map(c=>c.region))];
+  const cd=coData(co);
+  const regSel=document.getElementById('em-region');
+  regSel.innerHTML=uniqueRegions.map(r=>`<option value="${r}" ${r===cd.region?'selected':''}>${r}</option>`).join('');
+  buildEmSubForRegion(cd.region, cd.sub);
+}
+function buildEmSubForRegion(region, selectedSub){
+  const subs=[...new Set(COMPANIES.filter(c=>c.region===region).map(c=>c.sub))];
+  const subSel=document.getElementById('em-sub');
+  subSel.innerHTML=subs.map(s=>`<option value="${s}" ${s===selectedSub?'selected':''}>${s}</option>`).join('');
+}
+function updateEmCurrencyLabels(co){
+  const curr=coCurrency(co);
+  const sym=CURR_SYMBOLS[curr]||curr;
+  document.getElementById('em-quota-lbl').textContent=`Quota (${sym})`;
+  document.getElementById('em-ach-lbl').textContent=`Achieved (${sym})`;
 }
 
 /* ═══════════════════════════════════════

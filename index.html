@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quota Achievement Tracker — Everfield</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --brand: #1a1a2e;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --green: #16a34a;
+    --green-bg: #dcfce7;
+    --amber: #d97706;
+    --amber-bg: #fef3c7;
+    --red: #dc2626;
+    --red-bg: #fee2e2;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --white: #ffffff;
+    --shadow: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--gray-100); color: var(--gray-800); min-height: 100vh; font-size: 14px; }
+
+  /* ── LOADING BAR ── */
+  #loading-bar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--accent); width: 0%; z-index: 9999;
+    transition: width 0.3s ease, opacity 0.3s ease;
+  }
+
+  /* ── SPINNER OVERLAY ── */
+  #spinner-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(255,255,255,0.6); z-index: 9998;
+    align-items: center; justify-content: center;
+  }
+  #spinner-overlay.active { display: flex; }
+  .spinner {
+    width: 40px; height: 40px; border: 4px solid var(--gray-200);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── LOGIN SCREEN ── */
+  #login-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 24px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+  }
+  .login-card {
+    background: white; border-radius: 16px; padding: 40px 36px;
+    width: 100%; max-width: 420px; box-shadow: var(--shadow-lg);
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  .login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .login-logo-icon {
+    width: 44px; height: 44px; background: var(--brand);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  }
+  .login-logo-icon svg { width: 24px; height: 24px; fill: white; }
+  .login-logo-text { font-size: 18px; font-weight: 700; color: var(--gray-900); }
+  .login-logo-sub { font-size: 12px; color: var(--gray-500); }
+  .login-title { font-size: 22px; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; }
+  .login-subtitle { font-size: 13px; color: var(--gray-500); margin-bottom: 24px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-group select, .form-group input {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-300);
+    border-radius: 8px; font-size: 14px; color: var(--gray-800);
+    background: white; transition: border-color 0.15s;
+    appearance: none;
+  }
+  .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--accent); }
+  .select-wrapper { position: relative; }
+  .select-wrapper::after { content: '▾'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--gray-400); pointer-events: none; }
+  .btn-primary {
+    width: 100%; padding: 11px; background: var(--accent); color: white;
+    border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .login-error { color: var(--red); font-size: 13px; margin-top: 12px; text-align: center; min-height: 20px; }
+
+  /* ── APP SHELL ── */
+  #app { display: none; min-height: 100vh; }
+  .header {
+    background: var(--brand); color: white;
+    padding: 0 24px; height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-logo { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-title { font-size: 13px; color: rgba(255,255,255,0.6); }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .live-badge {
+    display: flex; align-items: center; gap: 5px;
+    background: rgba(22,163,74,0.2); border: 1px solid rgba(22,163,74,0.4);
+    border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; color: #4ade80;
+  }
+  .live-dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .user-badge {
+    background: rgba(255,255,255,0.1); border-radius: 20px;
+    padding: 4px 12px; font-size: 12px; font-weight: 500;
+  }
+  .btn-icon {
+    background: rgba(255,255,255,0.1); border: none; color: white;
+    border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 13px;
+    transition: background 0.15s; display: flex; align-items: center; gap: 5px;
+  }
+  .btn-icon:hover { background: rgba(255,255,255,0.2); }
+  .btn-logout {
+    background: transparent; border: 1px solid rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.8); border-radius: 8px; padding: 5px 12px;
+    font-size: 12px; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-logout:hover { background: rgba(255,255,255,0.1); color: white; }
+
+  .main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+  /* ── SETUP BANNER ── */
+  #setup-banner {
+    display: none; background: #fffbeb; border: 1.5px solid #fbbf24;
+    border-radius: var(--radius); padding: 20px 24px; margin-bottom: 24px;
+  }
+  .setup-banner-title { font-weight: 700; color: #92400e; margin-bottom: 8px; font-size: 15px; }
+  .setup-banner-desc { color: #78350f; font-size: 13px; margin-bottom: 14px; line-height: 1.6; }
+  .setup-sql {
+    background: #1e1e2e; color: #cdd6f4; font-family: monospace; font-size: 12px;
+    padding: 16px; border-radius: 8px; overflow-x: auto; white-space: pre;
+    line-height: 1.5;
+  }
+  .setup-sql-label { font-size: 12px; font-weight: 600; color: #78350f; margin-bottom: 6px; }
+  .setup-copy-btn {
+    margin-top: 10px; background: #f59e0b; color: white; border: none;
+    border-radius: 6px; padding: 7px 14px; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .setup-copy-btn:hover { background: #d97706; }
+
+  /* ── SUMMARY CARDS ── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card {
+    background: white; border-radius: var(--radius); padding: 20px;
+    box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 6px;
+  }
+  .card-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-500); }
+  .card-value { font-size: 28px; font-weight: 800; color: var(--gray-900); line-height: 1; }
+  .card-sub { font-size: 12px; color: var(--gray-500); }
+  .card-green .card-value { color: var(--green); }
+  .card-amber .card-value { color: var(--amber); }
+  .card-red .card-value { color: var(--red); }
+
+  /* ── CHART ── */
+  .chart-card {
+    background: white; border-radius: var(--radius); padding: 24px;
+    box-shadow: var(--shadow); margin-bottom: 24px;
+  }
+  .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .chart-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+  .chart-wrap { position: relative; height: 280px; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+  }
+  .toolbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .filter-select {
+    padding: 8px 12px; border: 1.5px solid var(--gray-300); border-radius: 8px;
+    font-size: 13px; color: var(--gray-700); background: white; cursor: pointer;
+    appearance: none; min-width: 140px;
+  }
+  .filter-select:focus { outline: none; border-color: var(--accent); }
+  .search-input {
+    padding: 8px 12px; border: 1.5px solid var(--gray-300); border-radius: 8px;
+    font-size: 13px; color: var(--gray-700); width: 200px;
+  }
+  .search-input:focus { outline: none; border-color: var(--accent); }
+  .btn-add {
+    background: var(--accent); color: white; border: none; border-radius: 8px;
+    padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background 0.15s; display: flex; align-items: center; gap: 6px;
+  }
+  .btn-add:hover { background: var(--accent-hover); }
+
+  /* ── TABLE ── */
+  .table-wrap { background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-500);
+    background: var(--gray-50); border-bottom: 1px solid var(--gray-200);
+    white-space: nowrap; cursor: pointer; user-select: none;
+  }
+  thead th:hover { color: var(--gray-800); }
+  thead th .sort-arrow { margin-left: 4px; opacity: 0.4; }
+  thead th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+  tbody tr { border-bottom: 1px solid var(--gray-100); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--gray-50); }
+  td { padding: 12px 16px; font-size: 13px; color: var(--gray-700); white-space: nowrap; }
+  td.masked { color: var(--gray-400); font-style: italic; }
+  .att-badge {
+    display: inline-flex; align-items: center; padding: 3px 10px;
+    border-radius: 20px; font-size: 12px; font-weight: 700; min-width: 60px; justify-content: center;
+  }
+  .att-green { background: var(--green-bg); color: var(--green); }
+  .att-amber { background: var(--amber-bg); color: var(--amber); }
+  .att-red { background: var(--red-bg); color: var(--red); }
+  .action-btn {
+    background: transparent; border: 1px solid var(--gray-300); border-radius: 6px;
+    padding: 4px 10px; font-size: 12px; cursor: pointer; transition: all 0.15s;
+    color: var(--gray-600);
+  }
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .action-btn.del:hover { border-color: var(--red); color: var(--red); }
+  .empty-state { padding: 60px; text-align: center; color: var(--gray-400); }
+  .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45); z-index: 200;
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: white; border-radius: 16px; padding: 32px;
+    width: 100%; max-width: 520px; box-shadow: var(--shadow-lg);
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-title { font-size: 18px; font-weight: 700; color: var(--gray-900); margin-bottom: 24px; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .modal-grid .full { grid-column: 1 / -1; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+  .btn-cancel {
+    background: white; border: 1.5px solid var(--gray-300); border-radius: 8px;
+    padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+    color: var(--gray-700); transition: all 0.15s;
+  }
+  .btn-cancel:hover { border-color: var(--gray-400); }
+  .btn-save {
+    background: var(--accent); color: white; border: none; border-radius: 8px;
+    padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-save:hover { background: var(--accent-hover); }
+  .modal-error { color: var(--red); font-size: 12px; margin-top: 8px; }
+
+  /* ── DELETE CONFIRM ── */
+  .confirm-modal { max-width: 400px; }
+  .confirm-msg { color: var(--gray-600); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+  .btn-del-confirm { background: var(--red); color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-del-confirm:hover { background: #b91c1c; }
+
+  /* ── PERIOD TABS ── */
+  .period-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+  .period-tab {
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: 1.5px solid var(--gray-300); background: white; color: var(--gray-600);
+    transition: all 0.15s;
+  }
+  .period-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .period-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    background: var(--gray-900); color: white; padding: 12px 20px;
+    border-radius: 10px; font-size: 13px; font-weight: 500;
+    box-shadow: var(--shadow-lg); opacity: 0; transform: translateY(8px);
+    transition: all 0.25s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast.success { background: var(--green); }
+  #toast.error { background: var(--red); }
+
+  @media (max-width: 600px) {
+    .modal-grid { grid-template-columns: 1fr; }
+    .modal-grid .full { grid-column: 1; }
+    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+    .main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loading-bar"></div>
+<div id="spinner-overlay"><div class="spinner"></div></div>
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════ LOGIN ═══════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div>
+        <div class="login-logo-text">Everfield</div>
+        <div class="login-logo-sub">Portfolio Management</div>
+      </div>
+    </div>
+    <div class="login-title">Quota Achievement Tracker</div>
+    <div class="login-subtitle">Sign in with your company credentials</div>
+    <div class="form-group">
+      <label>Company</label>
+      <div class="select-wrapper">
+        <select id="login-company">
+          <option value="">— Select company —</option>
+          <option value="__admin__">Everfield (Admin)</option>
+          <optgroup label="CEE & PL › Vistula">
+            <option>Booksy</option><option>Brainly</option><option>DocPlanner</option>
+            <option>LiveChat</option><option>Packhelp</option><option>SMSAPI</option>
+            <option>Symmetrical.ai</option>
+          </optgroup>
+          <optgroup label="DACH › Danube">
+            <option>Brainware</option><option>Echobot</option><option>Greentube</option>
+            <option>Runtastic</option><option>Shpock</option>
+          </optgroup>
+          <optgroup label="DACH › DACH">
+            <option>Adjust</option><option>Contentful</option><option>GetYourGuide</option>
+            <option>HomeToGo</option><option>Mambu</option><option>Staffbase</option>
+            <option>SumUp</option><option>Taxfix</option><option>Zenjob</option>
+          </optgroup>
+          <optgroup label="France › France">
+            <option>Alan</option><option>Doctolib</option><option>Kyriba</option>
+            <option>Mirakl</option><option>Pennylane</option><option>Spendesk</option>
+            <option>Younited</option>
+          </optgroup>
+          <optgroup label="UK&amp;I › Tamar">
+            <option>Behavox</option><option>Cazoo</option><option>Gousto</option>
+            <option>Oaknorth</option><option>Tractable</option>
+          </optgroup>
+          <optgroup label="UK&amp;I › Tees">
+            <option>Bought By Many</option><option>Cleo</option><option>Mindtrace</option>
+            <option>Monzo</option><option>Starling Bank</option>
+          </optgroup>
+          <optgroup label="Spain › Spain">
+            <option>Factorial</option><option>Flywire</option><option>Jobandtalent</option>
+            <option>Typeform</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ APP ═══════════════════════════════════════════ -->
+<div id="app">
+  <header class="header">
+    <div class="header-left">
+      <div class="header-logo">Everfield</div>
+      <div class="header-title">Quota Achievement Tracker</div>
+    </div>
+    <div class="header-right">
+      <div class="live-badge"><div class="live-dot"></div>Live</div>
+      <span class="user-badge" id="user-badge"></span>
+      <button class="btn-icon" onclick="refreshData()" title="Refresh data">↻ Refresh</button>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- Setup banner -->
+    <div id="setup-banner">
+      <div class="setup-banner-title">⚠️ Database table not found — one-time setup required</div>
+      <div class="setup-banner-desc">
+        The <strong>quota_entries</strong> table doesn't exist yet in your Supabase project.<br>
+        Run the SQL below once in the <a href="https://supabase.com/dashboard/project/nbspfxdbtfjelprofkfi/editor" target="_blank" style="color:#92400e">Supabase SQL Editor</a>, then refresh this page.
+      </div>
+      <div class="setup-sql-label">SQL — paste into Supabase SQL Editor and click Run:</div>
+      <div class="setup-sql" id="setup-sql-code"></div>
+      <button class="setup-copy-btn" onclick="copySetupSQL()">📋 Copy SQL</button>
+    </div>
+
+    <!-- Period tabs -->
+    <div class="period-tabs" id="period-tabs"></div>
+
+    <!-- Summary cards -->
+    <div class="cards-grid" id="cards-grid">
+      <div class="card"><div class="card-label">Total Sellers</div><div class="card-value" id="c-total">—</div></div>
+      <div class="card card-green"><div class="card-label">≥100% Attainment</div><div class="card-value" id="c-green">—</div></div>
+      <div class="card card-amber"><div class="card-label">75–99% Attainment</div><div class="card-value" id="c-amber">—</div></div>
+      <div class="card card-red"><div class="card-label">&lt;75% Attainment</div><div class="card-value" id="c-red">—</div></div>
+      <div class="card"><div class="card-label">Avg Attainment</div><div class="card-value" id="c-avg">—</div><div class="card-sub">across visible entries</div></div>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Attainment by Company</div>
+      </div>
+      <div class="chart-wrap"><canvas id="attainment-chart"></canvas></div>
+    </div>
+
+    <!-- Table toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <select class="filter-select" id="filter-region" onchange="applyFilters()">
+          <option value="">All Regions</option>
+          <option>CEE &amp; PL</option><option>DACH</option><option>France</option>
+          <option>UK&amp;I</option><option>Spain</option>
+        </select>
+        <select class="filter-select" id="filter-company" onchange="applyFilters()">
+          <option value="">All Companies</option>
+        </select>
+        <input class="search-input" id="search-input" placeholder="Search seller…" oninput="applyFilters()">
+      </div>
+      <button class="btn-add" id="btn-add-entry" onclick="openAddModal()">＋ Add Entry</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortBy('seller_name')">Seller <span class="sort-arrow">↕</span></th>
+              <th onclick="sortBy('region')">Region <span class="sort-arrow">↕</span></th>
+              <th onclick="sortBy('sub_region')">Sub-Region <span class="sort-arrow">↕</span></th>
+              <th onclick="sortBy('company')">Company <span class="sort-arrow">↕</span></th>
+              <th onclick="sortBy('quota')">Quota (€) <span class="sort-arrow">↕</span></th>
+              <th onclick="sortBy('achieved')">Achieved (€) <span class="sort-arrow">↕</span></th>
+              <th onclick="sortBy('attainment')">Attainment <span class="sort-arrow">↕</span></th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════ ADD / EDIT MODAL ═══════════════════ -->
+<div class="modal-backdrop" id="entry-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Add Entry</div>
+    <div class="modal-grid">
+      <div class="form-group">
+        <label>Seller Name</label>
+        <input type="text" id="f-seller" placeholder="e.g. John Smith">
+      </div>
+      <div class="form-group">
+        <label>Period Type</label>
+        <div class="select-wrapper">
+          <select id="f-period-type" onchange="updatePeriodFields()">
+            <option value="">— Select type —</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" id="f-period-sub-wrap" style="display:none">
+        <label id="f-period-sub-label">Period</label>
+        <div class="select-wrapper">
+          <select id="f-period-sub"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Year</label>
+        <div class="select-wrapper">
+          <select id="f-period-year">
+            <option value="">— Select year —</option>
+            <option>2023</option><option>2024</option>
+            <option value="2025" selected>2025</option>
+            <option>2026</option><option>2027</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group full">
+        <label>Company</label>
+        <div class="select-wrapper">
+          <select id="f-company"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Quota (€)</label>
+        <input type="number" id="f-quota" placeholder="e.g. 100000" min="0">
+      </div>
+      <div class="form-group">
+        <label>Achieved (€)</label>
+        <input type="number" id="f-achieved" placeholder="e.g. 82000" min="0">
+      </div>
+    </div>
+    <div class="modal-error" id="modal-error"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('entry-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ DELETE CONFIRM ═══════════════════ -->
+<div class="modal-backdrop" id="delete-modal">
+  <div class="modal confirm-modal">
+    <div class="modal-title">Delete Entry</div>
+    <div class="confirm-msg">Are you sure you want to delete this entry? This action cannot be undone.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('delete-modal')">Cancel</button>
+      <button class="btn-del-confirm" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   CONFIGURATION
+═══════════════════════════════════════ */
+const SUPABASE_URL  = 'https://nbspfxdbtfjelprofkfi.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ic3BmeGRidGZqZWxwcm9ma2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMDEzODEsImV4cCI6MjA4OTU3NzM4MX0.u2iOuMV3HRVhBkkm4Wx_Ip3VhO8R5Y52cvD6HrUS-Dw';
+
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const ADMIN_PASS   = 'everfield-admin-2026';
+const COMPANY_PASS_SUFFIX = '-2026';
+
+/* ═══════════════════════════════════════
+   COMPANY DATA
+═══════════════════════════════════════ */
+const COMPANIES = [
+  // Vistula
+  {name:'Booksy',         region:'CEE & PL', sub:'Vistula'},
+  {name:'Brainly',        region:'CEE & PL', sub:'Vistula'},
+  {name:'DocPlanner',     region:'CEE & PL', sub:'Vistula'},
+  {name:'LiveChat',       region:'CEE & PL', sub:'Vistula'},
+  {name:'Packhelp',       region:'CEE & PL', sub:'Vistula'},
+  {name:'SMSAPI',         region:'CEE & PL', sub:'Vistula'},
+  {name:'Symmetrical.ai', region:'CEE & PL', sub:'Vistula'},
+  // Danube
+  {name:'Brainware',  region:'DACH', sub:'Danube'},
+  {name:'Echobot',    region:'DACH', sub:'Danube'},
+  {name:'Greentube',  region:'DACH', sub:'Danube'},
+  {name:'Runtastic',  region:'DACH', sub:'Danube'},
+  {name:'Shpock',     region:'DACH', sub:'Danube'},
+  // DACH
+  {name:'Adjust',       region:'DACH', sub:'DACH'},
+  {name:'Contentful',   region:'DACH', sub:'DACH'},
+  {name:'GetYourGuide', region:'DACH', sub:'DACH'},
+  {name:'HomeToGo',     region:'DACH', sub:'DACH'},
+  {name:'Mambu',        region:'DACH', sub:'DACH'},
+  {name:'Staffbase',    region:'DACH', sub:'DACH'},
+  {name:'SumUp',        region:'DACH', sub:'DACH'},
+  {name:'Taxfix',       region:'DACH', sub:'DACH'},
+  {name:'Zenjob',       region:'DACH', sub:'DACH'},
+  // France
+  {name:'Alan',       region:'France', sub:'France'},
+  {name:'Doctolib',   region:'France', sub:'France'},
+  {name:'Kyriba',     region:'France', sub:'France'},
+  {name:'Mirakl',     region:'France', sub:'France'},
+  {name:'Pennylane',  region:'France', sub:'France'},
+  {name:'Spendesk',   region:'France', sub:'France'},
+  {name:'Younited',   region:'France', sub:'France'},
+  // Tamar
+  {name:'Behavox',    region:'UK&I', sub:'Tamar'},
+  {name:'Cazoo',      region:'UK&I', sub:'Tamar'},
+  {name:'Gousto',     region:'UK&I', sub:'Tamar'},
+  {name:'Oaknorth',   region:'UK&I', sub:'Tamar'},
+  {name:'Tractable',  region:'UK&I', sub:'Tamar'},
+  // Tees
+  {name:'Bought By Many', region:'UK&I', sub:'Tees'},
+  {name:'Cleo',           region:'UK&I', sub:'Tees'},
+  {name:'Mindtrace',      region:'UK&I', sub:'Tees'},
+  {name:'Monzo',          region:'UK&I', sub:'Tees'},
+  {name:'Starling Bank',  region:'UK&I', sub:'Tees'},
+  // Spain
+  {name:'Factorial',    region:'Spain', sub:'Spain'},
+  {name:'Flywire',      region:'Spain', sub:'Spain'},
+  {name:'Jobandtalent', region:'Spain', sub:'Spain'},
+  {name:'Typeform',     region:'Spain', sub:'Spain'},
+];
+
+const SETUP_SQL = `create table if not exists quota_entries (
+  id          uuid primary key default gen_random_uuid(),
+  seller_name text not null,
+  region      text not null,
+  sub_region  text not null,
+  company     text not null,
+  period      text not null,
+  quota       numeric not null,
+  achieved    numeric not null,
+  created_at  timestamptz default now()
+);
+
+alter table quota_entries enable row level security;
+
+create policy "read all"   on quota_entries for select using (true);
+create policy "insert all" on quota_entries for insert with check (true);
+create policy "update all" on quota_entries for update using (true);
+create policy "delete all" on quota_entries for delete using (true);`;
+
+/* ═══════════════════════════════════════
+   STATE
+═══════════════════════════════════════ */
+let currentUser   = null;   // null | '__admin__' | 'CompanyName'
+let allEntries    = [];     // raw from Supabase
+let filteredRows  = [];     // after filters
+let activePeriod  = null;
+let sortKey       = 'company';
+let sortAsc       = true;
+let editingId     = null;
+let deleteId      = null;
+let chartInstance = null;
+
+/* ═══════════════════════════════════════
+   PASSWORDS  (stored in localStorage so
+   each machine/user can set their own)
+═══════════════════════════════════════ */
+function getPassword(company) {
+  if (company === '__admin__') return ADMIN_PASS;
+  const slug = company.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  return slug + COMPANY_PASS_SUFFIX;
+}
+
+/* ═══════════════════════════════════════
+   AUTH
+═══════════════════════════════════════ */
+function doLogin() {
+  const company  = document.getElementById('login-company').value;
+  const password = document.getElementById('login-password').value;
+  const errEl    = document.getElementById('login-error');
+  errEl.textContent = '';
+
+  if (!company) { errEl.textContent = 'Please select a company.'; return; }
+  if (!password) { errEl.textContent = 'Please enter your password.'; return; }
+
+  if (password !== getPassword(company)) {
+    errEl.textContent = 'Incorrect password. Please try again.';
+    return;
+  }
+
+  sessionStorage.setItem('qt_user', company);
+  currentUser = company;
+  bootApp();
+}
+
+function doLogout() {
+  sessionStorage.removeItem('qt_user');
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').textContent = '';
+}
+
+function isAdmin() { return currentUser === '__admin__'; }
+function myCompany() { return isAdmin() ? null : currentUser; }
+
+/* ═══════════════════════════════════════
+   LOADING STATES
+═══════════════════════════════════════ */
+let loadingBar = null;
+function showLoading() {
+  const bar = document.getElementById('loading-bar');
+  bar.style.width = '0%'; bar.style.opacity = '1';
+  let w = 0;
+  loadingBar = setInterval(() => { w = Math.min(w + Math.random() * 15, 85); bar.style.width = w + '%'; }, 200);
+  document.getElementById('spinner-overlay').classList.add('active');
+}
+function hideLoading() {
+  clearInterval(loadingBar);
+  const bar = document.getElementById('loading-bar');
+  bar.style.width = '100%';
+  setTimeout(() => { bar.style.opacity = '0'; bar.style.width = '0%'; }, 300);
+  document.getElementById('spinner-overlay').classList.remove('active');
+}
+
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+let toastTimer = null;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+}
+
+/* ═══════════════════════════════════════
+   BOOT
+═══════════════════════════════════════ */
+async function bootApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  const badge = document.getElementById('user-badge');
+  badge.textContent = isAdmin() ? 'Admin — All Companies' : currentUser;
+
+  // Populate company filter
+  const fComp = document.getElementById('filter-company');
+  fComp.innerHTML = '<option value="">All Companies</option>';
+  COMPANIES.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.name; o.textContent = c.name;
+    fComp.appendChild(o);
+  });
+
+  // Populate modal company select
+  const fModal = document.getElementById('f-company');
+  fModal.innerHTML = '';
+  const companiesForUser = isAdmin() ? COMPANIES : COMPANIES.filter(c => c.name === currentUser);
+  companiesForUser.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.name; o.textContent = `${c.name} (${c.region} › ${c.sub})`;
+    fModal.appendChild(o);
+  });
+
+  // Hide add button for non-admin only if company doesn't exist (edge case)
+  document.getElementById('btn-add-entry').style.display = '';
+
+  document.getElementById('setup-sql-code').textContent = SETUP_SQL;
+
+  await fetchEntries();
+}
+
+/* ═══════════════════════════════════════
+   FETCH
+═══════════════════════════════════════ */
+async function fetchEntries() {
+  showLoading();
+  document.getElementById('setup-banner').style.display = 'none';
+
+  const { data, error } = await db
+    .from('quota_entries')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  hideLoading();
+
+  if (error) {
+    // Table not found (PGRST code or pg code 42P01)
+    const msg = (error.message || '').toLowerCase();
+    const code = (error.code || '');
+    if (code === '42P01' || msg.includes('does not exist') || msg.includes('relation')) {
+      document.getElementById('setup-banner').style.display = 'block';
+      allEntries = [];
+    } else {
+      showToast('Error loading data: ' + error.message, 'error');
+      allEntries = [];
+    }
+  } else {
+    allEntries = data || [];
+  }
+
+  // Compute attainment client-side
+  allEntries = allEntries.map(r => ({
+    ...r,
+    attainment: r.quota > 0 ? Math.round((r.achieved / r.quota) * 1000) / 10 : 0
+  }));
+
+  buildPeriodTabs();
+  applyFilters();
+}
+
+async function refreshData() {
+  showToast('Refreshing…');
+  await fetchEntries();
+  showToast('Data refreshed', 'success');
+}
+
+/* ═══════════════════════════════════════
+   PERIOD TABS
+═══════════════════════════════════════ */
+function buildPeriodTabs() {
+  const periods = [...new Set(allEntries.map(r => r.period))].sort().reverse();
+  const container = document.getElementById('period-tabs');
+  container.innerHTML = '';
+
+  if (periods.length === 0) {
+    activePeriod = null;
+    return;
+  }
+
+  // Default to most recent
+  if (!activePeriod || !periods.includes(activePeriod)) activePeriod = periods[0];
+
+  const allTab = document.createElement('div');
+  allTab.className = 'period-tab' + (activePeriod === '__all__' ? ' active' : '');
+  allTab.textContent = 'All Periods';
+  allTab.onclick = () => { activePeriod = '__all__'; buildPeriodTabs(); applyFilters(); };
+  container.appendChild(allTab);
+
+  periods.forEach(p => {
+    const tab = document.createElement('div');
+    tab.className = 'period-tab' + (activePeriod === p ? ' active' : '');
+    tab.textContent = p;
+    tab.onclick = () => { activePeriod = p; buildPeriodTabs(); applyFilters(); };
+    container.appendChild(tab);
+  });
+}
+
+/* ═══════════════════════════════════════
+   FILTERS & RENDER
+═══════════════════════════════════════ */
+function applyFilters() {
+  const regionF  = document.getElementById('filter-region').value;
+  const companyF = document.getElementById('filter-company').value;
+  const search   = document.getElementById('search-input').value.toLowerCase();
+
+  let rows = allEntries;
+
+  // Period filter
+  if (activePeriod && activePeriod !== '__all__') {
+    rows = rows.filter(r => r.period === activePeriod);
+  }
+
+  // For non-admin: mask other companies' FTE details
+  // (all companies visible, but only own company shows seller name + financials)
+  if (!isAdmin()) {
+    rows = rows.map(r => {
+      if (r.company !== currentUser) {
+        return { ...r, _masked: true };
+      }
+      return r;
+    });
+  }
+
+  // Region / company / search filters
+  if (regionF)  rows = rows.filter(r => r.region === regionF);
+  if (companyF) rows = rows.filter(r => r.company === companyF);
+  if (search)   rows = rows.filter(r =>
+    (!r._masked && r.seller_name && r.seller_name.toLowerCase().includes(search)) ||
+    r.company.toLowerCase().includes(search)
+  );
+
+  // Sort
+  rows = [...rows].sort((a, b) => {
+    let av = a[sortKey] ?? '', bv = b[sortKey] ?? '';
+    if (typeof av === 'number') return sortAsc ? av - bv : bv - av;
+    return sortAsc ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+  });
+
+  filteredRows = rows;
+  renderTable();
+  renderCards();
+  renderChart();
+}
+
+function sortBy(key) {
+  if (sortKey === key) sortAsc = !sortAsc;
+  else { sortKey = key; sortAsc = true; }
+  applyFilters();
+}
+
+/* ═══════════════════════════════════════
+   RENDER TABLE
+═══════════════════════════════════════ */
+function renderTable() {
+  const tbody = document.getElementById('table-body');
+
+  if (filteredRows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📊</div><p>No entries found. Add the first entry using the button above.</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filteredRows.map(r => {
+    const attCls = r.attainment >= 100 ? 'att-green' : r.attainment >= 75 ? 'att-amber' : 'att-red';
+    const masked = r._masked;
+
+    const sellerCell  = masked ? `<td class="masked">— confidential —</td>` : `<td>${esc(r.seller_name)}</td>`;
+    const quotaCell   = masked ? `<td class="masked">—</td>` : `<td>€${fmt(r.quota)}</td>`;
+    const achCell     = masked ? `<td class="masked">—</td>` : `<td>€${fmt(r.achieved)}</td>`;
+    const actionsCell = (isAdmin() || r.company === currentUser)
+      ? `<td><div style="display:flex;gap:6px"><button class="action-btn" onclick="openEditModal('${r.id}')">Edit</button><button class="action-btn del" onclick="openDeleteModal('${r.id}')">Delete</button></div></td>`
+      : `<td></td>`;
+
+    return `<tr>
+      ${sellerCell}
+      <td>${esc(r.region)}</td>
+      <td>${esc(r.sub_region)}</td>
+      <td>${esc(r.company)}</td>
+      ${quotaCell}
+      ${achCell}
+      <td><span class="att-badge ${attCls}">${r.attainment}%</span></td>
+      ${actionsCell}
+    </tr>`;
+  }).join('');
+}
+
+function fmt(n) { return Number(n).toLocaleString('en-GB'); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ═══════════════════════════════════════
+   RENDER CARDS
+═══════════════════════════════════════ */
+function renderCards() {
+  // Only count unmasked rows for detailed stats
+  const visible = filteredRows.filter(r => !r._masked);
+  const all = filteredRows;
+
+  document.getElementById('c-total').textContent = all.length;
+  document.getElementById('c-green').textContent = all.filter(r => r.attainment >= 100).length;
+  document.getElementById('c-amber').textContent = all.filter(r => r.attainment >= 75 && r.attainment < 100).length;
+  document.getElementById('c-red').textContent   = all.filter(r => r.attainment < 75).length;
+
+  const avg = all.length ? (all.reduce((s, r) => s + r.attainment, 0) / all.length).toFixed(1) : '—';
+  document.getElementById('c-avg').textContent = avg === '—' ? '—' : avg + '%';
+}
+
+/* ═══════════════════════════════════════
+   RENDER CHART
+═══════════════════════════════════════ */
+function renderChart() {
+  // Aggregate by company
+  const map = {};
+  filteredRows.forEach(r => {
+    if (!map[r.company]) map[r.company] = { total: 0, count: 0 };
+    map[r.company].total += r.attainment;
+    map[r.company].count += 1;
+  });
+
+  const labels = Object.keys(map).sort();
+  const values = labels.map(c => +(map[c].total / map[c].count).toFixed(1));
+  const colors = values.map(v => v >= 100 ? '#16a34a' : v >= 75 ? '#d97706' : '#dc2626');
+
+  const ctx = document.getElementById('attainment-chart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Avg Attainment %', data: values, backgroundColor: colors, borderRadius: 6, borderSkipped: false }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.parsed.y + '%' } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 45 } },
+        y: {
+          beginAtZero: true,
+          ticks: { callback: v => v + '%', font: { size: 11 } },
+          grid: { color: '#f3f4f6' }
+        }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════
+   PERIOD HELPERS
+═══════════════════════════════════════ */
+function updatePeriodFields() {
+  const type = document.getElementById('f-period-type').value;
+  const subWrap = document.getElementById('f-period-sub-wrap');
+  const subSel  = document.getElementById('f-period-sub');
+  const subLbl  = document.getElementById('f-period-sub-label');
+
+  subSel.innerHTML = '';
+  if (type === 'monthly') {
+    subWrap.style.display = '';
+    subLbl.textContent = 'Month';
+    ['January','February','March','April','May','June',
+     'July','August','September','October','November','December'].forEach(m => {
+      const o = document.createElement('option'); o.value = m; o.textContent = m;
+      subSel.appendChild(o);
+    });
+  } else if (type === 'quarterly') {
+    subWrap.style.display = '';
+    subLbl.textContent = 'Quarter';
+    ['Q1','Q2','Q3','Q4'].forEach(q => {
+      const o = document.createElement('option'); o.value = q; o.textContent = q;
+      subSel.appendChild(o);
+    });
+  } else {
+    subWrap.style.display = 'none';
+  }
+}
+
+function buildPeriodValue() {
+  const type = document.getElementById('f-period-type').value;
+  const year = document.getElementById('f-period-year').value;
+  const sub  = document.getElementById('f-period-sub').value;
+  if (!type || !year) return null;
+  if (type === 'monthly')    return sub + ' ' + year;
+  if (type === 'quarterly')  return sub + ' ' + year;
+  return year; // yearly
+}
+
+function parsePeriodToFields(period) {
+  if (!period) return;
+  // Try quarterly: "Q1 2025"
+  const qMatch = period.match(/^(Q[1-4])\s+(\d{4})$/);
+  if (qMatch) {
+    document.getElementById('f-period-type').value = 'quarterly';
+    updatePeriodFields();
+    document.getElementById('f-period-sub').value  = qMatch[1];
+    document.getElementById('f-period-year').value = qMatch[2];
+    return;
+  }
+  // Try monthly: "January 2025"
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  for (const m of months) {
+    const mMatch = period.match(new RegExp('^(' + m + ')\\s+(\\d{4})$'));
+    if (mMatch) {
+      document.getElementById('f-period-type').value = 'monthly';
+      updatePeriodFields();
+      document.getElementById('f-period-sub').value  = mMatch[1];
+      document.getElementById('f-period-year').value = mMatch[2];
+      return;
+    }
+  }
+  // Try yearly: "2025"
+  if (/^\d{4}$/.test(period)) {
+    document.getElementById('f-period-type').value = 'yearly';
+    updatePeriodFields();
+    document.getElementById('f-period-year').value = period;
+  }
+}
+
+/* ═══════════════════════════════════════
+   ADD / EDIT MODAL
+═══════════════════════════════════════ */
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add Entry';
+  document.getElementById('f-seller').value   = '';
+  document.getElementById('f-period-type').value = '';
+  document.getElementById('f-period-sub-wrap').style.display = 'none';
+  document.getElementById('f-period-year').value = '2025';
+  document.getElementById('f-quota').value    = '';
+  document.getElementById('f-achieved').value = '';
+  document.getElementById('modal-error').textContent = '';
+
+  // Pre-select user's own company
+  const sel = document.getElementById('f-company');
+  if (!isAdmin() && sel.options.length > 0) sel.value = currentUser;
+
+  document.getElementById('entry-modal').classList.add('open');
+}
+
+function openEditModal(id) {
+  const row = allEntries.find(r => r.id === id);
+  if (!row) return;
+  editingId = id;
+
+  document.getElementById('modal-title').textContent = 'Edit Entry';
+  document.getElementById('f-seller').value   = row.seller_name;
+  document.getElementById('f-quota').value    = row.quota;
+  document.getElementById('f-achieved').value = row.achieved;
+  document.getElementById('f-company').value  = row.company;
+  document.getElementById('modal-error').textContent = '';
+  parsePeriodToFields(row.period);
+
+  document.getElementById('entry-modal').classList.add('open');
+}
+
+async function saveEntry() {
+  const seller   = document.getElementById('f-seller').value.trim();
+  const company  = document.getElementById('f-company').value;
+  const period   = buildPeriodValue();
+  const quota    = parseFloat(document.getElementById('f-quota').value);
+  const achieved = parseFloat(document.getElementById('f-achieved').value);
+  const errEl    = document.getElementById('modal-error');
+
+  if (!seller)            { errEl.textContent = 'Seller name is required.'; return; }
+  if (!company)           { errEl.textContent = 'Please select a company.'; return; }
+  if (!document.getElementById('f-period-type').value) { errEl.textContent = 'Please select a period type.'; return; }
+  if (!document.getElementById('f-period-year').value) { errEl.textContent = 'Please select a year.'; return; }
+  if (!period)            { errEl.textContent = 'Period is required.'; return; }
+  if (isNaN(quota)  || quota  < 0) { errEl.textContent = 'Please enter a valid quota.'; return; }
+  if (isNaN(achieved) || achieved < 0) { errEl.textContent = 'Please enter a valid achieved amount.'; return; }
+
+  const comp = COMPANIES.find(c => c.name === company);
+  const payload = {
+    seller_name: seller, company, period,
+    region:     comp ? comp.region : '',
+    sub_region: comp ? comp.sub    : '',
+    quota, achieved
+  };
+
+  showLoading();
+  let error;
+  if (editingId) {
+    ({ error } = await db.from('quota_entries').update(payload).eq('id', editingId));
+  } else {
+    ({ error } = await db.from('quota_entries').insert([payload]));
+  }
+  hideLoading();
+
+  if (error) {
+    errEl.textContent = 'Error: ' + error.message;
+    return;
+  }
+
+  closeModal('entry-modal');
+  showToast(editingId ? 'Entry updated!' : 'Entry added!', 'success');
+  await fetchEntries();
+}
+
+/* ═══════════════════════════════════════
+   DELETE
+═══════════════════════════════════════ */
+function openDeleteModal(id) {
+  deleteId = id;
+  document.getElementById('delete-modal').classList.add('open');
+}
+
+async function confirmDelete() {
+  if (!deleteId) return;
+  showLoading();
+  const { error } = await db.from('quota_entries').delete().eq('id', deleteId);
+  hideLoading();
+
+  if (error) {
+    showToast('Error deleting: ' + error.message, 'error');
+  } else {
+    showToast('Entry deleted', 'success');
+  }
+  deleteId = null;
+  closeModal('delete-modal');
+  await fetchEntries();
+}
+
+/* ═══════════════════════════════════════
+   MISC
+═══════════════════════════════════════ */
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function copySetupSQL() {
+  navigator.clipboard.writeText(SETUP_SQL).then(() => showToast('SQL copied!', 'success'));
+}
+
+// Close modals on backdrop click
+['entry-modal','delete-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target === document.getElementById(id)) closeModal(id);
+  });
+});
+
+// Enter key on login
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+/* ═══════════════════════════════════════
+   SESSION RESTORE
+═══════════════════════════════════════ */
+(function init() {
+  const saved = sessionStorage.getItem('qt_user');
+  if (saved) {
+    currentUser = saved;
+    bootApp();
+  }
+})();
+</script>
+</body>
+</html>

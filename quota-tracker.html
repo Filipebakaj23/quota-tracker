@@ -3,1664 +3,1500 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quota Achievement Tracker — Everfield</title>
+<title>Everfield · Quota Platform</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root {
-    --brand: #1a1a2e;
-    --accent: #4f46e5;
-    --accent-hover: #4338ca;
-    --green: #16a34a;
-    --green-bg: #dcfce7;
-    --amber: #d97706;
-    --amber-bg: #fef3c7;
-    --red: #dc2626;
-    --red-bg: #fee2e2;
-    --blue: #2563eb;
-    --blue-bg: #dbeafe;
-    --purple: #7c3aed;
-    --purple-bg: #ede9fe;
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-600: #4b5563;
-    --gray-700: #374151;
-    --gray-800: #1f2937;
-    --gray-900: #111827;
-    --white: #ffffff;
-    --shadow: 0 1px 3px rgba(0,0,0,0.1);
-    --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
-    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
-    --radius: 10px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--gray-100); color: var(--gray-800); min-height: 100vh; font-size: 14px; }
+:root {
+  --sb: #13111c;
+  --sb2: #1e1b2e;
+  --acc: #7c3aed;
+  --acc2: #6d28d9;
+  --acc-light: #ede9fe;
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --txt: #0f172a;
+  --txt2: #475569;
+  --txt3: #94a3b8;
+  --green: #059669; --green-bg: #d1fae5; --green-light: #ecfdf5;
+  --amber: #d97706; --amber-bg: #fef3c7; --amber-light: #fffbeb;
+  --orange: #ea580c; --orange-bg: #fff7ed;
+  --red: #dc2626; --red-bg: #fee2e2; --red-light: #fef2f2;
+  --blue: #2563eb; --blue-bg: #dbeafe;
+  --purple: #7c3aed; --purple-bg: #ede9fe;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.05);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,.12);
+  --r: 10px; --r-lg: 16px;
+  --sb-w: 220px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;min-height:100vh}
 
-  /* ── LOADING BAR ── */
-  #loading-bar {
-    position: fixed; top: 0; left: 0; height: 3px;
-    background: var(--accent); width: 0%; z-index: 9999;
-    transition: width 0.3s ease, opacity 0.3s ease;
-  }
+/* LOADING */
+#loading-bar{position:fixed;top:0;left:0;height:3px;background:var(--acc);width:0;z-index:9999;transition:width .3s ease,opacity .4s ease}
+#spinner{display:none;position:fixed;inset:0;background:rgba(255,255,255,.55);z-index:9998;align-items:center;justify-content:center}
+#spinner.on{display:flex}
+.spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--acc);border-radius:50%;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
 
-  /* ── SPINNER OVERLAY ── */
-  #spinner-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(255,255,255,0.6); z-index: 9998;
-    align-items: center; justify-content: center;
-  }
-  #spinner-overlay.active { display: flex; }
-  .spinner {
-    width: 40px; height: 40px; border: 4px solid var(--gray-200);
-    border-top-color: var(--accent); border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;z-index:10000;display:flex;flex-direction:column;gap:8px}
+.toast-item{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;color:#fff;box-shadow:var(--shadow-lg);animation:slideIn .25s ease;max-width:320px}
+.toast-item.success{background:#059669}.toast-item.error{background:#dc2626}.toast-item.info{background:#2563eb}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
-  /* ── LOGIN SCREEN ── */
-  #login-screen {
-    display: flex; align-items: center; justify-content: center;
-    min-height: 100vh; padding: 24px;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
-  }
-  .login-card {
-    background: white; border-radius: 16px; padding: 40px 36px;
-    width: 100%; max-width: 420px; box-shadow: var(--shadow-lg);
-    animation: fadeIn 0.3s ease;
-  }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-  .login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
-  .login-logo-icon {
-    width: 44px; height: 44px; background: var(--brand);
-    border-radius: 10px; display: flex; align-items: center; justify-content: center;
-  }
-  .login-logo-icon svg { width: 24px; height: 24px; fill: white; }
-  .login-logo-text { font-size: 18px; font-weight: 700; color: var(--gray-900); }
-  .login-logo-sub { font-size: 12px; color: var(--gray-500); }
-  .login-title { font-size: 22px; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; }
-  .login-subtitle { font-size: 13px; color: var(--gray-500); margin-bottom: 24px; }
-  .form-group { margin-bottom: 16px; }
-  .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .form-group select, .form-group input {
-    width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-300);
-    border-radius: 8px; font-size: 14px; color: var(--gray-800);
-    background: white; transition: border-color 0.15s;
-    appearance: none;
-  }
-  .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--accent); }
-  .select-wrapper { position: relative; }
-  .select-wrapper::after { content: '▾'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--gray-400); pointer-events: none; }
-  .btn-primary {
-    width: 100%; padding: 11px; background: var(--accent); color: white;
-    border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
-    cursor: pointer; transition: background 0.15s;
-  }
-  .btn-primary:hover { background: var(--accent-hover); }
-  .login-error { color: var(--red); font-size: 13px; margin-top: 12px; text-align: center; min-height: 20px; }
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0d0b18 0%,#1a1535 40%,#2d1b69 80%,#1a0533 100%);position:relative;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;animation:pulse 8s ease-in-out infinite alternate}
+.orb1{width:500px;height:500px;background:#7c3aed;top:-150px;left:-150px;animation-delay:0s}
+.orb2{width:400px;height:400px;background:#2563eb;bottom:-100px;right:-100px;animation-delay:3s}
+.orb3{width:300px;height:300px;background:#db2777;top:40%;left:55%;animation-delay:1.5s}
+@keyframes pulse{0%{transform:scale(1) translate(0,0)}100%{transform:scale(1.15) translate(20px,-20px)}}
+.login-card{background:rgba(255,255,255,.97);backdrop-filter:blur(20px);border-radius:20px;padding:44px 40px;width:100%;max-width:430px;box-shadow:0 25px 60px rgba(0,0,0,.4);animation:fadeUp .4s ease;position:relative;z-index:2}
+.login-brand{display:flex;align-items:center;gap:14px;margin-bottom:32px}
+.login-brand-icon{width:48px;height:48px;background:var(--acc);border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(124,58,237,.4)}
+.login-brand-icon svg{width:26px;height:26px;fill:#fff}
+.login-brand-name{font-size:20px;font-weight:800;color:var(--txt);letter-spacing:-.5px}
+.login-brand-sub{font-size:12px;color:var(--txt3);font-weight:500}
+.login-h{font-size:24px;font-weight:700;color:var(--txt);margin-bottom:6px}
+.login-p{font-size:13px;color:var(--txt2);margin-bottom:28px}
+.fld{margin-bottom:18px}
+.fld label{display:block;font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em}
+.fld select,.fld input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;color:var(--txt);background:#fff;transition:border-color .15s,box-shadow .15s;appearance:none}
+.fld select:focus,.fld input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.sel-wrap{position:relative}.sel-wrap::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--txt3);pointer-events:none;font-size:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;line-height:1}
+.btn-primary{background:var(--acc);color:#fff;width:100%;padding:13px}
+.btn-primary:hover{background:var(--acc2);transform:translateY(-1px);box-shadow:0 4px 14px rgba(124,58,237,.35)}
+.btn-sm{padding:7px 12px;font-size:12px}
+.btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg);color:var(--txt)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid #fca5a5}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-success{background:var(--green-bg);color:var(--green)}
+.btn-success:hover{background:var(--green);color:#fff}
+.btn-icon{width:32px;height:32px;padding:0;border-radius:7px}
+.login-err{color:var(--red);font-size:12px;margin-top:10px;text-align:center;min-height:18px}
 
-  /* ── APP SHELL ── */
-  #app { display: none; min-height: 100vh; }
-  .header {
-    background: var(--brand); color: white;
-    padding: 0 24px; height: 56px;
-    display: flex; align-items: center; justify-content: space-between;
-    position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  }
-  .header-left { display: flex; align-items: center; gap: 12px; }
-  .header-logo { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
-  .header-title { font-size: 13px; color: rgba(255,255,255,0.6); }
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .live-badge {
-    display: flex; align-items: center; gap: 5px;
-    background: rgba(22,163,74,0.2); border: 1px solid rgba(22,163,74,0.4);
-    border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; color: #4ade80;
-  }
-  .live-dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  .user-badge {
-    background: rgba(255,255,255,0.1); border-radius: 20px;
-    padding: 4px 12px; font-size: 12px; font-weight: 500;
-  }
-  .btn-icon {
-    background: rgba(255,255,255,0.1); border: none; color: white;
-    border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 13px;
-    transition: background 0.15s; display: flex; align-items: center; gap: 5px;
-  }
-  .btn-icon:hover { background: rgba(255,255,255,0.2); }
-  .btn-logout {
-    background: transparent; border: 1px solid rgba(255,255,255,0.3);
-    color: rgba(255,255,255,0.8); border-radius: 8px; padding: 5px 12px;
-    font-size: 12px; cursor: pointer; transition: all 0.15s;
-  }
-  .btn-logout:hover { background: rgba(255,255,255,0.1); color: white; }
+/* APP SHELL */
+#app{display:none;min-height:100vh}
+.shell{display:flex;min-height:100vh}
 
-  .main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+/* SIDEBAR */
+#sidebar{width:var(--sb-w);background:var(--sb);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sb-brand{padding:22px 20px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-icon{width:36px;height:36px;background:var(--acc);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-icon svg{width:20px;height:20px;fill:#fff}
+.sb-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.sb-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:1px}
+.sb-nav{flex:1;padding:12px 10px}
+.nav-section{font-size:10px;font-weight:700;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.1em;padding:16px 10px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:rgba(255,255,255,.55);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none;user-select:none;margin-bottom:2px}
+.nav-item svg{width:17px;height:17px;flex-shrink:0;opacity:.7}
+.nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85)}
+.nav-item.active{background:rgba(124,58,237,.25);color:#c4b5fd}
+.nav-item.active svg{opacity:1}
+.sb-user{padding:14px 16px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px}
+.sb-avatar{width:34px;height:34px;background:var(--acc);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.sb-uname{font-size:13px;font-weight:600;color:#fff}
+.sb-logout{font-size:11px;color:rgba(255,255,255,.4);cursor:pointer;transition:color .15s;background:none;border:none;padding:0;text-align:left}
+.sb-logout:hover{color:#f87171}
 
-  /* ── SETUP BANNER ── */
-  #setup-banner {
-    display: none; background: #fffbeb; border: 1.5px solid #fbbf24;
-    border-radius: var(--radius); padding: 20px 24px; margin-bottom: 24px;
-  }
-  .setup-banner-title { font-weight: 700; color: #92400e; margin-bottom: 8px; font-size: 15px; }
-  .setup-banner-desc { color: #78350f; font-size: 13px; margin-bottom: 14px; line-height: 1.6; }
-  .setup-sql {
-    background: #1e1e2e; color: #cdd6f4; font-family: monospace; font-size: 12px;
-    padding: 16px; border-radius: 8px; overflow-x: auto; white-space: pre;
-    line-height: 1.5;
-  }
-  .setup-sql-label { font-size: 12px; font-weight: 600; color: #78350f; margin-bottom: 6px; }
-  .setup-copy-btn {
-    margin-top: 10px; background: #f59e0b; color: white; border: none;
-    border-radius: 6px; padding: 7px 14px; font-size: 12px; font-weight: 600;
-    cursor: pointer; transition: background 0.15s;
-  }
-  .setup-copy-btn:hover { background: #d97706; }
+/* CONTENT */
+#content{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.c-header{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0;position:sticky;top:0;z-index:50}
+.c-title{font-size:17px;font-weight:700;color:var(--txt)}
+.c-controls{display:flex;align-items:center;gap:10px}
+.period-wrap{display:flex;align-items:center;gap:6px}
+.period-seg{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.period-seg button{padding:6px 11px;background:none;border:none;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;transition:all .15s}
+.period-seg button.active{background:var(--acc);color:#fff}
+.period-seg button:hover:not(.active){background:var(--bg)}
+.period-select{padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;font-weight:500;color:var(--txt);background:#fff;cursor:pointer}
+.period-select:focus{outline:none;border-color:var(--acc)}
+.load-btn{padding:6px 13px;background:var(--acc);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.load-btn:hover{background:var(--acc2)}
 
-  /* ── CRM BANNER (company users) ── */
-  #crm-banner {
-    display: none; background: var(--blue-bg); border: 1.5px solid #93c5fd;
-    border-radius: var(--radius); padding: 16px 20px; margin-bottom: 24px;
-    display: none; align-items: center; gap: 14px;
-  }
-  #crm-banner.show { display: flex; }
-  .crm-banner-icon { font-size: 24px; flex-shrink: 0; }
-  .crm-banner-text { flex: 1; }
-  .crm-banner-title { font-weight: 700; color: var(--blue); font-size: 14px; margin-bottom: 3px; }
-  .crm-banner-desc { color: #1e40af; font-size: 13px; }
+/* VIEWS */
+.view{display:none;padding:24px;animation:fadeUp .2s ease}
+.view.active{display:block}
 
-  /* ── SUMMARY CARDS ── */
-  .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-  .card {
-    background: white; border-radius: var(--radius); padding: 20px;
-    box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 6px;
-  }
-  .card-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-500); }
-  .card-value { font-size: 28px; font-weight: 800; color: var(--gray-900); line-height: 1; }
-  .card-sub { font-size: 12px; color: var(--gray-500); }
-  .card-green .card-value { color: var(--green); }
-  .card-amber .card-value { color: var(--amber); }
-  .card-red .card-value { color: var(--red); }
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--card);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;overflow:hidden;transition:box-shadow .15s}
+.stat-card:hover{box-shadow:var(--shadow-md)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent-color,var(--acc))}
+.stat-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;background:var(--icon-bg,var(--acc-light))}
+.stat-icon svg{width:20px;height:20px}
+.stat-val{font-size:26px;font-weight:800;color:var(--txt);letter-spacing:-.5px;line-height:1}
+.stat-lbl{font-size:12px;color:var(--txt3);margin-top:4px;font-weight:500}
+.stat-delta{font-size:11px;margin-top:8px;font-weight:600;display:flex;align-items:center;gap:3px}
 
-  /* ── CHART ── */
-  .chart-card {
-    background: white; border-radius: var(--radius); padding: 24px;
-    box-shadow: var(--shadow); margin-bottom: 24px;
-  }
-  .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-  .chart-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
-  .chart-wrap { position: relative; height: 280px; }
+/* GAUGE + CHART SECTION */
+.vis-row{display:grid;grid-template-columns:200px 1fr;gap:16px;margin-bottom:24px}
+.gauge-card{background:var(--card);border-radius:var(--r);padding:24px;box-shadow:var(--shadow);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge-title{font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.chart-card{background:var(--card);border-radius:var(--r);padding:20px 24px;box-shadow:var(--shadow);border:1px solid var(--border);min-height:220px}
+.chart-title{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.chart-wrap{position:relative}
 
-  /* ── TOOLBAR ── */
-  .toolbar {
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
-  }
-  .toolbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .filter-select {
-    padding: 8px 12px; border: 1.5px solid var(--gray-300); border-radius: 8px;
-    font-size: 13px; color: var(--gray-700); background: white; cursor: pointer;
-    appearance: none; min-width: 140px;
-  }
-  .filter-select:focus { outline: none; border-color: var(--accent); }
-  .search-input {
-    padding: 8px 12px; border: 1.5px solid var(--gray-300); border-radius: 8px;
-    font-size: 13px; color: var(--gray-700); width: 200px;
-  }
-  .search-input:focus { outline: none; border-color: var(--accent); }
-  .btn-add {
-    background: var(--accent); color: white; border: none; border-radius: 8px;
-    padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
-    transition: background 0.15s; display: flex; align-items: center; gap: 6px;
-  }
-  .btn-add:hover { background: var(--accent-hover); }
+/* TABLE */
+.table-card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.table-header-title{font-size:14px;font-weight:700;color:var(--txt)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;background:#fafafa;border-bottom:1px solid var(--border)}
+.tbl td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#fafbff}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.tbl .mono{font-family:ui-monospace,monospace;font-size:12px}
+.empty-row td{text-align:center;padding:48px;color:var(--txt3)}
 
-  /* ── TABLE ── */
-  .table-wrap { background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
-  .table-scroll { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; }
-  thead th {
-    padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-500);
-    background: var(--gray-50); border-bottom: 1px solid var(--gray-200);
-    white-space: nowrap; cursor: pointer; user-select: none;
-  }
-  thead th:hover { color: var(--gray-800); }
-  thead th .sort-arrow { margin-left: 4px; opacity: 0.4; }
-  thead th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
-  tbody tr { border-bottom: 1px solid var(--gray-100); transition: background 0.1s; }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: var(--gray-50); }
-  td { padding: 12px 16px; font-size: 13px; color: var(--gray-700); white-space: nowrap; }
-  td.masked { color: var(--gray-400); font-style: italic; }
-  .att-badge {
-    display: inline-flex; align-items: center; padding: 3px 10px;
-    border-radius: 20px; font-size: 12px; font-weight: 700; min-width: 60px; justify-content: center;
-  }
-  .att-green { background: var(--green-bg); color: var(--green); }
-  .att-amber { background: var(--amber-bg); color: var(--amber); }
-  .att-red { background: var(--red-bg); color: var(--red); }
-  .action-btn {
-    background: transparent; border: 1px solid var(--gray-300); border-radius: 6px;
-    padding: 4px 10px; font-size: 12px; cursor: pointer; transition: all 0.15s;
-    color: var(--gray-600);
-  }
-  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .action-btn.del:hover { border-color: var(--red); color: var(--red); }
-  .action-btn.sm { padding: 3px 8px; font-size: 11px; }
-  .empty-state { padding: 60px; text-align: center; color: var(--gray-400); }
-  .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
-  .empty-state p { font-size: 14px; }
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.badge-orange{background:var(--orange-bg);color:var(--orange)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}
+.badge-purple{background:var(--purple-bg);color:var(--purple)}
+.badge-gray{background:#f1f5f9;color:var(--txt2)}
+.badge-crm{background:linear-gradient(135deg,#ede9fe,#ddd6fe);color:#6d28d9;border:1px solid #ddd6fe}
 
-  /* ── MODAL ── */
-  .modal-backdrop {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.45); z-index: 200;
-    align-items: center; justify-content: center; padding: 24px;
-  }
-  .modal-backdrop.open { display: flex; }
-  .modal {
-    background: white; border-radius: 16px; padding: 32px;
-    width: 100%; max-width: 520px; box-shadow: var(--shadow-lg);
-    animation: fadeIn 0.2s ease;
-  }
-  .modal-title { font-size: 18px; font-weight: 700; color: var(--gray-900); margin-bottom: 24px; }
-  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .modal-grid .full { grid-column: 1 / -1; }
-  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
-  .btn-cancel {
-    background: white; border: 1.5px solid var(--gray-300); border-radius: 8px;
-    padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
-    color: var(--gray-700); transition: all 0.15s;
-  }
-  .btn-cancel:hover { border-color: var(--gray-400); }
-  .btn-save {
-    background: var(--accent); color: white; border: none; border-radius: 8px;
-    padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
-    transition: background 0.15s;
-  }
-  .btn-save:hover { background: var(--accent-hover); }
-  .modal-error { color: var(--red); font-size: 12px; margin-top: 8px; }
+/* ATT INDICATOR */
+.att-bar{height:6px;border-radius:3px;background:#e2e8f0;overflow:hidden;margin-top:4px}
+.att-fill{height:100%;border-radius:3px;transition:width .6s ease}
 
-  /* ── DELETE CONFIRM ── */
-  .confirm-modal { max-width: 400px; }
-  .confirm-msg { color: var(--gray-600); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
-  .btn-del-confirm { background: var(--red); color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .btn-del-confirm:hover { background: #b91c1c; }
+/* TOGGLE SWITCH */
+.toggle{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.tog-sl{position:absolute;inset:0;background:#cbd5e1;border-radius:24px;cursor:pointer;transition:background .2s}
+.tog-sl::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle input:checked+.tog-sl{background:var(--acc)}
+.toggle input:checked+.tog-sl::before{transform:translateX(18px)}
 
-  /* ── PERIOD TABS ── */
-  .period-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
-  .period-tab {
-    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
-    cursor: pointer; border: 1.5px solid var(--gray-300); background: white; color: var(--gray-600);
-    transition: all 0.15s;
-  }
-  .period-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
-  .period-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+/* PORTFOLIO GRID */
+.portfolio-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.co-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .15s,transform .15s;cursor:pointer}
+.co-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.co-card-top{padding:18px 18px 14px;border-left:4px solid var(--card-att-color,#e2e8f0)}
+.co-card-name{font-size:15px;font-weight:700;color:var(--txt)}
+.co-card-region{font-size:11px;color:var(--txt3);margin-top:2px}
+.co-card-stats{display:flex;gap:16px;margin-top:12px}
+.co-stat{flex:1}
+.co-stat-val{font-size:17px;font-weight:700;color:var(--txt)}
+.co-stat-lbl{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em}
+.co-card-bottom{padding:10px 18px;background:#fafafa;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.co-card-meta{font-size:11px;color:var(--txt3)}
+.co-att-bar{height:4px;border-radius:2px;background:#e2e8f0;overflow:hidden;margin-top:8px}
+.co-att-fill{height:100%;border-radius:2px;transition:width .5s ease}
 
-  /* ── TOAST ── */
-  #toast {
-    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-    background: var(--gray-900); color: white; padding: 12px 20px;
-    border-radius: 10px; font-size: 13px; font-weight: 500;
-    box-shadow: var(--shadow-lg); opacity: 0; transform: translateY(8px);
-    transition: all 0.25s; pointer-events: none;
-  }
-  #toast.show { opacity: 1; transform: translateY(0); }
-  #toast.success { background: var(--green); }
-  #toast.error { background: var(--red); }
+/* CRM SETTINGS TABLE */
+.crm-table{width:100%;border-collapse:collapse;font-size:13px}
+.crm-table th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;background:#fafafa;border-bottom:1px solid var(--border)}
+.crm-table td{padding:13px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+.crm-table tr:last-child td{border-bottom:none}
+.crm-auto-cell{opacity:.35;pointer-events:none;transition:opacity .2s}
+.crm-auto-cell.enabled{opacity:1;pointer-events:auto}
 
-  /* ── ADMIN PANEL ── */
-  #admin-panel {
-    background: white; border-radius: var(--radius); box-shadow: var(--shadow);
-    margin-bottom: 24px; overflow: hidden;
-  }
-  .admin-header {
-    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
-    padding: 20px 24px; display: flex; align-items: center; gap: 12px;
-  }
-  .admin-header-icon { font-size: 24px; }
-  .admin-header-title { font-size: 16px; font-weight: 700; color: white; }
-  .admin-header-sub { font-size: 12px; color: rgba(255,255,255,0.6); }
-  .admin-tabs-bar {
-    display: flex; border-bottom: 1px solid var(--gray-200);
-    background: var(--gray-50); padding: 0 24px;
-  }
-  .admin-tab-btn {
-    padding: 12px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
-    border: none; background: transparent; color: var(--gray-500);
-    border-bottom: 2px solid transparent; margin-bottom: -1px;
-    transition: all 0.15s;
-  }
-  .admin-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .admin-tab-btn:hover:not(.active) { color: var(--gray-700); }
-  .admin-tab-content { display: none; padding: 24px; }
-  .admin-tab-content.active { display: block; }
+/* ACCESS LOG */
+.log-list{display:flex;flex-direction:column;gap:0}
+.log-item{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--border)}
+.log-item:last-child{border-bottom:none}
+.log-dot{width:8px;height:8px;border-radius:50%;background:var(--acc);flex-shrink:0}
+.log-co{font-size:13px;font-weight:600;color:var(--txt)}
+.log-time{font-size:12px;color:var(--txt3);margin-top:1px}
+.log-badge{margin-left:auto}
 
-  /* Admin stat cards */
-  .admin-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
-  .admin-stat { background: var(--gray-50); border-radius: 8px; padding: 16px; text-align: center; }
-  .admin-stat-val { font-size: 28px; font-weight: 800; color: var(--accent); }
-  .admin-stat-lbl { font-size: 11px; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+/* EXPORT */
+.export-section{max-width:640px}
+.export-row{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.export-info h3{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:4px}
+.export-info p{font-size:12px;color:var(--txt2)}
+.export-meta{font-size:11px;color:var(--txt3);margin-top:6px}
 
-  /* Admin tables */
-  .admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .admin-table th {
-    padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500);
-    background: var(--gray-50); border-bottom: 1px solid var(--gray-200);
-    white-space: nowrap;
-  }
-  .admin-table td { padding: 10px 14px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); }
-  .admin-table tr:last-child td { border-bottom: none; }
-  .admin-table tr:hover td { background: var(--gray-50); }
+/* MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-backdrop.open{display:flex}
+.modal{background:#fff;border-radius:var(--r-lg);width:100%;max-width:500px;box-shadow:var(--shadow-lg);animation:fadeUp .2s ease}
+.modal-lg{max-width:680px}
+.modal-head{padding:22px 24px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-head h2{font-size:16px;font-weight:700;color:var(--txt)}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:20px;line-height:1;padding:4px;border-radius:6px;transition:color .15s}
+.modal-close:hover{color:var(--txt)}
+.modal-body{padding:22px 24px}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.fld-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fld-full{grid-column:1/-1}
+.field-hint{font-size:11px;color:var(--txt3);margin-top:4px}
 
-  /* Status badges */
-  .status-badge {
-    display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
-    border-radius: 20px; font-size: 11px; font-weight: 700;
-  }
-  .status-green { background: var(--green-bg); color: var(--green); }
-  .status-gray  { background: var(--gray-100); color: var(--gray-500); }
-  .status-blue  { background: var(--blue-bg); color: var(--blue); }
-  .status-amber { background: var(--amber-bg); color: var(--amber); }
+/* CRM DECISION MODAL */
+.crm-dec-card{padding:24px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all .2s;margin-bottom:12px;display:flex;gap:16px;align-items:flex-start}
+.crm-dec-card:hover{border-color:var(--acc);background:var(--acc-light)}
+.crm-dec-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px}
+.crm-dec-title{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:4px}
+.crm-dec-desc{font-size:12px;color:var(--txt2);line-height:1.5}
 
-  /* CRM toggle in modal */
-  .crm-toggle-box {
-    background: var(--blue-bg); border: 1.5px solid #93c5fd;
-    border-radius: 8px; padding: 14px 16px;
-  }
-  .crm-toggle-label {
-    display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
-  }
-  .crm-toggle-label input[type=checkbox] {
-    width: 16px; height: 16px; margin-top: 1px; flex-shrink: 0; cursor: pointer;
-    accent-color: var(--blue);
-  }
-  .crm-toggle-text { font-size: 13px; color: #1e40af; font-weight: 600; }
-  .crm-toggle-sub { font-size: 12px; color: #3b82f6; margin-top: 2px; }
+/* CRM BANNER */
+#crm-banner{background:linear-gradient(135deg,#ede9fe 0%,#ddd6fe 100%);border:1px solid #c4b5fd;border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.crm-banner-dot{width:10px;height:10px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px rgba(124,58,237,.25);flex-shrink:0}
+.crm-banner-text{flex:1}
+.crm-banner-title{font-size:13px;font-weight:700;color:#4c1d95}
+.crm-banner-desc{font-size:12px;color:#6d28d9;margin-top:1px}
 
-  /* Password display */
-  .password-display {
-    font-family: monospace; background: var(--gray-100); padding: 4px 8px;
-    border-radius: 4px; font-size: 12px; color: var(--gray-700);
-  }
+/* SETUP SQL MODAL */
+.sql-block{background:#1e1e2e;color:#a9b8c8;padding:16px;border-radius:8px;font-size:11px;font-family:ui-monospace,monospace;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;line-height:1.6}
 
-  @media (max-width: 600px) {
-    .modal-grid { grid-template-columns: 1fr; }
-    .modal-grid .full { grid-column: 1; }
-    .cards-grid { grid-template-columns: repeat(2, 1fr); }
-    .main { padding: 16px; }
-    .admin-tabs-bar { overflow-x: auto; }
-  }
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px;color:var(--txt3)}
+.empty-state svg{width:56px;height:56px;margin:0 auto 16px;opacity:.3}
+.empty-state h3{font-size:16px;font-weight:700;color:var(--txt2);margin-bottom:6px}
+.empty-state p{font-size:13px;line-height:1.6}
+
+/* SECTION HEADER */
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-title{font-size:15px;font-weight:700;color:var(--txt)}
+.sec-sub{font-size:12px;color:var(--txt3);margin-top:2px}
+
+/* MISC */
+.row-actions{display:flex;gap:6px;justify-content:flex-end}
+.masked{color:var(--txt3);font-style:italic;font-size:12px}
+.divider{height:1px;background:var(--border);margin:20px 0}
+.info-box{background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;font-size:12px;color:#1e40af;line-height:1.5;margin-bottom:16px}
+.warn-box{background:var(--amber-bg);border:1px solid #fcd34d;border-radius:8px;padding:12px 16px;font-size:12px;color:#92400e;line-height:1.5;margin-bottom:16px}
+.success-box{background:var(--green-bg);border:1px solid #86efac;border-radius:8px;padding:12px 16px;font-size:12px;color:#14532d;line-height:1.5;margin-bottom:16px}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:10px;align-items:center;padding:12px 20px;background:#fafafa;border-bottom:1px solid var(--border)}
+.filter-bar input,.filter-bar select{padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:#fff;color:var(--txt)}
+.filter-bar input:focus,.filter-bar select:focus{outline:none;border-color:var(--acc)}
+
+@media(max-width:900px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .vis-row{grid-template-columns:1fr}
+  #sidebar{width:60px}
+  .sb-name,.sb-sub,.sb-uname,.sb-logout,.nav-section,.nav-item span{display:none}
+  .nav-item{justify-content:center;padding:10px}
+  .sb-brand{justify-content:center;padding:16px 10px}
+  .sb-user{justify-content:center}
+}
 </style>
 </head>
 <body>
 
 <div id="loading-bar"></div>
-<div id="spinner-overlay"><div class="spinner"></div></div>
+<div id="spinner"><div class="spin"></div></div>
 <div id="toast"></div>
 
-<!-- ═══════════════════════════════════════════ LOGIN ═══════════════════════════════════════════ -->
+<!-- LOGIN -->
 <div id="login-screen">
+  <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
   <div class="login-card">
-    <div class="login-logo">
-      <div class="login-logo-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-      </div>
-      <div>
-        <div class="login-logo-text">Everfield</div>
-        <div class="login-logo-sub">Portfolio Management</div>
-      </div>
+    <div class="login-brand">
+      <div class="login-brand-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <div><div class="login-brand-name">Everfield</div><div class="login-brand-sub">Quota Intelligence Platform</div></div>
     </div>
-    <div class="login-title">Quota Achievement Tracker</div>
-    <div class="login-subtitle">Sign in with your company credentials</div>
-    <div class="form-group">
+    <div class="login-h">Welcome back</div>
+    <div class="login-p">Select your company and sign in to continue</div>
+    <div class="fld">
       <label>Company</label>
-      <div class="select-wrapper">
-        <select id="login-company">
-          <option value="">— Select company —</option>
-          <option value="__admin__">Everfield (Admin)</option>
-          <optgroup label="CEE &amp; PL › Vistula">
-            <option>BBT</option><option>GO</option><option>Atmoterm</option>
-            <option>AGroup</option><option>Meditec</option><option>Frontu</option>
-            <option>Motivity</option>
-          </optgroup>
-          <optgroup label="DACH › Danube">
-            <option>SoCom</option><option>VSX</option><option>ParkHere</option>
-            <option>ondeso</option><option>aequitixx</option><option>Duchting</option>
-          </optgroup>
-          <optgroup label="DACH › DACH">
-            <option>Fenz</option><option>KOST</option><option>helloTess</option>
-            <option>Matrix POS</option>
-          </optgroup>
-          <optgroup label="France › France">
-            <option>1Check</option><option>Fitnet</option><option>Synergee</option>
-            <option>Visioglobe</option><option>Inforum</option><option>Digifood</option>
-          </optgroup>
-          <optgroup label="UK&amp;I › Tamar">
-            <option>HeapsGO</option><option>Trade Interchange</option><option>Nvolve</option>
-            <option>OnlinePOS</option><option>CIM</option><option>Strategic Thinking</option>
-          </optgroup>
-          <optgroup label="UK&amp;I › Tees">
-            <option>FitFactory</option><option>Depotnet</option><option>MKM</option>
-          </optgroup>
-          <optgroup label="Spain › Spain">
-            <option>4GL</option><option>G-Stock</option><option>Esemtia</option>
-            <option>Vozitel</option><option>Teeone</option>
-          </optgroup>
-        </select>
-      </div>
+      <div class="sel-wrap"><select id="l-company"></select></div>
     </div>
-    <div class="form-group">
+    <div class="fld">
       <label>Password</label>
-      <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password">
+      <input type="password" id="l-pass" placeholder="Enter your password" autocomplete="current-password">
     </div>
-    <button class="btn-primary" onclick="doLogin()">Sign In</button>
-    <div class="login-error" id="login-error"></div>
+    <button class="btn btn-primary" onclick="doLogin()">Sign in</button>
+    <div class="login-err" id="l-err"></div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════ APP ═══════════════════════════════════════════ -->
+<!-- APP -->
 <div id="app">
-  <header class="header">
-    <div class="header-left">
-      <div class="header-logo">Everfield</div>
-      <div class="header-title">Quota Achievement Tracker</div>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+    <div><div class="sb-name">Everfield</div><div class="sb-sub">Quota Platform</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-section">Company</div>
+    <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Dashboard</span>
     </div>
-    <div class="header-right">
-      <div class="live-badge"><div class="live-dot"></div>Live</div>
-      <span class="user-badge" id="user-badge"></span>
-      <button class="btn-icon" onclick="refreshData()" title="Refresh data">↻ Refresh</button>
-      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    <div class="nav-item" data-view="sellers" onclick="showView('sellers',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Sellers</span>
     </div>
-  </header>
-
-  <main class="main">
-
-    <!-- Setup banner -->
-    <div id="setup-banner">
-      <div class="setup-banner-title">⚠️ Database table not found — one-time setup required</div>
-      <div class="setup-banner-desc">
-        The <strong>quota_entries</strong> table doesn't exist yet in your Supabase project.<br>
-        Run the SQL below once in the <a href="https://supabase.com/dashboard/project/nbspfxdbtfjelprofkfi/editor" target="_blank" style="color:#92400e">Supabase SQL Editor</a>, then refresh this page.
-      </div>
-      <div class="setup-sql-label">SQL — paste into Supabase SQL Editor and click Run:</div>
-      <div class="setup-sql" id="setup-sql-code"></div>
-      <button class="setup-copy-btn" onclick="copySetupSQL()">📋 Copy SQL</button>
+    <div class="nav-section admin-only" id="sb-admin-label">Admin</div>
+    <div class="nav-item admin-only" data-view="portfolio" onclick="showView('portfolio',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Portfolio</span>
     </div>
-
-    <!-- CRM integration banner (shown for CRM-enabled companies) -->
-    <div id="crm-banner">
-      <div class="crm-banner-icon">🔗</div>
-      <div class="crm-banner-text">
-        <div class="crm-banner-title">CRM Integration Active</div>
-        <div class="crm-banner-desc">Your CRM is integrated with Everfield. When adding entries, you can choose to have actuals pulled automatically — just enter your targets.</div>
-      </div>
+    <div class="nav-item admin-only" data-view="crm-settings" onclick="showView('crm-settings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <span>CRM Settings</span>
     </div>
+    <div class="nav-item admin-only" data-view="access-log" onclick="showView('access-log',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Access Log</span>
+    </div>
+    <div class="nav-item admin-only" data-view="passwords" onclick="showView('passwords',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span>Passwords</span>
+    </div>
+    <div class="nav-item admin-only" data-view="export" onclick="showView('export',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>Export</span>
+    </div>
+  </nav>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sb-avatar">?</div>
+    <div><div class="sb-uname" id="sb-uname">—</div><button class="sb-logout" onclick="doLogout()">Sign out</button></div>
+  </div>
+</aside>
 
-    <!-- ═══════ ADMIN PANEL (admin only) ═══════ -->
-    <div id="admin-panel" style="display:none">
-      <div class="admin-header">
-        <div class="admin-header-icon">🛡️</div>
-        <div>
-          <div class="admin-header-title">Admin Dashboard</div>
-          <div class="admin-header-sub">Company submissions, CRM status &amp; access management</div>
+<!-- MAIN CONTENT -->
+<div id="content">
+  <!-- Header -->
+  <div class="c-header">
+    <div class="c-title" id="c-title">Dashboard</div>
+    <div class="c-controls">
+      <div class="period-wrap">
+        <div class="period-seg" id="period-seg">
+          <button onclick="setPeriodType('Monthly')" class="active">Monthly</button>
+          <button onclick="setPeriodType('Quarterly')">Quarterly</button>
+          <button onclick="setPeriodType('Yearly')">Yearly</button>
         </div>
+        <select class="period-select" id="period-val-1" onchange="onPeriodChange()"></select>
+        <select class="period-select" id="period-val-2" onchange="onPeriodChange()"></select>
       </div>
-      <div class="admin-tabs-bar">
-        <button class="admin-tab-btn active" onclick="switchAdminTab('overview')">📊 Overview</button>
-        <button class="admin-tab-btn" onclick="switchAdminTab('crm')">🔗 CRM Status</button>
-        <button class="admin-tab-btn" onclick="switchAdminTab('logs')">📋 Access Log</button>
-        <button class="admin-tab-btn" onclick="switchAdminTab('passwords')">🔑 Passwords</button>
-      </div>
+      <button class="btn btn-primary btn-sm" id="add-btn" onclick="openEntryModal(null)" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>Add Entry</span>
+      </button>
+    </div>
+  </div>
 
-      <!-- Overview tab -->
-      <div id="admin-tab-overview" class="admin-tab-content active">
-        <div class="admin-stats-grid" id="admin-stats-grid"></div>
-        <div style="font-size:13px;font-weight:700;color:var(--gray-700);margin-bottom:12px;">Company Submission Status</div>
-        <div style="overflow-x:auto">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Company</th>
-                <th>Region</th>
-                <th>Sub-Region</th>
-                <th>Status</th>
-                <th>FTE Entries</th>
-                <th>Last Submitted</th>
-                <th>CRM</th>
-              </tr>
-            </thead>
-            <tbody id="admin-overview-body"></tbody>
-          </table>
-        </div>
+  <!-- DASHBOARD VIEW -->
+  <div class="view active" id="view-dashboard">
+    <div id="crm-banner" style="display:none"></div>
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="vis-row">
+      <div class="gauge-card">
+        <div class="gauge-title">Overall Attainment</div>
+        <div id="gauge-wrap"></div>
       </div>
-
-      <!-- CRM Status tab -->
-      <div id="admin-tab-crm" class="admin-tab-content">
-        <div style="font-size:13px;color:var(--gray-600);margin-bottom:16px;">
-          Companies with <strong>CRM Integration completed</strong> in Notion — these companies can have actuals pulled automatically from their CRM.
+      <div class="chart-card">
+        <div class="chart-title">
+          <span id="chart-title-text">Quota vs Achieved — by Seller</span>
         </div>
-        <div style="overflow-x:auto">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Company</th>
-                <th>Region</th>
-                <th>CRM Integration</th>
-                <th>Prompt in App</th>
-              </tr>
-            </thead>
-            <tbody id="admin-crm-body"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Access Log tab -->
-      <div id="admin-tab-logs" class="admin-tab-content">
-        <div style="font-size:13px;color:var(--gray-600);margin-bottom:16px;">
-          Recent login events. Requires the <code style="background:var(--gray-100);padding:2px 6px;border-radius:4px;font-size:12px">company_logins</code> table — <button onclick="copyLogsSQL()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;text-decoration:underline">copy setup SQL</button>.
-        </div>
-        <div id="admin-logs-content">
-          <div style="color:var(--gray-400);font-size:13px;padding:20px 0">Loading access logs…</div>
-        </div>
-      </div>
-
-      <!-- Passwords tab -->
-      <div id="admin-tab-passwords" class="admin-tab-content">
-        <div style="font-size:13px;color:var(--gray-600);margin-bottom:16px;">
-          Default passwords follow the pattern <code style="background:var(--gray-100);padding:2px 6px;border-radius:4px;font-size:12px">{company-slug}-2026</code>. Custom passwords are stored in Supabase — <button onclick="copyPasswordsSQL()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;text-decoration:underline">copy setup SQL</button>.
-        </div>
-        <div style="overflow-x:auto">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Company</th>
-                <th>Current Password</th>
-                <th>Type</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="admin-passwords-body"></tbody>
-          </table>
+        <div class="chart-wrap" id="chart-wrap" style="height:160px">
+          <canvas id="main-chart"></canvas>
         </div>
       </div>
     </div>
-
-    <!-- Period tabs -->
-    <div class="period-tabs" id="period-tabs"></div>
-
-    <!-- Summary cards -->
-    <div class="cards-grid" id="cards-grid">
-      <div class="card"><div class="card-label">Total Sellers</div><div class="card-value" id="c-total">—</div></div>
-      <div class="card card-green"><div class="card-label">≥100% Attainment</div><div class="card-value" id="c-green">—</div></div>
-      <div class="card card-amber"><div class="card-label">75–99% Attainment</div><div class="card-value" id="c-amber">—</div></div>
-      <div class="card card-red"><div class="card-label">&lt;75% Attainment</div><div class="card-value" id="c-red">—</div></div>
-      <div class="card"><div class="card-label">Avg Attainment</div><div class="card-value" id="c-avg">—</div><div class="card-sub">across visible entries</div></div>
-    </div>
-
-    <!-- Chart -->
-    <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">Attainment by Company</div>
+    <div class="table-card" id="dash-table-card">
+      <div class="table-header">
+        <div class="table-header-title">Seller Breakdown</div>
+        <div id="dash-period-label" style="font-size:12px;color:var(--txt3)"></div>
       </div>
-      <div class="chart-wrap"><canvas id="attainment-chart"></canvas></div>
+      <table class="tbl" id="dash-table"></table>
     </div>
+  </div>
 
-    <!-- Table toolbar -->
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <select class="filter-select" id="filter-region" onchange="applyFilters()">
-          <option value="">All Regions</option>
-          <option>CEE &amp; PL</option><option>DACH</option><option>France</option>
-          <option>UK&amp;I</option><option>Spain</option>
-        </select>
-        <select class="filter-select" id="filter-company" onchange="applyFilters()">
-          <option value="">All Companies</option>
-        </select>
-        <input class="search-input" id="search-input" placeholder="Search seller…" oninput="applyFilters()">
+  <!-- SELLERS VIEW -->
+  <div class="view" id="view-sellers">
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-header-title" id="sellers-title">My Entries</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" placeholder="Search sellers…" id="seller-search" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;width:180px" oninput="renderSellers()">
+          <button class="btn btn-primary btn-sm" onclick="openEntryModal(null)" id="sellers-add-btn">+ Add Entry</button>
+        </div>
       </div>
-      <button class="btn-add" id="btn-add-entry" onclick="openAddModal()">＋ Add Entry</button>
+      <table class="tbl" id="sellers-table"></table>
     </div>
+  </div>
 
-    <!-- Table -->
-    <div class="table-wrap">
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th onclick="sortBy('seller_name')">Seller <span class="sort-arrow">↕</span></th>
-              <th onclick="sortBy('region')">Region <span class="sort-arrow">↕</span></th>
-              <th onclick="sortBy('sub_region')">Sub-Region <span class="sort-arrow">↕</span></th>
-              <th onclick="sortBy('company')">Company <span class="sort-arrow">↕</span></th>
-              <th onclick="sortBy('quota')">Quota (€) <span class="sort-arrow">↕</span></th>
-              <th onclick="sortBy('achieved')">Achieved (€) <span class="sort-arrow">↕</span></th>
-              <th onclick="sortBy('attainment')">Attainment <span class="sort-arrow">↕</span></th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="table-body"></tbody>
-        </table>
+  <!-- PORTFOLIO VIEW -->
+  <div class="view" id="view-portfolio">
+    <div class="sec-header">
+      <div><div class="sec-title">Portfolio Overview</div><div class="sec-sub" id="portfolio-sub"></div></div>
+      <button class="btn btn-ghost btn-sm" id="portfolio-back-btn" onclick="clearDrilldown()" style="display:none">← Back to Portfolio</button>
+    </div>
+    <div id="portfolio-stats" class="stats-grid" style="display:none;margin-bottom:20px"></div>
+    <div id="portfolio-grid" class="portfolio-grid"></div>
+    <div id="portfolio-drill" style="display:none"></div>
+  </div>
+
+  <!-- CRM SETTINGS VIEW -->
+  <div class="view" id="view-crm-settings">
+    <div class="sec-header">
+      <div><div class="sec-title">CRM Integration Settings</div><div class="sec-sub">Toggle CRM integration per company and configure auto-pull of actuals</div></div>
+    </div>
+    <div class="info-box" id="crm-info-box">
+      <strong>How it works:</strong> Enable <em>CRM Integration</em> to show CRM features to that company's users. When <em>Auto-pull actuals</em> is enabled, company users only need to enter quota targets — actuals are populated by Everfield from their CRM.
+    </div>
+    <div class="table-card">
+      <table class="crm-table" id="crm-table"></table>
+    </div>
+  </div>
+
+  <!-- ACCESS LOG VIEW -->
+  <div class="view" id="view-access-log">
+    <div class="sec-header">
+      <div><div class="sec-title">Access Log</div><div class="sec-sub">Recent company logins (last 200 events)</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="loadAccessLog()">↺ Refresh</button>
+    </div>
+    <div class="table-card">
+      <div class="log-list" id="log-list"></div>
+    </div>
+  </div>
+
+  <!-- PASSWORDS VIEW -->
+  <div class="view" id="view-passwords">
+    <div class="sec-header">
+      <div><div class="sec-title">Password Management</div><div class="sec-sub">Reset company access passwords</div></div>
+    </div>
+    <div class="table-card">
+      <table class="tbl" id="pw-table"></table>
+    </div>
+  </div>
+
+  <!-- EXPORT VIEW -->
+  <div class="view" id="view-export">
+    <div class="sec-header">
+      <div><div class="sec-title">Export Data</div><div class="sec-sub">Download quota and performance data as CSV</div></div>
+    </div>
+    <div class="export-section">
+      <div class="export-row">
+        <div class="export-info">
+          <h3>Export All Data</h3>
+          <p>All companies · All periods · All sellers</p>
+          <div class="export-meta" id="export-all-meta"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="exportAll()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download CSV
+        </button>
+      </div>
+      <div class="export-row">
+        <div class="export-info">
+          <h3>Export by Company</h3>
+          <div class="sel-wrap" style="margin-top:8px;max-width:220px">
+            <select id="export-company" class="period-select" style="width:220px">
+              <option value="">All companies</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="exportByCompany()">Download CSV</button>
+      </div>
+      <div class="export-row">
+        <div class="export-info">
+          <h3>Export Current Period</h3>
+          <p id="export-period-label">Current period only</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="exportPeriod()">Download CSV</button>
       </div>
     </div>
+  </div>
 
-  </main>
-</div>
+</div><!-- /content -->
+</div><!-- /shell -->
+</div><!-- /app -->
 
-<!-- ═══════════════════ ADD / EDIT MODAL ═══════════════════ -->
+<!-- ENTRY MODAL -->
 <div class="modal-backdrop" id="entry-modal">
   <div class="modal">
-    <div class="modal-title" id="modal-title">Add Entry</div>
-    <div class="modal-grid">
-      <div class="form-group">
-        <label>Seller Name</label>
-        <input type="text" id="f-seller" placeholder="e.g. John Smith">
-      </div>
-      <div class="form-group">
-        <label>Period Type</label>
-        <div class="select-wrapper">
-          <select id="f-period-type" onchange="updatePeriodFields()">
-            <option value="">— Select type —</option>
-            <option value="monthly">Monthly</option>
-            <option value="quarterly">Quarterly</option>
-            <option value="yearly">Yearly</option>
-          </select>
+    <div class="modal-head">
+      <h2 id="em-title">Add Seller Entry</h2>
+      <button class="modal-close" onclick="closeModal('entry-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="em-crm-notice" style="display:none" class="success-box"></div>
+      <div class="fld-row">
+        <div class="fld fld-full" id="em-co-wrap" style="display:none">
+          <label>Company</label>
+          <div class="sel-wrap"><select id="em-co" onchange="onEmCoChange()"></select></div>
+        </div>
+        <div class="fld fld-full">
+          <label>Seller Name</label>
+          <input type="text" id="em-seller" placeholder="Full name">
+        </div>
+        <div class="fld" id="em-region-wrap">
+          <label>Region</label>
+          <input type="text" id="em-region" readonly style="background:#fafafa;color:var(--txt2)">
+        </div>
+        <div class="fld" id="em-sub-wrap">
+          <label>Sub-region</label>
+          <input type="text" id="em-sub" readonly style="background:#fafafa;color:var(--txt2)">
+        </div>
+        <div class="fld fld-full">
+          <label>Period</label>
+          <input type="text" id="em-period" readonly style="background:#fafafa;color:var(--txt2)">
+        </div>
+        <div class="fld">
+          <label>Quota (€)</label>
+          <input type="number" id="em-quota" min="0" placeholder="0">
+        </div>
+        <div class="fld" id="em-ach-wrap">
+          <label>Achieved (€)</label>
+          <input type="number" id="em-ach" min="0" placeholder="0">
         </div>
       </div>
-      <div class="form-group" id="f-period-sub-wrap" style="display:none">
-        <label id="f-period-sub-label">Period</label>
-        <div class="select-wrapper">
-          <select id="f-period-sub"></select>
+      <div id="em-crm-toggle-row" style="display:none;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--txt2)">
+          <label class="toggle"><input type="checkbox" id="em-crm-cb" onchange="onCrmToggle()"><span class="tog-sl"></span></label>
+          Pull actuals from CRM for this entry
+        </label>
+      </div>
+      <div class="login-err" id="em-err" style="text-align:left;margin-top:10px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('entry-modal')">Cancel</button>
+      <button class="btn btn-primary" id="em-save-btn" onclick="saveEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- CRM DECISION MODAL -->
+<div class="modal-backdrop" id="crm-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>🔗 CRM Integration Available</h2>
+      <button class="modal-close" onclick="closeCrmModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--txt2);margin-bottom:20px;line-height:1.6">Your CRM is connected to the Everfield data platform. Would you like Everfield to automatically populate actuals from your CRM? You would only need to enter quota targets for each seller.</p>
+      <div class="crm-dec-card" onclick="saveCrmDecision(true)">
+        <div class="crm-dec-icon" style="background:var(--green-bg)">⚡</div>
+        <div>
+          <div class="crm-dec-title">Yes — pull actuals from CRM automatically</div>
+          <div class="crm-dec-desc">Everfield will pull your actuals from the CRM. You only need to report quota targets for each seller. Ideal for fully integrated setups.</div>
         </div>
       </div>
-      <div class="form-group">
-        <label>Year</label>
-        <div class="select-wrapper">
-          <select id="f-period-year">
-            <option value="">— Select year —</option>
-            <option>2023</option><option>2024</option>
-            <option value="2025" selected>2025</option>
-            <option>2026</option><option>2027</option>
-          </select>
+      <div class="crm-dec-card" onclick="saveCrmDecision(false)">
+        <div class="crm-dec-icon" style="background:var(--amber-bg)">✏️</div>
+        <div>
+          <div class="crm-dec-title">No — I will enter actuals manually</div>
+          <div class="crm-dec-desc">You will enter actuals for each seller yourself. You can optionally tag individual entries as CRM-sourced.</div>
         </div>
       </div>
-      <div class="form-group full">
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-backdrop" id="pw-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <h2>Reset Password</h2>
+      <button class="modal-close" onclick="closeModal('pw-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fld">
         <label>Company</label>
-        <div class="select-wrapper">
-          <select id="f-company" onchange="onCompanyChange()"></select>
-        </div>
+        <input type="text" id="pwm-co" readonly style="background:#fafafa">
       </div>
-
-      <!-- CRM Integration toggle (shown for CRM-enabled companies) -->
-      <div class="form-group full" id="crm-toggle-row" style="display:none">
-        <div class="crm-toggle-box">
-          <label class="crm-toggle-label">
-            <input type="checkbox" id="f-crm-pull" onchange="toggleCrmPull()">
-            <div>
-              <div class="crm-toggle-text">🔗 Pull actuals from CRM</div>
-              <div class="crm-toggle-sub">Your CRM integration is active — actuals can be sourced automatically. Check this if you only want to enter targets.</div>
-            </div>
-          </label>
-        </div>
+      <div class="fld">
+        <label>New Password</label>
+        <input type="text" id="pwm-pass" placeholder="Enter new password">
       </div>
-
-      <div class="form-group">
-        <label>Quota / Target (€)</label>
-        <input type="number" id="f-quota" placeholder="e.g. 100000" min="0">
-      </div>
-      <div class="form-group" id="f-achieved-wrap">
-        <label>Achieved (€)</label>
-        <input type="number" id="f-achieved" placeholder="e.g. 82000" min="0">
-      </div>
+      <div class="login-err" id="pwm-err" style="text-align:left"></div>
     </div>
-    <div class="modal-error" id="modal-error"></div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('entry-modal')">Cancel</button>
-      <button class="btn-save" onclick="saveEntry()">Save Entry</button>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('pw-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePw()">Save Password</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════ DELETE CONFIRM ═══════════════════ -->
-<div class="modal-backdrop" id="delete-modal">
-  <div class="modal confirm-modal">
-    <div class="modal-title">Delete Entry</div>
-    <div class="confirm-msg">Are you sure you want to delete this entry? This action cannot be undone.</div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('delete-modal')">Cancel</button>
-      <button class="btn-del-confirm" onclick="confirmDelete()">Delete</button>
+<!-- SETUP SQL MODAL -->
+<div class="modal-backdrop" id="sql-modal">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <h2>📋 Database Setup Required</h2>
+      <button class="modal-close" onclick="closeModal('sql-modal')">×</button>
     </div>
-  </div>
-</div>
-
-<!-- ═══════════════════ PASSWORD RESET MODAL ═══════════════════ -->
-<div class="modal-backdrop" id="password-modal">
-  <div class="modal confirm-modal">
-    <div class="modal-title" id="pw-modal-title">Reset Password</div>
-    <p style="font-size:13px;color:var(--gray-600);margin-bottom:16px" id="pw-modal-sub"></p>
-    <div class="form-group">
-      <label>New Password</label>
-      <input type="text" id="pw-new-value" placeholder="Enter new password">
+    <div class="modal-body">
+      <div class="warn-box">Run the following SQL in your Supabase SQL Editor to set up required tables.</div>
+      <div class="sql-block" id="sql-block"></div>
     </div>
-    <div class="modal-error" id="pw-modal-error"></div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('password-modal')">Cancel</button>
-      <button class="btn-save" onclick="savePassword()">Save Password</button>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('sql-modal')">Close</button>
+      <button class="btn btn-primary" onclick="copySQL()">Copy SQL</button>
     </div>
   </div>
 </div>
 
 <script>
 /* ═══════════════════════════════════════
-   CONFIGURATION
+   CONFIG
 ═══════════════════════════════════════ */
 const SUPABASE_URL  = 'https://nbspfxdbtfjelprofkfi.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ic3BmeGRidGZqZWxwcm9ma2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMDEzODEsImV4cCI6MjA4OTU3NzM4MX0.u2iOuMV3HRVhBkkm4Wx_Ip3VhO8R5Y52cvD6HrUS-Dw';
-
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const ADMIN_PASS = 'everfield-admin-2026';
 
-const ADMIN_PASS   = 'everfield-admin-2026';
-const COMPANY_PASS_SUFFIX = '-2026';
+const SETUP_SQL = `-- Main entries table
+create table if not exists quota_entries (
+  id uuid primary key default gen_random_uuid(),
+  seller_name text not null, region text not null, sub_region text not null,
+  company text not null, period text not null,
+  quota numeric not null, achieved numeric not null default 0,
+  crm_pull boolean default false, created_at timestamptz default now()
+);
+alter table quota_entries enable row level security;
+create policy if not exists "r" on quota_entries for select using (true);
+create policy if not exists "i" on quota_entries for insert with check (true);
+create policy if not exists "u" on quota_entries for update using (true);
+create policy if not exists "d" on quota_entries for delete using (true);
+
+-- Login log table
+create table if not exists company_logins (
+  id uuid primary key default gen_random_uuid(),
+  company text not null, logged_at timestamptz default now()
+);
+alter table company_logins enable row level security;
+create policy if not exists "r" on company_logins for select using (true);
+create policy if not exists "i" on company_logins for insert with check (true);
+
+-- Passwords table
+create table if not exists company_passwords (
+  company text primary key, password text not null, updated_at timestamptz default now()
+);
+alter table company_passwords enable row level security;
+create policy if not exists "r" on company_passwords for select using (true);
+create policy if not exists "i" on company_passwords for insert with check (true);
+create policy if not exists "u" on company_passwords for update using (true);
+
+-- Company settings (CRM + preferences)
+create table if not exists company_settings (
+  company text primary key,
+  crm_enabled boolean default false,
+  crm_auto_pull boolean,
+  updated_at timestamptz default now()
+);
+alter table company_settings enable row level security;
+create policy if not exists "r" on company_settings for select using (true);
+create policy if not exists "i" on company_settings for insert with check (true);
+create policy if not exists "u" on company_settings for update using (true);`;
 
 /* ═══════════════════════════════════════
    COMPANY DATA
 ═══════════════════════════════════════ */
 const COMPANIES = [
-  // Vistula
-  {name:'BBT',      region:'CEE & PL', sub:'Vistula'},
-  {name:'GO',       region:'CEE & PL', sub:'Vistula'},
-  {name:'Atmoterm', region:'CEE & PL', sub:'Vistula'},
-  {name:'AGroup',   region:'CEE & PL', sub:'Vistula'},
-  {name:'Meditec',  region:'CEE & PL', sub:'Vistula'},
-  {name:'Frontu',   region:'CEE & PL', sub:'Vistula'},
-  {name:'Motivity', region:'CEE & PL', sub:'Vistula'},
-  // Danube
-  {name:'SoCom',    region:'DACH', sub:'Danube'},
-  {name:'VSX',      region:'DACH', sub:'Danube'},
-  {name:'ParkHere', region:'DACH', sub:'Danube'},
-  {name:'ondeso',   region:'DACH', sub:'Danube'},
-  {name:'aequitixx',region:'DACH', sub:'Danube'},
-  {name:'Duchting', region:'DACH', sub:'Danube'},
-  // DACH
-  {name:'Fenz',       region:'DACH', sub:'DACH'},
-  {name:'KOST',       region:'DACH', sub:'DACH'},
-  {name:'helloTess',  region:'DACH', sub:'DACH'},
-  {name:'Matrix POS', region:'DACH', sub:'DACH'},
-  // France
-  {name:'1Check',    region:'France', sub:'France'},
-  {name:'Fitnet',    region:'France', sub:'France'},
-  {name:'Synergee',  region:'France', sub:'France'},
-  {name:'Visioglobe',region:'France', sub:'France'},
-  {name:'Inforum',   region:'France', sub:'France'},
-  {name:'Digifood',  region:'France', sub:'France'},
-  // Tamar
-  {name:'HeapsGO',            region:'UK&I', sub:'Tamar'},
-  {name:'Trade Interchange',  region:'UK&I', sub:'Tamar'},
-  {name:'Nvolve',             region:'UK&I', sub:'Tamar'},
-  {name:'OnlinePOS',          region:'UK&I', sub:'Tamar'},
-  {name:'CIM',                region:'UK&I', sub:'Tamar'},
-  {name:'Strategic Thinking', region:'UK&I', sub:'Tamar'},
-  // Tees
-  {name:'FitFactory', region:'UK&I', sub:'Tees'},
-  {name:'Depotnet',   region:'UK&I', sub:'Tees'},
-  {name:'MKM',        region:'UK&I', sub:'Tees'},
-  // Spain
-  {name:'4GL',     region:'Spain', sub:'Spain'},
-  {name:'G-Stock', region:'Spain', sub:'Spain'},
-  {name:'Esemtia', region:'Spain', sub:'Spain'},
-  {name:'Vozitel', region:'Spain', sub:'Spain'},
-  {name:'Teeone',  region:'Spain', sub:'Spain'},
+  {name:'BBT',region:'CEE & PL',sub:'Vistula'},{name:'GO',region:'CEE & PL',sub:'Vistula'},
+  {name:'Atmoterm',region:'CEE & PL',sub:'Vistula'},{name:'AGroup',region:'CEE & PL',sub:'Vistula'},
+  {name:'Meditec',region:'CEE & PL',sub:'Vistula'},{name:'Frontu',region:'CEE & PL',sub:'Vistula'},
+  {name:'Motivity',region:'CEE & PL',sub:'Vistula'},
+  {name:'SoCom',region:'DACH',sub:'Danube'},{name:'VSX',region:'DACH',sub:'Danube'},
+  {name:'ParkHere',region:'DACH',sub:'Danube'},{name:'ondeso',region:'DACH',sub:'Danube'},
+  {name:'aequitixx',region:'DACH',sub:'Danube'},{name:'Duchting',region:'DACH',sub:'Danube'},
+  {name:'Fenz',region:'DACH',sub:'DACH'},{name:'KOST',region:'DACH',sub:'DACH'},
+  {name:'helloTess',region:'DACH',sub:'DACH'},{name:'Matrix POS',region:'DACH',sub:'DACH'},
+  {name:'1Check',region:'France',sub:'France'},{name:'Fitnet',region:'France',sub:'France'},
+  {name:'Synergee',region:'France',sub:'France'},{name:'Visioglobe',region:'France',sub:'France'},
+  {name:'Inforum',region:'France',sub:'France'},{name:'Digifood',region:'France',sub:'France'},
+  {name:'HeapsGO',region:'UK&I',sub:'Tamar'},{name:'Trade Interchange',region:'UK&I',sub:'Tamar'},
+  {name:'Nvolve',region:'UK&I',sub:'Tamar'},{name:'OnlinePOS',region:'UK&I',sub:'Tamar'},
+  {name:'CIM',region:'UK&I',sub:'Tamar'},{name:'Strategic Thinking',region:'UK&I',sub:'Tamar'},
+  {name:'FitFactory',region:'UK&I',sub:'Tees'},{name:'Depotnet',region:'UK&I',sub:'Tees'},
+  {name:'MKM',region:'UK&I',sub:'Tees'},
+  {name:'4GL',region:'Spain',sub:'Spain'},{name:'G-Stock',region:'Spain',sub:'Spain'},
+  {name:'Esemtia',region:'Spain',sub:'Spain'},{name:'Vozitel',region:'Spain',sub:'Spain'},
+  {name:'Teeone',region:'Spain',sub:'Spain'},
 ];
-
-// Companies with CRM integration completed (sourced from Notion CRM compliance tracker)
-const CRM_COMPANIES = [
-  'Frontu', 'Visioglobe', 'Nvolve', 'Meditec', 'AGroup', 'Vozitel',
-  'MKM', 'FitFactory', 'ParkHere', 'GO', 'Esemtia', 'Atmoterm'
-];
-
-const SETUP_SQL = `-- Main quota entries table
-create table if not exists quota_entries (
-  id          uuid primary key default gen_random_uuid(),
-  seller_name text not null,
-  region      text not null,
-  sub_region  text not null,
-  company     text not null,
-  period      text not null,
-  quota       numeric not null,
-  achieved    numeric not null default 0,
-  crm_pull    boolean default false,
-  created_at  timestamptz default now()
-);
-alter table quota_entries enable row level security;
-create policy "read all"   on quota_entries for select using (true);
-create policy "insert all" on quota_entries for insert with check (true);
-create policy "update all" on quota_entries for update using (true);
-create policy "delete all" on quota_entries for delete using (true);
-
--- Access log table
-create table if not exists company_logins (
-  id         uuid primary key default gen_random_uuid(),
-  company    text not null,
-  logged_at  timestamptz default now()
-);
-alter table company_logins enable row level security;
-create policy "all logins" on company_logins for all using (true);
-
--- Custom passwords table
-create table if not exists company_passwords (
-  company    text primary key,
-  password   text not null,
-  updated_at timestamptz default now()
-);
-alter table company_passwords enable row level security;
-create policy "all passwords" on company_passwords for all using (true);`;
-
-const LOGS_SQL = `create table if not exists company_logins (
-  id         uuid primary key default gen_random_uuid(),
-  company    text not null,
-  logged_at  timestamptz default now()
-);
-alter table company_logins enable row level security;
-create policy "all logins" on company_logins for all using (true);`;
-
-const PASSWORDS_SQL = `create table if not exists company_passwords (
-  company    text primary key,
-  password   text not null,
-  updated_at timestamptz default now()
-);
-alter table company_passwords enable row level security;
-create policy "all passwords" on company_passwords for all using (true);`;
 
 /* ═══════════════════════════════════════
    STATE
 ═══════════════════════════════════════ */
-let currentUser       = null;
-let allEntries        = [];
-let filteredRows      = [];
-let activePeriod      = null;
-let sortKey           = 'company';
-let sortAsc           = true;
-let editingId         = null;
-let deleteId          = null;
-let chartInstance     = null;
-let customPasswords   = {};   // loaded from Supabase: {company: password}
-let activeAdminTab    = 'overview';
-let pwResetCompany    = null;
+let currentUser = null;
+let entries = [];
+let allEntries = [];   // admin only — all entries across companies
+let settings = {};     // {company: {crm_enabled, crm_auto_pull}}
+let passwords = {};    // {company: customPassword}
+let loginLogs = [];
+let pType = 'Monthly';
+let pMonth = new Date().toLocaleString('en-US',{month:'long'});
+let pQuarter = 'Q' + Math.ceil((new Date().getMonth()+1)/3);
+let pYear = String(new Date().getFullYear());
+let currentView = 'dashboard';
+let drillCompany = null; // admin drilled into a company
+let editEntry = null;
+let chartInst = null;
 
 /* ═══════════════════════════════════════
-   PASSWORDS
+   HELPERS
 ═══════════════════════════════════════ */
-function defaultPassword(company) {
-  if (company === '__admin__') return ADMIN_PASS;
-  const slug = company.toLowerCase().replace(/[^a-z0-9]/g, '-');
-  return slug + COMPANY_PASS_SUFFIX;
+const isAdmin = () => currentUser === '__admin__';
+const myCompany = () => isAdmin() ? drillCompany : currentUser;
+const coData = (name) => COMPANIES.find(c=>c.name===name) || {region:'—',sub:'—'};
+const fmt = n => Number(n||0).toLocaleString('en-US');
+const fmtEur = n => '€'+fmt(n);
+const attPct = (ach,quo) => quo ? Math.round((ach/quo)*100) : 0;
+const attClass = p => p>=95?'green':p>=80?'amber':p>=60?'orange':'red';
+const attColor = p => p>=95?'var(--green)':p>=80?'var(--amber)':p>=60?'var(--orange)':'var(--red)';
+const periodStr = () => pType==='Monthly'?`Monthly|${pMonth}|${pYear}`:pType==='Quarterly'?`Quarterly|${pQuarter}|${pYear}`:`Yearly|${pYear}`;
+const displayPeriod = s => { const p=s.split('|'); return p[0]==='Yearly'?p[1]:(p[1]+' '+p[2]); };
+const hasCRM = co => settings[co]?.crm_enabled===true;
+const hasAutoPull = co => settings[co]?.crm_auto_pull===true;
+const crmDecided = co => settings[co]?.crm_auto_pull!==null && settings[co]?.crm_auto_pull!==undefined;
+function defaultPw(co){ return co.toLowerCase().replace(/\s+/g,'')+'-2026'; }
+function getPw(co){ return passwords[co] || defaultPw(co); }
+function relTime(ts){
+  const d=Date.now()-new Date(ts).getTime(), m=Math.floor(d/60000);
+  if(m<2)return'just now'; if(m<60)return m+'m ago';
+  const h=Math.floor(m/60); if(h<24)return h+'h ago';
+  return Math.floor(h/24)+'d ago';
 }
-
-async function loadCustomPasswords() {
-  try {
-    const { data } = await db.from('company_passwords').select('company,password');
-    if (data) {
-      customPasswords = {};
-      data.forEach(r => { customPasswords[r.company] = r.password; });
-    }
-  } catch(e) { /* table may not exist yet */ }
+function setBar(pct){ const b=document.getElementById('loading-bar'); b.style.width=pct+'%'; if(pct>=100){setTimeout(()=>{b.style.opacity='0';setTimeout(()=>{b.style.width='0';b.style.opacity='1';},400);},400);} }
+function spin(on){ document.getElementById('spinner').classList.toggle('on',on); }
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  const el=document.createElement('div'); el.className=`toast-item ${type}`; el.textContent=msg;
+  t.appendChild(el); setTimeout(()=>el.remove(),3000);
 }
-
-function getPassword(company) {
-  if (customPasswords[company]) return customPasswords[company];
-  return defaultPassword(company);
-}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
 
 /* ═══════════════════════════════════════
-   AUTH
+   SVG GAUGE
 ═══════════════════════════════════════ */
-async function doLogin() {
-  const company  = document.getElementById('login-company').value;
-  const password = document.getElementById('login-password').value;
-  const errEl    = document.getElementById('login-error');
-  errEl.textContent = '';
-
-  if (!company) { errEl.textContent = 'Please select a company.'; return; }
-  if (!password) { errEl.textContent = 'Please enter your password.'; return; }
-
-  // Load custom passwords first
-  await loadCustomPasswords();
-
-  if (password !== getPassword(company)) {
-    errEl.textContent = 'Incorrect password. Please try again.';
-    return;
-  }
-
-  sessionStorage.setItem('qt_user', company);
-  currentUser = company;
-
-  // Log login event (non-blocking)
-  if (company !== '__admin__') {
-    db.from('company_logins').insert([{company, logged_at: new Date().toISOString()}])
-      .then(() => {}).catch(() => {});
-  }
-
-  bootApp();
-}
-
-function doLogout() {
-  sessionStorage.removeItem('qt_user');
-  currentUser = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-password').value = '';
-  document.getElementById('login-error').textContent = '';
-}
-
-function isAdmin() { return currentUser === '__admin__'; }
-function myCompany() { return isAdmin() ? null : currentUser; }
-function hasCRM(company) { return CRM_COMPANIES.includes(company); }
-
-/* ═══════════════════════════════════════
-   LOADING STATES
-═══════════════════════════════════════ */
-let loadingBar = null;
-function showLoading() {
-  const bar = document.getElementById('loading-bar');
-  bar.style.width = '0%'; bar.style.opacity = '1';
-  let w = 0;
-  loadingBar = setInterval(() => { w = Math.min(w + Math.random() * 15, 85); bar.style.width = w + '%'; }, 200);
-  document.getElementById('spinner-overlay').classList.add('active');
-}
-function hideLoading() {
-  clearInterval(loadingBar);
-  const bar = document.getElementById('loading-bar');
-  bar.style.width = '100%';
-  setTimeout(() => { bar.style.opacity = '0'; bar.style.width = '0%'; }, 300);
-  document.getElementById('spinner-overlay').classList.remove('active');
+function svgGauge(pct, size=130){
+  const r=46, cx=size/2, cy=size/2;
+  const C=2*Math.PI*r;
+  const arc=C*0.75;
+  const capped=Math.min(Math.max(pct,0),120);
+  const filled=arc*(capped/100);
+  const clr=pct>=95?'#059669':pct>=80?'#d97706':pct>=60?'#ea580c':'#dc2626';
+  const bg=pct>=95?'#ecfdf5':pct>=80?'#fffbeb':pct>=60?'#fff7ed':'#fef2f2';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${bg}" opacity="0.5"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e2e8f0" stroke-width="10" stroke-linecap="round"
+      stroke-dasharray="${arc} ${C}" transform="rotate(135 ${cx} ${cy})"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${clr}" stroke-width="10" stroke-linecap="round"
+      stroke-dasharray="${filled} ${C}" transform="rotate(135 ${cx} ${cy})"
+      style="transition:stroke-dasharray .9s cubic-bezier(.4,0,.2,1)"/>
+    <text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="22" font-weight="800" fill="#0f172a"
+      font-family="-apple-system,system-ui,sans-serif">${pct}%</text>
+    <text x="${cx}" y="${cy+20}" text-anchor="middle" font-size="11" fill="#94a3b8"
+      font-family="-apple-system,system-ui,sans-serif">of target</text>
+  </svg>`;
 }
 
 /* ═══════════════════════════════════════
-   TOAST
+   PERIOD SELECTOR
 ═══════════════════════════════════════ */
-let toastTimer = null;
-function showToast(msg, type = '') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'show ' + type;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const QUARTERS=['Q1','Q2','Q3','Q4'];
+
+function setPeriodType(t){
+  pType=t;
+  document.querySelectorAll('#period-seg button').forEach(b=>b.classList.toggle('active',b.textContent===t));
+  buildPeriodDropdowns(); onPeriodChange();
 }
-
-/* ═══════════════════════════════════════
-   BOOT
-═══════════════════════════════════════ */
-async function bootApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-
-  const badge = document.getElementById('user-badge');
-  badge.textContent = isAdmin() ? 'Admin — All Companies' : currentUser;
-
-  // CRM banner for company users
-  const crmBanner = document.getElementById('crm-banner');
-  if (!isAdmin() && hasCRM(currentUser)) {
-    crmBanner.classList.add('show');
+function buildPeriodDropdowns(){
+  const v1=document.getElementById('period-val-1'), v2=document.getElementById('period-val-2');
+  const yr=new Date().getFullYear();
+  const years=[yr+1,yr,yr-1,yr-2].map(y=>`<option value="${y}"${y==yr?'':''} ${String(y)===pYear?'selected':''}>${y}</option>`).join('');
+  if(pType==='Monthly'){
+    v1.innerHTML=MONTHS.map(m=>`<option value="${m}" ${m===pMonth?'selected':''}>${m}</option>`).join('');
+    v2.innerHTML=years; v2.style.display=''; v1.style.display='';
+  } else if(pType==='Quarterly'){
+    v1.innerHTML=QUARTERS.map(q=>`<option value="${q}" ${q===pQuarter?'selected':''}>${q}</option>`).join('');
+    v2.innerHTML=years; v2.style.display=''; v1.style.display='';
   } else {
-    crmBanner.classList.remove('show');
+    v1.innerHTML=years; v1.style.display=''; v2.style.display='none';
   }
-
-  // Admin panel
-  document.getElementById('admin-panel').style.display = isAdmin() ? 'block' : 'none';
-
-  // Populate company filter
-  const fComp = document.getElementById('filter-company');
-  fComp.innerHTML = '<option value="">All Companies</option>';
-  COMPANIES.forEach(c => {
-    const o = document.createElement('option');
-    o.value = c.name; o.textContent = c.name;
-    fComp.appendChild(o);
-  });
-
-  // Populate modal company select
-  const fModal = document.getElementById('f-company');
-  fModal.innerHTML = '';
-  const companiesForUser = isAdmin() ? COMPANIES : COMPANIES.filter(c => c.name === currentUser);
-  companiesForUser.forEach(c => {
-    const o = document.createElement('option');
-    o.value = c.name; o.textContent = `${c.name} (${c.region} › ${c.sub})`;
-    fModal.appendChild(o);
-  });
-
-  document.getElementById('btn-add-entry').style.display = '';
-  document.getElementById('setup-sql-code').textContent = SETUP_SQL;
-
-  await fetchEntries();
-
-  if (isAdmin()) {
-    await loadCustomPasswords();
-    renderAdminPanel();
-  }
+}
+function onPeriodChange(){
+  const v1=document.getElementById('period-val-1').value, v2=document.getElementById('period-val-2').value;
+  if(pType==='Monthly'){pMonth=v1;pYear=v2;}
+  else if(pType==='Quarterly'){pQuarter=v1;pYear=v2;}
+  else{pYear=v1;}
+  loadData();
 }
 
 /* ═══════════════════════════════════════
-   FETCH
+   INIT & AUTH
 ═══════════════════════════════════════ */
-async function fetchEntries() {
-  showLoading();
-  document.getElementById('setup-banner').style.display = 'none';
+async function init(){
+  setBar(10);
+  buildLoginDropdown();
+  buildPeriodDropdowns();
+  document.getElementById('l-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  await Promise.all([loadPasswords(), loadSettings()]);
+  setBar(40);
+  const saved=sessionStorage.getItem('qtu');
+  if(saved){ await loginAs(saved); }
+  setBar(100);
+}
 
-  const { data, error } = await db
-    .from('quota_entries')
-    .select('*')
-    .order('created_at', { ascending: false });
+function buildLoginDropdown(){
+  const sel=document.getElementById('l-company');
+  sel.innerHTML='<option value="">Select company…</option>' +
+    COMPANIES.map(c=>`<option value="${c.name}">${c.name}</option>`).join('') +
+    '<option value="__admin__">Everfield (Admin)</option>';
+}
 
-  hideLoading();
+async function doLogin(){
+  const co=document.getElementById('l-company').value;
+  const pw=document.getElementById('l-pass').value;
+  const err=document.getElementById('l-err');
+  if(!co){err.textContent='Please select a company.';return;}
+  if(!pw){err.textContent='Please enter a password.';return;}
+  const expected = co==='__admin__' ? ADMIN_PASS : getPw(co);
+  if(pw!==expected){err.textContent='Incorrect password.';return;}
+  err.textContent='';
+  await loginAs(co);
+}
 
-  if (error) {
-    const msg = (error.message || '').toLowerCase();
-    const code = (error.code || '');
-    if (code === '42P01' || msg.includes('does not exist') || msg.includes('relation')) {
-      document.getElementById('setup-banner').style.display = 'block';
-      allEntries = [];
+async function loginAs(co){
+  spin(true);
+  currentUser=co;
+  sessionStorage.setItem('qtu',co);
+  // Log access (non-admin)
+  if(co!=='__admin__'){
+    db.from('company_logins').insert([{company:co,logged_at:new Date().toISOString()}]).then(()=>{}).catch(()=>{});
+  }
+  // Setup UI
+  const isAd=isAdmin();
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.querySelectorAll('.admin-only').forEach(el=>el.style.display=isAd?'':'none');
+  document.getElementById('sb-admin-label').style.display=isAd?'':'none';
+  document.getElementById('add-btn').style.display=isAd?'none':'';
+  document.getElementById('sellers-add-btn').style.display=isAd?'none':'';
+  const avatar=co==='__admin__'?'EF':co.substring(0,2).toUpperCase();
+  document.getElementById('sb-avatar').textContent=avatar;
+  document.getElementById('sb-uname').textContent=co==='__admin__'?'Everfield Admin':co;
+  // Populate export company dropdown
+  const excSel=document.getElementById('export-company');
+  excSel.innerHTML='<option value="">All companies</option>'+COMPANIES.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  await loadData();
+  spin(false);
+  // Check CRM decision for company users
+  if(!isAd && hasCRM(co) && !crmDecided(co)){
+    setTimeout(()=>openModal('crm-modal'),600);
+  }
+}
+
+function doLogout(){
+  currentUser=null; drillCompany=null; entries=[]; allEntries=[];
+  sessionStorage.removeItem('qtu');
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('l-pass').value='';
+  document.getElementById('l-err').textContent='';
+}
+
+/* ═══════════════════════════════════════
+   DATA LOADING
+═══════════════════════════════════════ */
+async function loadData(){
+  spin(true); setBar(30);
+  try{
+    if(isAdmin()){
+      const {data}=await db.from('quota_entries').select('*').order('created_at',{ascending:false});
+      allEntries=data||[];
+      entries=allEntries.filter(e=>e.period===periodStr());
     } else {
-      showToast('Error loading data: ' + error.message, 'error');
-      allEntries = [];
+      const {data}=await db.from('quota_entries').select('*')
+        .eq('company',currentUser).order('created_at',{ascending:false});
+      allEntries=data||[];
+      entries=allEntries.filter(e=>e.period===periodStr());
     }
-  } else {
-    allEntries = data || [];
-  }
-
-  allEntries = allEntries.map(r => ({
-    ...r,
-    attainment: r.quota > 0 ? Math.round((r.achieved / r.quota) * 1000) / 10 : 0
-  }));
-
-  buildPeriodTabs();
-  applyFilters();
-
-  if (isAdmin()) renderAdminOverview();
+    setBar(80);
+    renderCurrentView();
+    // update export meta
+    document.getElementById('export-all-meta').textContent=`${allEntries.length} total entries across ${new Set(allEntries.map(e=>e.company)).size} companies`;
+    document.getElementById('export-period-label').textContent=displayPeriod(periodStr());
+  } catch(e){ toast('Error loading data','error'); }
+  spin(false); setBar(100);
 }
 
-async function refreshData() {
-  showToast('Refreshing…');
-  await fetchEntries();
-  if (isAdmin()) { await loadCustomPasswords(); renderAdminPanel(); }
-  showToast('Data refreshed', 'success');
+async function loadPasswords(){
+  try{
+    const {data}=await db.from('company_passwords').select('company,password');
+    if(data) data.forEach(r=>{passwords[r.company]=r.password;});
+  } catch(e){}
 }
 
-/* ═══════════════════════════════════════
-   PERIOD TABS
-═══════════════════════════════════════ */
-function buildPeriodTabs() {
-  const periods = [...new Set(allEntries.map(r => r.period))].sort().reverse();
-  const container = document.getElementById('period-tabs');
-  container.innerHTML = '';
+async function loadSettings(){
+  try{
+    const {data}=await db.from('company_settings').select('*');
+    if(data) data.forEach(r=>{settings[r.company]={crm_enabled:r.crm_enabled,crm_auto_pull:r.crm_auto_pull};});
+  } catch(e){}
+}
 
-  if (periods.length === 0) { activePeriod = null; return; }
-  if (!activePeriod || !periods.includes(activePeriod)) activePeriod = periods[0];
-
-  const allTab = document.createElement('div');
-  allTab.className = 'period-tab' + (activePeriod === '__all__' ? ' active' : '');
-  allTab.textContent = 'All Periods';
-  allTab.onclick = () => { activePeriod = '__all__'; buildPeriodTabs(); applyFilters(); };
-  container.appendChild(allTab);
-
-  periods.forEach(p => {
-    const tab = document.createElement('div');
-    tab.className = 'period-tab' + (activePeriod === p ? ' active' : '');
-    tab.textContent = p;
-    tab.onclick = () => { activePeriod = p; buildPeriodTabs(); applyFilters(); };
-    container.appendChild(tab);
-  });
+async function loadAccessLog(){
+  spin(true);
+  try{
+    const {data}=await db.from('company_logins').select('*').order('logged_at',{ascending:false}).limit(200);
+    loginLogs=data||[];
+    renderAccessLog();
+  } catch(e){ toast('Error loading access log','error'); }
+  spin(false);
 }
 
 /* ═══════════════════════════════════════
-   FILTERS & RENDER
+   SAVE / DELETE
 ═══════════════════════════════════════ */
-function applyFilters() {
-  const regionF  = document.getElementById('filter-region').value;
-  const companyF = document.getElementById('filter-company').value;
-  const search   = document.getElementById('search-input').value.toLowerCase();
-
-  let rows = allEntries;
-
-  if (activePeriod && activePeriod !== '__all__') {
-    rows = rows.filter(r => r.period === activePeriod);
-  }
-
-  if (!isAdmin()) {
-    rows = rows.map(r => {
-      if (r.company !== currentUser) return { ...r, _masked: true };
-      return r;
-    });
-  }
-
-  if (regionF)  rows = rows.filter(r => r.region === regionF);
-  if (companyF) rows = rows.filter(r => r.company === companyF);
-  if (search)   rows = rows.filter(r =>
-    (!r._masked && r.seller_name && r.seller_name.toLowerCase().includes(search)) ||
-    r.company.toLowerCase().includes(search)
-  );
-
-  rows = [...rows].sort((a, b) => {
-    let av = a[sortKey] ?? '', bv = b[sortKey] ?? '';
-    if (typeof av === 'number') return sortAsc ? av - bv : bv - av;
-    return sortAsc ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
-  });
-
-  filteredRows = rows;
-  renderTable();
-  renderCards();
-  renderChart();
+async function saveEntry(){
+  const co = isAdmin() ? document.getElementById('em-co').value : currentUser;
+  const seller = document.getElementById('em-seller').value.trim();
+  const quota = parseFloat(document.getElementById('em-quota').value);
+  const crmCb = document.getElementById('em-crm-cb').checked;
+  const autopull = isAdmin() ? hasAutoPull(co) : (hasAutoPull(currentUser) || crmCb);
+  const achieved = autopull ? 0 : parseFloat(document.getElementById('em-ach').value||'0');
+  const err = document.getElementById('em-err');
+  if(!co){err.textContent='Select a company.';return;}
+  if(!seller){err.textContent='Seller name is required.';return;}
+  if(isNaN(quota)||quota<0){err.textContent='Enter a valid quota.';return;}
+  if(!autopull && (isNaN(achieved)||achieved<0)){err.textContent='Enter a valid achieved amount.';return;}
+  const cd=coData(co);
+  const payload={seller_name:seller,company:co,period:periodStr(),region:cd.region,sub_region:cd.sub,quota,achieved:autopull?0:achieved,crm_pull:autopull||crmCb};
+  spin(true);
+  try{
+    if(editEntry){
+      await db.from('quota_entries').update(payload).eq('id',editEntry.id);
+      toast('Entry updated');
+    } else {
+      await db.from('quota_entries').insert([payload]);
+      toast('Entry added');
+    }
+    closeModal('entry-modal'); editEntry=null;
+    await loadData();
+  } catch(e){ toast('Save failed','error'); }
+  spin(false);
 }
 
-function sortBy(key) {
-  if (sortKey === key) sortAsc = !sortAsc;
-  else { sortKey = key; sortAsc = true; }
-  applyFilters();
+async function deleteEntry(id){
+  if(!confirm('Delete this entry?')) return;
+  spin(true);
+  try{
+    await db.from('quota_entries').delete().eq('id',id);
+    toast('Entry deleted'); await loadData();
+  } catch(e){ toast('Delete failed','error'); }
+  spin(false);
+}
+
+async function savePassword(co, pw){
+  try{
+    await db.from('company_passwords').upsert([{company:co,password:pw,updated_at:new Date().toISOString()}]);
+    passwords[co]=pw; toast('Password updated');
+  } catch(e){ toast('Failed to save password','error'); }
+}
+
+async function saveCrmSetting(co, crmEnabled, crmAutoPull){
+  try{
+    await db.from('company_settings').upsert([{company:co,crm_enabled:crmEnabled,crm_auto_pull:crmAutoPull,updated_at:new Date().toISOString()}]);
+    if(!settings[co]) settings[co]={};
+    settings[co].crm_enabled=crmEnabled;
+    settings[co].crm_auto_pull=crmAutoPull;
+  } catch(e){ toast('Failed to save CRM setting','error'); throw e; }
+}
+
+async function saveCrmDecision(autoPull){
+  const co=currentUser;
+  closeModal('crm-modal');
+  await saveCrmSetting(co, true, autoPull);
+  toast(autoPull ? 'CRM auto-pull enabled ⚡' : 'Manual mode selected');
+  renderCurrentView();
+}
+function closeCrmModal(){ closeModal('crm-modal'); }
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════ */
+function showView(view, el){
+  currentView=view;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  const titles={dashboard:'Dashboard',sellers:'Sellers',portfolio:'Portfolio Overview','crm-settings':'CRM Settings','access-log':'Access Log',passwords:'Passwords',export:'Export Data'};
+  document.getElementById('c-title').textContent=titles[view]||view;
+  renderCurrentView();
+}
+
+function renderCurrentView(){
+  if(currentView==='dashboard') renderDashboard();
+  else if(currentView==='sellers') renderSellers();
+  else if(currentView==='portfolio') renderPortfolio();
+  else if(currentView==='crm-settings') renderCrmSettings();
+  else if(currentView==='access-log') loadAccessLog();
+  else if(currentView==='passwords') renderPasswords();
+  else if(currentView==='export') renderExport();
 }
 
 /* ═══════════════════════════════════════
-   RENDER TABLE
+   DASHBOARD
 ═══════════════════════════════════════ */
-function renderTable() {
-  const tbody = document.getElementById('table-body');
+function renderDashboard(){
+  const co = myCompany();
+  const data = co ? entries.filter(e=>e.company===co) : entries;
+  const totalQ = data.reduce((s,r)=>s+Number(r.quota),0);
+  const totalA = data.reduce((s,r)=>s+Number(r.achieved),0);
+  const att = attPct(totalA, totalQ);
+  const sellers = [...new Set(data.map(e=>e.seller_name))].length;
 
-  if (filteredRows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📊</div><p>No entries found. Add the first entry using the button above.</p></div></td></tr>`;
-    return;
-  }
+  // CRM banner
+  const banner=document.getElementById('crm-banner');
+  if(!isAdmin() && co && hasCRM(co)){
+    banner.style.display='flex';
+    banner.innerHTML=`<div class="crm-banner-dot"></div><div class="crm-banner-text">
+      <div class="crm-banner-title">🔗 CRM Integration Active</div>
+      <div class="crm-banner-desc">${hasAutoPull(co)?'Actuals are populated automatically by Everfield from your CRM. Enter quota targets only.':'Your CRM is connected. You can tag individual seller entries as CRM-sourced.'}</div>
+    </div>`;
+  } else { banner.style.display='none'; }
 
-  tbody.innerHTML = filteredRows.map(r => {
-    const attCls = r.attainment >= 100 ? 'att-green' : r.attainment >= 75 ? 'att-amber' : 'att-red';
-    const masked = r._masked;
+  // Stats grid
+  const sg=document.getElementById('stats-grid');
+  sg.innerHTML=`
+    <div class="stat-card" style="--accent-color:var(--acc);--icon-bg:var(--acc-light)">
+      <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="stat-val">${sellers}</div><div class="stat-lbl">Active Sellers</div>
+      <div class="stat-delta" style="color:var(--txt3)">${data.length} entries this period</div>
+    </div>
+    <div class="stat-card" style="--accent-color:var(--blue);--icon-bg:var(--blue-bg)">
+      <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <div class="stat-val">${fmtEur(totalQ)}</div><div class="stat-lbl">Total Quota</div>
+      <div class="stat-delta" style="color:var(--txt3)">${displayPeriod(periodStr())}</div>
+    </div>
+    <div class="stat-card" style="--accent-color:var(--green);--icon-bg:var(--green-bg)">
+      <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="stat-val">${fmtEur(totalA)}</div><div class="stat-lbl">Total Achieved</div>
+      <div class="stat-delta" style="color:${attColor(att)}">${att}% of target</div>
+    </div>
+    <div class="stat-card" style="--accent-color:${attColor(att)};--icon-bg:${att>=95?'var(--green-bg)':att>=80?'var(--amber-bg)':att>=60?'var(--orange-bg)':'var(--red-bg)'}">
+      <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="${attColor(att)}" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="stat-val" style="color:${attColor(att)}">${att}%</div><div class="stat-lbl">Attainment</div>
+      <div class="stat-delta att-bar"><div class="att-fill" style="width:${Math.min(att,100)}%;background:${attColor(att)}"></div></div>
+    </div>`;
 
-    const sellerCell  = masked ? `<td class="masked">— confidential —</td>` : `<td>${esc(r.seller_name)}</td>`;
-    const quotaCell   = masked ? `<td class="masked">—</td>` : `<td>€${fmt(r.quota)}</td>`;
-    const achCell     = masked ? `<td class="masked">—</td>` :
-      r.crm_pull ? `<td><span style="color:var(--blue);font-size:12px">🔗 CRM</span></td>` :
-      `<td>€${fmt(r.achieved)}</td>`;
-    const actionsCell = (isAdmin() || r.company === currentUser)
-      ? `<td><div style="display:flex;gap:6px"><button class="action-btn" onclick="openEditModal('${r.id}')">Edit</button><button class="action-btn del" onclick="openDeleteModal('${r.id}')">Delete</button></div></td>`
-      : `<td></td>`;
+  // Gauge
+  document.getElementById('gauge-wrap').innerHTML = totalQ > 0 ? svgGauge(att) : svgGauge(0);
 
+  // Chart
+  renderChart(data);
+
+  // Table
+  const tbody = data.map(r=>{
+    const p=attPct(r.achieved,r.quota);
+    const achCell = r.crm_pull
+      ? `<td class="num"><span class="badge badge-crm">🔗 CRM</span></td>`
+      : `<td class="num">${fmtEur(r.achieved)}</td>`;
     return `<tr>
-      ${sellerCell}
-      <td>${esc(r.region)}</td>
-      <td>${esc(r.sub_region)}</td>
-      <td>${esc(r.company)}</td>
-      ${quotaCell}
+      <td style="font-weight:600">${r.seller_name}</td>
+      <td><span class="badge badge-gray">${r.sub_region}</span></td>
+      <td class="num">${fmtEur(r.quota)}</td>
       ${achCell}
-      <td><span class="att-badge ${attCls}">${r.attainment}%</span></td>
-      ${actionsCell}
+      <td class="num"><span class="badge badge-${attClass(p)}">${p}%</span></td>
     </tr>`;
   }).join('');
+  document.getElementById('dash-table').innerHTML=`
+    <thead><tr><th>Seller</th><th>Sub-region</th><th style="text-align:right">Quota</th><th style="text-align:right">Achieved</th><th style="text-align:right">Attainment</th></tr></thead>
+    <tbody>${tbody||`<tr class="empty-row"><td colspan="5">No data for this period</td></tr>`}</tbody>`;
+  document.getElementById('dash-period-label').textContent=displayPeriod(periodStr());
 }
 
-function fmt(n) { return Number(n).toLocaleString('en-GB'); }
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-/* ═══════════════════════════════════════
-   RENDER CARDS
-═══════════════════════════════════════ */
-function renderCards() {
-  const all = filteredRows;
-  document.getElementById('c-total').textContent = all.length;
-  document.getElementById('c-green').textContent = all.filter(r => r.attainment >= 100).length;
-  document.getElementById('c-amber').textContent = all.filter(r => r.attainment >= 75 && r.attainment < 100).length;
-  document.getElementById('c-red').textContent   = all.filter(r => r.attainment < 75).length;
-  const avg = all.length ? (all.reduce((s, r) => s + r.attainment, 0) / all.length).toFixed(1) : '—';
-  document.getElementById('c-avg').textContent = avg === '—' ? '—' : avg + '%';
-}
-
-/* ═══════════════════════════════════════
-   RENDER CHART
-═══════════════════════════════════════ */
-function renderChart() {
-  const map = {};
-  filteredRows.forEach(r => {
-    if (!map[r.company]) map[r.company] = { total: 0, count: 0 };
-    map[r.company].total += r.attainment;
-    map[r.company].count += 1;
-  });
-  const labels = Object.keys(map).sort();
-  const values = labels.map(c => +(map[c].total / map[c].count).toFixed(1));
-  const colors = values.map(v => v >= 100 ? '#16a34a' : v >= 75 ? '#d97706' : '#dc2626');
-  const ctx = document.getElementById('attainment-chart').getContext('2d');
-  if (chartInstance) chartInstance.destroy();
-  chartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: { labels, datasets: [{ label: 'Avg Attainment %', data: values, backgroundColor: colors, borderRadius: 6, borderSkipped: false }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ctx.parsed.y + '%' } }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 45 } },
-        y: {
-          beginAtZero: true,
-          ticks: { callback: v => v + '%', font: { size: 11 } },
-          grid: { color: '#f3f4f6' }
-        }
+function renderChart(data){
+  const sorted=[...data].sort((a,b)=>b.quota-a.quota).slice(0,15);
+  if(chartInst){ chartInst.destroy(); chartInst=null; }
+  const wrap=document.getElementById('chart-wrap');
+  const h=Math.max(160, sorted.length*32+40);
+  wrap.style.height=h+'px';
+  if(!sorted.length){ wrap.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--txt3);font-size:13px">No data for this period</div>'; return; }
+  wrap.innerHTML='<canvas id="main-chart"></canvas>';
+  const ctx=document.getElementById('main-chart').getContext('2d');
+  const labels=sorted.map(r=>r.seller_name);
+  const quotas=sorted.map(r=>r.quota);
+  const achvd=sorted.map(r=>r.achieved);
+  const colors=sorted.map(r=>{ const p=attPct(r.achieved,r.quota); return p>=95?'#059669':p>=80?'#d97706':p>=60?'#ea580c':'#dc2626'; });
+  chartInst=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Quota',data:quotas,backgroundColor:'rgba(99,102,241,0.15)',borderColor:'rgba(99,102,241,0.6)',borderWidth:1.5,borderRadius:4,borderSkipped:false},
+      {label:'Achieved',data:achvd,backgroundColor:colors.map(c=>c+'33'),borderColor:colors,borderWidth:1.5,borderRadius:4,borderSkipped:false}
+    ]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'top',labels:{font:{size:11},boxWidth:12,padding:16}},
+        tooltip:{callbacks:{label:ctx=>`€${ctx.parsed.x.toLocaleString()}`}}},
+      scales:{
+        x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{callback:v=>'€'+v.toLocaleString(),font:{size:11}}},
+        y:{grid:{display:false},ticks:{font:{size:11}}}
       }
     }
   });
 }
 
 /* ═══════════════════════════════════════
-   PERIOD HELPERS
+   SELLERS VIEW
 ═══════════════════════════════════════ */
-function updatePeriodFields() {
-  const type = document.getElementById('f-period-type').value;
-  const subWrap = document.getElementById('f-period-sub-wrap');
-  const subSel  = document.getElementById('f-period-sub');
-  const subLbl  = document.getElementById('f-period-sub-label');
-  subSel.innerHTML = '';
-  if (type === 'monthly') {
-    subWrap.style.display = '';
-    subLbl.textContent = 'Month';
-    ['January','February','March','April','May','June',
-     'July','August','September','October','November','December'].forEach(m => {
-      const o = document.createElement('option'); o.value = m; o.textContent = m;
-      subSel.appendChild(o);
-    });
-  } else if (type === 'quarterly') {
-    subWrap.style.display = '';
-    subLbl.textContent = 'Quarter';
-    ['Q1','Q2','Q3','Q4'].forEach(q => {
-      const o = document.createElement('option'); o.value = q; o.textContent = q;
-      subSel.appendChild(o);
-    });
+function renderSellers(){
+  const q=(document.getElementById('seller-search')?.value||'').toLowerCase();
+  const co=myCompany();
+  let data = co ? allEntries.filter(e=>e.company===co) : allEntries;
+  if(q) data=data.filter(e=>e.seller_name.toLowerCase().includes(q)||e.company.toLowerCase().includes(q));
+  data.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+
+  const title = drillCompany ? `${drillCompany} — All Entries` : (isAdmin() ? 'All Entries' : 'My Entries');
+  document.getElementById('sellers-title').textContent=title;
+
+  const rows=data.map(r=>{
+    const p=attPct(r.achieved,r.quota);
+    const achCell=r.crm_pull?`<td class="num"><span class="badge badge-crm">🔗 CRM</span></td>`:`<td class="num">${fmtEur(r.achieved)}</td>`;
+    const coCell=isAdmin()?`<td><strong>${r.company}</strong></td>`:'';
+    const actions=`<td><div class="row-actions">
+      <button class="btn btn-ghost btn-sm btn-icon" onclick='openEntryModal(${JSON.stringify(r)})' title="Edit">✏️</button>
+      <button class="btn btn-danger btn-sm btn-icon" onclick="deleteEntry('${r.id}')" title="Delete">🗑</button>
+    </div></td>`;
+    return `<tr>
+      ${coCell}
+      <td style="font-weight:600">${r.seller_name}</td>
+      <td><span class="badge badge-gray">${r.sub_region}</span></td>
+      <td><span class="badge badge-blue">${displayPeriod(r.period)}</span></td>
+      <td class="num">${fmtEur(r.quota)}</td>
+      ${achCell}
+      <td class="num"><span class="badge badge-${attClass(p)}">${p}%</span></td>
+      ${actions}
+    </tr>`;
+  }).join('');
+  const coHead=isAdmin()?'<th>Company</th>':'';
+  document.getElementById('sellers-table').innerHTML=`
+    <thead><tr>${coHead}<th>Seller</th><th>Sub-region</th><th>Period</th><th style="text-align:right">Quota</th><th style="text-align:right">Achieved</th><th style="text-align:right">Attainment</th><th></th></tr></thead>
+    <tbody>${rows||`<tr class="empty-row"><td colspan="8">No entries found</td></tr>`}</tbody>`;
+}
+
+/* ═══════════════════════════════════════
+   PORTFOLIO VIEW
+═══════════════════════════════════════ */
+function renderPortfolio(){
+  if(drillCompany){ renderDrilldown(drillCompany); return; }
+  const period=periodStr();
+  const sub=document.getElementById('portfolio-sub');
+  sub.textContent=`${displayPeriod(period)} · ${COMPANIES.length} portfolio companies`;
+
+  // Aggregate per company
+  const cards=COMPANIES.map(c=>{
+    const cEntries=entries.filter(e=>e.company===c.name);
+    const allCo=allEntries.filter(e=>e.company===c.name);
+    const q=cEntries.reduce((s,r)=>s+Number(r.quota),0);
+    const a=cEntries.reduce((s,r)=>s+Number(r.achieved),0);
+    const p=attPct(a,q);
+    const lastLogin=loginLogs.find(l=>l.company===c.name);
+    const crm=hasCRM(c.name);
+    const ap=hasAutoPull(c.name);
+    const clr=q>0?attColor(p):'#94a3b8';
+    return `<div class="co-card" onclick="drillInto('${c.name}')">
+      <div class="co-card-top" style="--card-att-color:${clr}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <div class="co-card-name">${c.name}</div>
+            <div class="co-card-region">${c.region} › ${c.sub}</div>
+          </div>
+          ${crm?`<span class="badge badge-crm" style="font-size:10px">🔗${ap?' Auto':''}</span>`:''}
+        </div>
+        <div class="co-card-stats">
+          <div class="co-stat"><div class="co-stat-val">${cEntries.length>0?`<span style="color:${clr}">${p}%</span>`:'—'}</div><div class="co-stat-lbl">Attainment</div></div>
+          <div class="co-stat"><div class="co-stat-val">${[...new Set(cEntries.map(e=>e.seller_name))].length||'—'}</div><div class="co-stat-lbl">Sellers</div></div>
+          <div class="co-stat"><div class="co-stat-val" style="font-size:12px">${q>0?fmtEur(q):'—'}</div><div class="co-stat-lbl">Quota</div></div>
+        </div>
+        ${q>0?`<div class="co-att-bar"><div class="co-att-fill" style="width:${Math.min(p,100)}%;background:${clr}"></div></div>`:''}
+      </div>
+      <div class="co-card-bottom">
+        <div class="co-card-meta">${cEntries.length>0?`Submitted for ${displayPeriod(period)}`:`<span style="color:var(--amber)">Not submitted</span>`}</div>
+        <div class="co-card-meta">${allCo.length} total entries</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('portfolio-grid').innerHTML=cards;
+  document.getElementById('portfolio-drill').style.display='none';
+  document.getElementById('portfolio-grid').style.display='';
+  document.getElementById('portfolio-back-btn').style.display='none';
+  document.getElementById('portfolio-stats').style.display='none';
+}
+
+function drillInto(co){
+  drillCompany=co;
+  renderPortfolio();
+}
+function clearDrilldown(){
+  drillCompany=null; renderPortfolio();
+}
+function renderDrilldown(co){
+  const cEntries=entries.filter(e=>e.company===co);
+  const q=cEntries.reduce((s,r)=>s+Number(r.quota),0);
+  const a=cEntries.reduce((s,r)=>s+Number(r.achieved),0);
+  const p=attPct(a,q);
+  document.getElementById('portfolio-back-btn').style.display='';
+  document.getElementById('portfolio-grid').style.display='none';
+  document.getElementById('portfolio-drill').style.display='';
+  const cd=coData(co);
+  const crm=hasCRM(co);
+  document.getElementById('portfolio-drill').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="font-size:22px;font-weight:800">${co}</div>
+      <span class="badge badge-gray">${cd.region} › ${cd.sub}</span>
+      ${crm?`<span class="badge badge-crm">🔗 CRM${hasAutoPull(co)?' · Auto-pull':''}</span>`:''}
+    </div>
+    <div class="stats-grid" style="margin-bottom:20px">
+      <div class="stat-card"><div class="stat-val">${[...new Set(cEntries.map(e=>e.seller_name))].length}</div><div class="stat-lbl">Sellers</div></div>
+      <div class="stat-card"><div class="stat-val">${fmtEur(q)}</div><div class="stat-lbl">Total Quota</div></div>
+      <div class="stat-card"><div class="stat-val">${fmtEur(a)}</div><div class="stat-lbl">Total Achieved</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:${attColor(p)}">${p}%</div><div class="stat-lbl">Attainment</div></div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><div class="table-header-title">Seller Entries — ${displayPeriod(periodStr())}</div>
+        <button class="btn btn-primary btn-sm" onclick="openEntryModalAdmin('${co}')">+ Add Entry</button>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Seller</th><th>Period</th><th style="text-align:right">Quota</th><th style="text-align:right">Achieved</th><th style="text-align:right">Attainment</th><th></th></tr></thead>
+        <tbody>${cEntries.length?cEntries.map(r=>{
+          const rp=attPct(r.achieved,r.quota);
+          return `<tr>
+            <td style="font-weight:600">${r.seller_name}</td>
+            <td><span class="badge badge-blue">${displayPeriod(r.period)}</span></td>
+            <td class="num">${fmtEur(r.quota)}</td>
+            <td class="num">${r.crm_pull?'<span class="badge badge-crm">🔗 CRM</span>':fmtEur(r.achieved)}</td>
+            <td class="num"><span class="badge badge-${attClass(rp)}">${rp}%</span></td>
+            <td><div class="row-actions">
+              <button class="btn btn-ghost btn-sm btn-icon" onclick='openEntryModal(${JSON.stringify(r)})'>✏️</button>
+              <button class="btn btn-danger btn-sm btn-icon" onclick="deleteEntry('${r.id}')">🗑</button>
+            </div></td>
+          </tr>`;
+        }).join(''):`<tr class="empty-row"><td colspan="6">No entries for this period</td></tr>`}</tbody>
+      </table>
+    </div>`;
+  document.getElementById('portfolio-sub').textContent=`Drilled into ${co} · ${displayPeriod(periodStr())}`;
+}
+
+function openEntryModalAdmin(co){
+  drillCompany=co;
+  openEntryModal(null);
+}
+
+/* ═══════════════════════════════════════
+   CRM SETTINGS VIEW
+═══════════════════════════════════════ */
+function renderCrmSettings(){
+  const rows=COMPANIES.map(c=>{
+    const s=settings[c.name]||{};
+    const enabled=s.crm_enabled===true;
+    const autopull=s.crm_auto_pull===true;
+    return `<tr>
+      <td style="font-weight:600">${c.name}</td>
+      <td><span class="badge badge-gray">${c.region}</span></td>
+      <td><span class="badge badge-gray">${c.sub}</span></td>
+      <td>
+        <label class="toggle">
+          <input type="checkbox" ${enabled?'checked':''} onchange="toggleCRM('${c.name}',this.checked)">
+          <span class="tog-sl"></span>
+        </label>
+      </td>
+      <td class="crm-auto-cell ${enabled?'enabled':''}" id="auto-cell-${c.name.replace(/\s/g,'_')}">
+        <label class="toggle">
+          <input type="checkbox" ${autopull?'checked':''} ${enabled?'':'disabled'} onchange="toggleAutoPull('${c.name}',this.checked)">
+          <span class="tog-sl"></span>
+        </label>
+        <span style="font-size:11px;color:var(--txt3);margin-left:8px">${autopull?'Everfield pulls actuals':'Company enters manually'}</span>
+      </td>
+      <td>${enabled?`<span class="badge badge-${autopull?'green':'amber'}">${autopull?'⚡ Auto-pull':'Manual'}</span>`:'<span class="badge badge-gray">Not enabled</span>'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('crm-table').innerHTML=`
+    <thead><tr><th>Company</th><th>Region</th><th>Sub-region</th><th>CRM Integration</th><th>Auto-pull Actuals</th><th>Status</th></tr></thead>
+    <tbody>${rows}</tbody>`;
+}
+
+async function toggleCRM(co, enabled){
+  const s=settings[co]||{};
+  await saveCrmSetting(co, enabled, enabled ? (s.crm_auto_pull||null) : false);
+  renderCrmSettings();
+}
+async function toggleAutoPull(co, enabled){
+  await saveCrmSetting(co, true, enabled);
+  renderCrmSettings();
+}
+
+/* ═══════════════════════════════════════
+   ACCESS LOG VIEW
+═══════════════════════════════════════ */
+function renderAccessLog(){
+  if(!loginLogs.length){
+    document.getElementById('log-list').innerHTML='<div style="padding:40px;text-align:center;color:var(--txt3)">No access log entries yet</div>'; return;
+  }
+  document.getElementById('log-list').innerHTML=loginLogs.map(l=>`
+    <div class="log-item">
+      <div class="log-dot"></div>
+      <div><div class="log-co">${l.company}</div><div class="log-time">${new Date(l.logged_at).toLocaleString()}</div></div>
+      <div class="log-badge"><span class="badge badge-gray">${relTime(l.logged_at)}</span></div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════
+   PASSWORDS VIEW
+═══════════════════════════════════════ */
+function renderPasswords(){
+  const rows=COMPANIES.map(c=>{
+    const custom=passwords[c.name];
+    const pw=getPw(c.name);
+    return `<tr>
+      <td style="font-weight:600">${c.name}</td>
+      <td><span class="badge badge-gray">${c.region}</span></td>
+      <td class="mono">${pw}</td>
+      <td>${custom?`<span class="badge badge-purple">Custom</span>`:`<span class="badge badge-gray">Default</span>`}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openPwModal('${c.name}','${pw}')">Reset</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('pw-table').innerHTML=`
+    <thead><tr><th>Company</th><th>Region</th><th>Current Password</th><th>Type</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>`;
+}
+
+function openPwModal(co, pw){
+  document.getElementById('pwm-co').value=co;
+  document.getElementById('pwm-pass').value=pw;
+  document.getElementById('pwm-err').textContent='';
+  openModal('pw-modal');
+}
+async function savePw(){
+  const co=document.getElementById('pwm-co').value;
+  const pw=document.getElementById('pwm-pass').value.trim();
+  if(!pw){ document.getElementById('pwm-err').textContent='Password cannot be empty.'; return; }
+  spin(true);
+  await savePassword(co,pw);
+  closeModal('pw-modal'); renderPasswords();
+  spin(false);
+}
+
+/* ═══════════════════════════════════════
+   EXPORT VIEW
+═══════════════════════════════════════ */
+function renderExport(){
+  document.getElementById('export-all-meta').textContent=`${allEntries.length} total entries across ${new Set(allEntries.map(e=>e.company)).size} companies`;
+  document.getElementById('export-period-label').textContent=displayPeriod(periodStr())+' · '+entries.length+' entries';
+}
+
+function toCSV(rows){
+  const h=['Company','Seller Name','Region','Sub-region','Period','Quota','Achieved','Attainment %','CRM Pull','Created At'];
+  const lines=rows.map(r=>[
+    r.company,r.seller_name,r.region,r.sub_region,displayPeriod(r.period),
+    r.quota,r.achieved,attPct(r.achieved,r.quota)+'%',r.crm_pull?'Yes':'No',
+    new Date(r.created_at).toLocaleDateString()
+  ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  return [h.join(','),...lines].join('\n');
+}
+
+function downloadCSV(csv, name){
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=name; a.click();
+}
+
+function exportAll(){ downloadCSV(toCSV(allEntries),`everfield-quota-all-${new Date().toISOString().slice(0,10)}.csv`); }
+function exportByCompany(){
+  const co=document.getElementById('export-company').value;
+  const data=co?allEntries.filter(e=>e.company===co):allEntries;
+  downloadCSV(toCSV(data),`everfield-quota-${co||'all'}-${new Date().toISOString().slice(0,10)}.csv`);
+}
+function exportPeriod(){ downloadCSV(toCSV(entries),`everfield-quota-${displayPeriod(periodStr()).replace(/\s/g,'-')}.csv`); }
+
+/* ═══════════════════════════════════════
+   ENTRY MODAL
+═══════════════════════════════════════ */
+function openEntryModal(entry){
+  editEntry=entry;
+  const co=entry?entry.company:(drillCompany||myCompany());
+  document.getElementById('em-title').textContent=entry?'Edit Entry':'Add Seller Entry';
+  document.getElementById('em-save-btn').textContent=entry?'Update Entry':'Save Entry';
+  document.getElementById('em-err').textContent='';
+
+  // Company select (admin only)
+  const coWrap=document.getElementById('em-co-wrap');
+  if(isAdmin() && !drillCompany){
+    coWrap.style.display='';
+    const emCo=document.getElementById('em-co');
+    emCo.innerHTML=COMPANIES.map(c=>`<option value="${c.name}" ${c.name===co?'selected':''}>${c.name}</option>`).join('');
+  } else { coWrap.style.display='none'; }
+
+  const effectiveCo = co;
+  const cd=coData(effectiveCo||'');
+  document.getElementById('em-region').value=cd.region;
+  document.getElementById('em-sub').value=cd.sub;
+  document.getElementById('em-period').value=displayPeriod(entry?entry.period:periodStr());
+  document.getElementById('em-seller').value=entry?entry.seller_name:'';
+  document.getElementById('em-quota').value=entry?entry.quota:'';
+  document.getElementById('em-ach').value=entry?entry.achieved:'';
+  document.getElementById('em-crm-cb').checked=entry?!!entry.crm_pull:false;
+
+  // CRM UI
+  const autopull=effectiveCo && hasAutoPull(effectiveCo);
+  const crmEnabled=effectiveCo && hasCRM(effectiveCo);
+  const notice=document.getElementById('em-crm-notice');
+  if(autopull){
+    notice.style.display=''; notice.textContent='⚡ Actuals will be auto-populated from your CRM by Everfield.';
+    document.getElementById('em-ach-wrap').style.display='none';
+    document.getElementById('em-crm-toggle-row').style.display='none';
+  } else if(crmEnabled){
+    notice.style.display='none';
+    document.getElementById('em-ach-wrap').style.display=document.getElementById('em-crm-cb').checked?'none':'';
+    document.getElementById('em-crm-toggle-row').style.display='';
   } else {
-    subWrap.style.display = 'none';
+    notice.style.display='none';
+    document.getElementById('em-ach-wrap').style.display='';
+    document.getElementById('em-crm-toggle-row').style.display='none';
   }
+
+  openModal('entry-modal');
 }
 
-function buildPeriodValue() {
-  const type = document.getElementById('f-period-type').value;
-  const year = document.getElementById('f-period-year').value;
-  const sub  = document.getElementById('f-period-sub').value;
-  if (!type || !year) return null;
-  if (type === 'monthly')   return sub + ' ' + year;
-  if (type === 'quarterly') return sub + ' ' + year;
-  return year;
+function onEmCoChange(){
+  const co=document.getElementById('em-co').value;
+  const cd=coData(co);
+  document.getElementById('em-region').value=cd.region;
+  document.getElementById('em-sub').value=cd.sub;
+  const crm=hasCRM(co), ap=hasAutoPull(co);
+  document.getElementById('em-crm-toggle-row').style.display=crm&&!ap?'':'none';
+  document.getElementById('em-ach-wrap').style.display=ap?'none':'';
+  const notice=document.getElementById('em-crm-notice');
+  notice.style.display=ap?'':'none';
+  if(ap) notice.textContent='⚡ Actuals will be auto-populated from your CRM by Everfield.';
 }
 
-function parsePeriodToFields(period) {
-  if (!period) return;
-  const qMatch = period.match(/^(Q[1-4])\s+(\d{4})$/);
-  if (qMatch) {
-    document.getElementById('f-period-type').value = 'quarterly';
-    updatePeriodFields();
-    document.getElementById('f-period-sub').value  = qMatch[1];
-    document.getElementById('f-period-year').value = qMatch[2];
-    return;
-  }
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  for (const m of months) {
-    const mMatch = period.match(new RegExp('^(' + m + ')\\s+(\\d{4})$'));
-    if (mMatch) {
-      document.getElementById('f-period-type').value = 'monthly';
-      updatePeriodFields();
-      document.getElementById('f-period-sub').value  = mMatch[1];
-      document.getElementById('f-period-year').value = mMatch[2];
-      return;
-    }
-  }
-  if (/^\d{4}$/.test(period)) {
-    document.getElementById('f-period-type').value = 'yearly';
-    updatePeriodFields();
-    document.getElementById('f-period-year').value = period;
-  }
+function onCrmToggle(){
+  const checked=document.getElementById('em-crm-cb').checked;
+  document.getElementById('em-ach-wrap').style.display=checked?'none':'';
+  if(checked) document.getElementById('em-ach').value='0';
 }
 
 /* ═══════════════════════════════════════
-   CRM TOGGLE
+   SETUP SQL MODAL
 ═══════════════════════════════════════ */
-function onCompanyChange() {
-  const company = document.getElementById('f-company').value;
-  const showCrm = company && hasCRM(company);
-  document.getElementById('crm-toggle-row').style.display = showCrm ? '' : 'none';
-  if (!showCrm) {
-    document.getElementById('f-crm-pull').checked = false;
-    document.getElementById('f-achieved-wrap').style.display = '';
-  }
+function showSetupSQL(){
+  document.getElementById('sql-block').textContent=SETUP_SQL;
+  openModal('sql-modal');
 }
-
-function toggleCrmPull() {
-  const checked = document.getElementById('f-crm-pull').checked;
-  document.getElementById('f-achieved-wrap').style.display = checked ? 'none' : '';
-  if (checked) document.getElementById('f-achieved').value = '0';
+function copySQL(){
+  navigator.clipboard.writeText(SETUP_SQL).then(()=>toast('SQL copied!'));
 }
 
 /* ═══════════════════════════════════════
-   ADD / EDIT MODAL
+   BOOT
 ═══════════════════════════════════════ */
-function openAddModal() {
-  editingId = null;
-  document.getElementById('modal-title').textContent = 'Add Entry';
-  document.getElementById('f-seller').value   = '';
-  document.getElementById('f-period-type').value = '';
-  document.getElementById('f-period-sub-wrap').style.display = 'none';
-  document.getElementById('f-period-year').value = '2025';
-  document.getElementById('f-quota').value    = '';
-  document.getElementById('f-achieved').value = '';
-  document.getElementById('f-crm-pull').checked = false;
-  document.getElementById('f-achieved-wrap').style.display = '';
-  document.getElementById('modal-error').textContent = '';
-
-  const sel = document.getElementById('f-company');
-  if (!isAdmin() && sel.options.length > 0) sel.value = currentUser;
-  onCompanyChange();
-
-  document.getElementById('entry-modal').classList.add('open');
-}
-
-function openEditModal(id) {
-  const row = allEntries.find(r => r.id === id);
-  if (!row) return;
-  editingId = id;
-
-  document.getElementById('modal-title').textContent = 'Edit Entry';
-  document.getElementById('f-seller').value   = row.seller_name;
-  document.getElementById('f-quota').value    = row.quota;
-  document.getElementById('f-achieved').value = row.achieved;
-  document.getElementById('f-company').value  = row.company;
-  document.getElementById('modal-error').textContent = '';
-
-  const crmChecked = !!row.crm_pull;
-  document.getElementById('f-crm-pull').checked = crmChecked;
-  const showCrm = hasCRM(row.company);
-  document.getElementById('crm-toggle-row').style.display = showCrm ? '' : 'none';
-  document.getElementById('f-achieved-wrap').style.display = crmChecked ? 'none' : '';
-
-  parsePeriodToFields(row.period);
-  document.getElementById('entry-modal').classList.add('open');
-}
-
-async function saveEntry() {
-  const seller   = document.getElementById('f-seller').value.trim();
-  const company  = document.getElementById('f-company').value;
-  const period   = buildPeriodValue();
-  const quota    = parseFloat(document.getElementById('f-quota').value);
-  const crmPull  = document.getElementById('f-crm-pull').checked;
-  const achieved = crmPull ? 0 : parseFloat(document.getElementById('f-achieved').value);
-  const errEl    = document.getElementById('modal-error');
-
-  if (!seller)   { errEl.textContent = 'Seller name is required.'; return; }
-  if (!company)  { errEl.textContent = 'Please select a company.'; return; }
-  if (!document.getElementById('f-period-type').value) { errEl.textContent = 'Please select a period type.'; return; }
-  if (!document.getElementById('f-period-year').value) { errEl.textContent = 'Please select a year.'; return; }
-  if (!period)   { errEl.textContent = 'Period is required.'; return; }
-  if (isNaN(quota) || quota < 0) { errEl.textContent = 'Please enter a valid quota.'; return; }
-  if (!crmPull && (isNaN(achieved) || achieved < 0)) { errEl.textContent = 'Please enter a valid achieved amount.'; return; }
-
-  const comp = COMPANIES.find(c => c.name === company);
-  const payload = {
-    seller_name: seller, company, period,
-    region:     comp ? comp.region : '',
-    sub_region: comp ? comp.sub    : '',
-    quota, achieved, crm_pull: crmPull
-  };
-
-  showLoading();
-  let error;
-  if (editingId) {
-    ({ error } = await db.from('quota_entries').update(payload).eq('id', editingId));
-  } else {
-    ({ error } = await db.from('quota_entries').insert([payload]));
-  }
-  hideLoading();
-
-  if (error) { errEl.textContent = 'Error: ' + error.message; return; }
-
-  closeModal('entry-modal');
-  showToast(editingId ? 'Entry updated!' : 'Entry added!', 'success');
-  await fetchEntries();
-}
-
-/* ═══════════════════════════════════════
-   DELETE
-═══════════════════════════════════════ */
-function openDeleteModal(id) {
-  deleteId = id;
-  document.getElementById('delete-modal').classList.add('open');
-}
-
-async function confirmDelete() {
-  if (!deleteId) return;
-  showLoading();
-  const { error } = await db.from('quota_entries').delete().eq('id', deleteId);
-  hideLoading();
-  if (error) showToast('Error deleting: ' + error.message, 'error');
-  else showToast('Entry deleted', 'success');
-  deleteId = null;
-  closeModal('delete-modal');
-  await fetchEntries();
-}
-
-/* ═══════════════════════════════════════
-   ADMIN PANEL
-═══════════════════════════════════════ */
-function switchAdminTab(tab) {
-  activeAdminTab = tab;
-  document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-  document.getElementById('admin-tab-' + tab).classList.add('active');
-  if (tab === 'logs') renderAdminLogs();
-}
-
-function renderAdminPanel() {
-  renderAdminOverview();
-  renderAdminCRM();
-  renderAdminPasswords();
-}
-
-function renderAdminOverview() {
-  // Stats
-  const submittedCompanies = [...new Set(allEntries.map(r => r.company))];
-  const totalEntries = allEntries.length;
-  const crmEnabled = submittedCompanies.filter(c => hasCRM(c)).length;
-  const notSubmitted = COMPANIES.length - submittedCompanies.length;
-
-  document.getElementById('admin-stats-grid').innerHTML = `
-    <div class="admin-stat"><div class="admin-stat-val">${COMPANIES.length}</div><div class="admin-stat-lbl">Total Companies</div></div>
-    <div class="admin-stat"><div class="admin-stat-val" style="color:var(--green)">${submittedCompanies.length}</div><div class="admin-stat-lbl">Submitted Data</div></div>
-    <div class="admin-stat"><div class="admin-stat-val" style="color:var(--amber)">${notSubmitted}</div><div class="admin-stat-lbl">Not Submitted</div></div>
-    <div class="admin-stat"><div class="admin-stat-val">${totalEntries}</div><div class="admin-stat-lbl">Total FTE Entries</div></div>
-    <div class="admin-stat"><div class="admin-stat-val" style="color:var(--blue)">${CRM_COMPANIES.length}</div><div class="admin-stat-lbl">CRM Integrated</div></div>
-  `;
-
-  // Per-company breakdown
-  const companyMap = {};
-  allEntries.forEach(r => {
-    if (!companyMap[r.company]) companyMap[r.company] = { count: 0, lastDate: null };
-    companyMap[r.company].count++;
-    const d = new Date(r.created_at);
-    if (!companyMap[r.company].lastDate || d > companyMap[r.company].lastDate) {
-      companyMap[r.company].lastDate = d;
-    }
-  });
-
-  const tbody = document.getElementById('admin-overview-body');
-  tbody.innerHTML = COMPANIES.map(c => {
-    const info = companyMap[c.name];
-    const hasData = !!info;
-    const statusBadge = hasData
-      ? `<span class="status-badge status-green">✓ Submitted</span>`
-      : `<span class="status-badge status-gray">— Pending</span>`;
-    const count = hasData ? info.count : '—';
-    const lastDate = hasData ? info.lastDate.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) : '—';
-    const crmBadge = hasCRM(c.name)
-      ? `<span class="status-badge status-blue">🔗 Active</span>`
-      : `<span class="status-badge status-gray">—</span>`;
-
-    return `<tr>
-      <td><strong>${esc(c.name)}</strong></td>
-      <td>${esc(c.region)}</td>
-      <td>${esc(c.sub)}</td>
-      <td>${statusBadge}</td>
-      <td>${count}</td>
-      <td>${lastDate}</td>
-      <td>${crmBadge}</td>
-    </tr>`;
-  }).join('');
-}
-
-function renderAdminCRM() {
-  const tbody = document.getElementById('admin-crm-body');
-  tbody.innerHTML = COMPANIES.map(c => {
-    const crm = hasCRM(c.name);
-    const badge = crm
-      ? `<span class="status-badge status-green">✓ Completed</span>`
-      : `<span class="status-badge status-gray">Not integrated</span>`;
-    const prompt = crm
-      ? `<span class="status-badge status-blue">✓ Shown</span>`
-      : `<span class="status-badge status-gray">—</span>`;
-    return `<tr>
-      <td><strong>${esc(c.name)}</strong></td>
-      <td>${esc(c.region)}</td>
-      <td>${badge}</td>
-      <td>${prompt}</td>
-    </tr>`;
-  }).join('');
-}
-
-async function renderAdminLogs() {
-  const container = document.getElementById('admin-logs-content');
-  container.innerHTML = '<div style="color:var(--gray-400);font-size:13px;padding:20px 0">Loading…</div>';
-  try {
-    const { data, error } = await db
-      .from('company_logins')
-      .select('company,logged_at')
-      .order('logged_at', { ascending: false })
-      .limit(100);
-
-    if (error) {
-      container.innerHTML = `<div style="color:var(--amber);font-size:13px;padding:12px 0">
-        ⚠️ Access log table not found. <button onclick="copyLogsSQL()" style="background:none;border:none;color:var(--accent);cursor:pointer;text-decoration:underline;font-size:13px">Copy setup SQL</button> and run it in Supabase.
-      </div>`;
-      return;
-    }
-
-    if (!data || data.length === 0) {
-      container.innerHTML = '<div style="color:var(--gray-400);font-size:13px;padding:12px 0">No login events recorded yet.</div>';
-      return;
-    }
-
-    container.innerHTML = `<div style="overflow-x:auto"><table class="admin-table">
-      <thead><tr><th>Company</th><th>Login Time</th><th>Date</th></tr></thead>
-      <tbody>${data.map(r => {
-        const d = new Date(r.logged_at);
-        return `<tr>
-          <td><strong>${esc(r.company)}</strong></td>
-          <td>${d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'})}</td>
-          <td>${d.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'})}</td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table></div>`;
-  } catch(e) {
-    container.innerHTML = `<div style="color:var(--red);font-size:13px">Error: ${e.message}</div>`;
-  }
-}
-
-function renderAdminPasswords() {
-  const tbody = document.getElementById('admin-passwords-body');
-  const allComps = [{name:'__admin__', region:'Everfield', sub:'Admin'}, ...COMPANIES];
-  tbody.innerHTML = allComps.map(c => {
-    const isCustom = !!customPasswords[c.name];
-    const displayPass = customPasswords[c.name] || defaultPassword(c.name);
-    const typeBadge = isCustom
-      ? `<span class="status-badge status-amber">Custom</span>`
-      : `<span class="status-badge status-gray">Default</span>`;
-    const resetBtn = c.name !== '__admin__'
-      ? `<button class="action-btn sm" onclick="openPasswordModal('${esc(c.name)}')">Reset</button>`
-      : `<span style="color:var(--gray-400);font-size:12px">—</span>`;
-    return `<tr>
-      <td><strong>${c.name === '__admin__' ? 'Everfield (Admin)' : esc(c.name)}</strong></td>
-      <td><span class="password-display">${esc(displayPass)}</span></td>
-      <td>${typeBadge}</td>
-      <td>${resetBtn}</td>
-    </tr>`;
-  }).join('');
-}
-
-/* ═══════════════════════════════════════
-   PASSWORD MANAGEMENT
-═══════════════════════════════════════ */
-function openPasswordModal(company) {
-  pwResetCompany = company;
-  const comp = COMPANIES.find(c => c.name === company);
-  document.getElementById('pw-modal-title').textContent = `Reset Password — ${company}`;
-  document.getElementById('pw-modal-sub').textContent = `Current: ${getPassword(company)}`;
-  document.getElementById('pw-new-value').value = '';
-  document.getElementById('pw-modal-error').textContent = '';
-  document.getElementById('password-modal').classList.add('open');
-}
-
-async function savePassword() {
-  const newPw = document.getElementById('pw-new-value').value.trim();
-  const errEl = document.getElementById('pw-modal-error');
-  if (!newPw || newPw.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
-
-  showLoading();
-  const { error } = await db.from('company_passwords').upsert([{
-    company: pwResetCompany,
-    password: newPw,
-    updated_at: new Date().toISOString()
-  }]);
-  hideLoading();
-
-  if (error) {
-    if ((error.code||'') === '42P01' || (error.message||'').includes('does not exist')) {
-      errEl.textContent = 'Password table not set up yet. Copy the setup SQL and run it in Supabase first.';
-    } else {
-      errEl.textContent = 'Error: ' + error.message;
-    }
-    return;
-  }
-
-  customPasswords[pwResetCompany] = newPw;
-  closeModal('password-modal');
-  showToast(`Password updated for ${pwResetCompany}`, 'success');
-  renderAdminPasswords();
-}
-
-/* ═══════════════════════════════════════
-   COPY HELPERS
-═══════════════════════════════════════ */
-function copySetupSQL()    { navigator.clipboard.writeText(SETUP_SQL).then(() => showToast('SQL copied!', 'success')); }
-function copyLogsSQL()     { navigator.clipboard.writeText(LOGS_SQL).then(() => showToast('SQL copied!', 'success')); }
-function copyPasswordsSQL(){ navigator.clipboard.writeText(PASSWORDS_SQL).then(() => showToast('SQL copied!', 'success')); }
-
-/* ═══════════════════════════════════════
-   MISC
-═══════════════════════════════════════ */
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-['entry-modal','delete-modal','password-modal'].forEach(id => {
-  document.getElementById(id).addEventListener('click', e => {
-    if (e.target === document.getElementById(id)) closeModal(id);
-  });
-});
-
-document.getElementById('login-password').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
-});
-
-/* ═══════════════════════════════════════
-   SESSION RESTORE
-═══════════════════════════════════════ */
-(async function init() {
-  const saved = sessionStorage.getItem('qt_user');
-  if (saved) {
-    currentUser = saved;
-    await loadCustomPasswords();
-    bootApp();
-  }
-})();
+window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>

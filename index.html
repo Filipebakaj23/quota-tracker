@@ -291,6 +291,52 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   .sb-brand{justify-content:center;padding:16px 10px}
   .sb-user{justify-content:center}
 }
+
+/* ── DESIGN REFRESH ── */
+
+/* Sidebar */
+#sidebar{background:linear-gradient(180deg,#0d0b18 0%,#13111c 55%,#1a1535 100%)}
+.nav-item.active{background:rgba(124,58,237,.18);color:#c4b5fd;border-left:3px solid var(--acc);padding-left:9px;box-shadow:inset 8px 0 24px rgba(124,58,237,.06)}
+.nav-item.active svg{opacity:1;filter:drop-shadow(0 0 4px rgba(196,181,253,.4))}
+.sb-brand{padding:18px 18px 16px}
+
+/* Logo containers */
+.logo-svg-light,.logo-svg-dark{display:block}
+
+/* Stat cards — per-accent gradient */
+.stat-card{overflow:visible}
+.stat-card.card-purple{background:linear-gradient(135deg,#f5f3ff 0%,#fff 60%)}
+.stat-card.card-blue{background:linear-gradient(135deg,#eff6ff 0%,#fff 60%)}
+.stat-card.card-green{background:linear-gradient(135deg,#f0fdf4 0%,#fff 60%)}
+.stat-card.card-red{background:linear-gradient(135deg,#fef2f2 0%,#fff 60%)}
+.stat-card.card-amber{background:linear-gradient(135deg,#fffbeb 0%,#fff 60%)}
+
+/* Table attainment row accents */
+.tbl tbody tr.row-excellent>td:first-child{border-left:3px solid var(--green)}
+.tbl tbody tr.row-good>td:first-child{border-left:3px solid var(--amber)}
+.tbl tbody tr.row-ok>td:first-child{border-left:3px solid var(--orange)}
+.tbl tbody tr.row-poor>td:first-child{border-left:3px solid var(--red)}
+
+/* Spread indicator badge */
+.badge-spread{background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;font-size:10px;padding:1px 6px;border-radius:20px;font-weight:600;margin-left:4px}
+
+/* Portfolio bar */
+.co-att-bar{height:7px;border-radius:4px;background:#e2e8f0;overflow:visible;margin-top:8px}
+.co-att-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1);box-shadow:0 0 8px var(--fill-glow,rgba(0,0,0,.2))}
+.co-card.not-submitted .co-card-top{background:linear-gradient(135deg,#fffbeb,#fffcf0)}
+
+/* Modal spring */
+.modal{animation:modalSpring .28s cubic-bezier(.34,1.56,.64,1)}
+@keyframes modalSpring{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Empty state */
+.empty-state-full{text-align:center;padding:64px 24px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty-state-full .es-icon{width:64px;height:64px;background:var(--bg);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.empty-state-full h3{font-size:16px;font-weight:700;color:var(--txt);margin:0}
+.empty-state-full p{font-size:13px;color:var(--txt2);line-height:1.6;max-width:320px;margin:0}
+
+/* Count-up numbers */
+.stat-val[data-countup]{transition:none}
 </style>
 </head>
 <body>
@@ -303,9 +349,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="login-screen">
   <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
   <div class="login-card">
-    <div class="login-brand">
-      <div class="login-brand-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
-      <div><div class="login-brand-name">Everfield</div><div class="login-brand-sub">Quota Intelligence Platform</div></div>
+    <div class="login-brand" style="margin-bottom:28px">
+      <!-- Everfield logo — dark version -->
+      <svg class="logo-svg-dark" viewBox="0 0 224 34" xmlns="http://www.w3.org/2000/svg" style="height:32px;width:auto">
+        <text y="25" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="22" font-weight="700" fill="#0c2340" letter-spacing="-0.4">everfield</text>
+        <circle cx="163" cy="6"  r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="174" cy="6"  r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="157" cy="15" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="168" cy="15" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="179" cy="15" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="190" cy="15" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="157" cy="24" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="168" cy="24" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="179" cy="24" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="190" cy="24" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="168" cy="33" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="179" cy="33" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="190" cy="33" r="3.2" fill="rgba(12,35,64,.45)"/>
+      </svg>
+      <div style="margin-top:10px;font-size:12px;color:var(--txt3);font-weight:500;letter-spacing:.04em;text-transform:uppercase">Quota Intelligence Platform</div>
     </div>
     <div class="login-h">Welcome back</div>
     <div class="login-p">Select your company and sign in to continue</div>
@@ -328,9 +390,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <!-- SIDEBAR -->
 <aside id="sidebar">
-  <div class="sb-brand">
-    <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
-    <div><div class="sb-name">Everfield</div><div class="sb-sub">Quota Platform</div></div>
+  <div class="sb-brand" style="padding:16px 18px 14px">
+    <!-- Everfield logo — light version -->
+    <svg class="logo-svg-light" viewBox="0 0 192 30" xmlns="http://www.w3.org/2000/svg" style="height:28px;width:auto;max-width:180px">
+      <text y="22" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="19" font-weight="700" fill="#ffffff" letter-spacing="-0.4">everfield</text>
+      <circle cx="141" cy="5"  r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="151" cy="5"  r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="136" cy="13" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="146" cy="13" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="156" cy="13" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="166" cy="13" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="136" cy="21" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="146" cy="21" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="156" cy="21" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="166" cy="21" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="146" cy="29" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="156" cy="29" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="166" cy="29" r="2.8" fill="rgba(255,255,255,.55)"/>
+    </svg>
   </div>
   <nav class="sb-nav">
     <div class="nav-section">Company</div>
@@ -560,7 +637,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="modal">
     <div class="modal-head">
       <h2 id="em-title">Add Seller Entry</h2>
-      <button class="modal-close" onclick="closeModal('entry-modal')">×</button>
+      <button class="modal-close" onclick="closeEntryModal()">×</button>
     </div>
     <div class="modal-body">
       <div id="em-crm-notice" style="display:none" class="success-box"></div>
@@ -644,7 +721,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="login-err" id="em-err" style="text-align:left;margin-top:10px"></div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('entry-modal')">Cancel</button>
+      <button class="btn btn-ghost" onclick="closeEntryModal()">Cancel</button>
       <button class="btn btn-primary" id="em-save-btn" onclick="saveEntry()">Save Entry</button>
     </div>
   </div>
@@ -1020,6 +1097,21 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 
 /* ═══════════════════════════════════════
+   COUNT-UP ANIMATION
+═══════════════════════════════════════ */
+function animateCount(el, toVal, duration=650, formatter=v=>v){
+  const start=Date.now();
+  const update=()=>{
+    const t=Math.min((Date.now()-start)/duration,1);
+    const eased=1-Math.pow(1-t,3); // ease-out cubic
+    el.textContent=formatter(Math.round(toVal*eased));
+    if(t<1) requestAnimationFrame(update);
+    else el.textContent=formatter(toVal); // ensure exact final value
+  };
+  requestAnimationFrame(update);
+}
+
+/* ═══════════════════════════════════════
    SVG GAUGE
 ═══════════════════════════════════════ */
 function svgGauge(pct, size=130){
@@ -1092,7 +1184,7 @@ async function init(){
 }
 
 async function probeDbCols(){
-  // Probe each column and table independently
+  // Probe each column independently so one missing column doesn't mark all as false
   const cols = ['crm_pull','currency','role','quota_type','is_active'];
   for(const col of cols){
     const {error} = await db.from('quota_entries').select(col).limit(0);
@@ -1104,9 +1196,7 @@ async function probeDbCols(){
     const {error} = await db.from(t).select('*').limit(0);
     dbTables[t] = !error || error.code !== 'PGRST205';
   }
-  // Show setup notice if anything is missing
-  const needsSetup = Object.values(dbTables).some(v=>!v) || Object.values(dbCols).some(v=>!v);
-  if(needsSetup) showDbSetupBanner(true);
+  // Banner is only shown to admin — evaluated in loginAs after currentUser is set
 }
 
 async function loadCustomCompanies(){
@@ -1117,7 +1207,8 @@ async function loadCustomCompanies(){
 
 function showDbSetupBanner(show){
   const el = document.getElementById('db-setup-banner');
-  if(el) el.style.display = show ? 'flex' : 'none';
+  // Only show to admin — company users should never see infrastructure messages
+  if(el) el.style.display = (show && isAdmin()) ? 'flex' : 'none';
 }
 
 function buildLoginDropdown(){
@@ -1150,6 +1241,11 @@ async function loginAs(co){
   }
   // Setup UI
   const isAd=isAdmin();
+  // Show DB setup banner to admin only when tables/columns are missing
+  if(isAd){
+    const needsSetup = Object.values(dbTables).some(v=>!v) || Object.values(dbCols).some(v=>!v);
+    showDbSetupBanner(needsSetup);
+  }
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=isAd?'':'none');
@@ -1180,6 +1276,61 @@ function doLogout(){
 }
 
 /* ═══════════════════════════════════════
+   SMART QUOTA SPREADING
+   Rules (no double-counting — one entry per seller per period):
+     Viewing Monthly  → prefer Monthly, fallback Quarterly÷3, fallback Yearly÷12
+     Viewing Quarterly → prefer Quarterly, fallback Yearly÷4
+     Viewing Yearly   → prefer Yearly only (no spread needed)
+═══════════════════════════════════════ */
+function getEffectiveEntries(sourceEntries, targetPeriodStr){
+  // Group entries by (company + seller_name) to avoid double-counting
+  const groups = {};
+  sourceEntries.forEach(e=>{
+    const k = `${e.company}||${e.seller_name}`;
+    if(!groups[k]) groups[k] = [];
+    groups[k].push(e);
+  });
+
+  const result = [];
+  for(const sellerEntries of Object.values(groups)){
+    // 1. Direct match — always preferred
+    const direct = sellerEntries.find(e=>e.period===targetPeriodStr);
+    if(direct){ result.push(direct); continue; }
+
+    const parts = targetPeriodStr.split('|');
+    const year = parts[parts.length-1];
+
+    if(parts[0]==='Monthly'){
+      const monthIdx = MONTHS.indexOf(parts[1]); // 0-11
+      const quarter = 'Q'+Math.ceil((monthIdx+1)/3); // e.g. Q1
+
+      // 2. Quarterly parent → divide by 3 months per quarter
+      const qEntry = sellerEntries.find(e=>e.period===`Quarterly|${quarter}|${year}`);
+      if(qEntry){
+        result.push({...qEntry, quota:Math.round(qEntry.quota/3), achieved:Math.round(qEntry.achieved/3), period:targetPeriodStr, _spread:`from ${quarter} ÷3`});
+        continue;
+      }
+      // 3. Yearly parent → divide by 12 months per year
+      const yEntry = sellerEntries.find(e=>e.period===`Yearly|${year}`);
+      if(yEntry){
+        result.push({...yEntry, quota:Math.round(yEntry.quota/12), achieved:Math.round(yEntry.achieved/12), period:targetPeriodStr, _spread:`from ${year} ÷12`});
+        continue;
+      }
+
+    } else if(parts[0]==='Quarterly'){
+      // 2. Yearly parent → divide by 4 quarters per year
+      const yEntry = sellerEntries.find(e=>e.period===`Yearly|${year}`);
+      if(yEntry){
+        result.push({...yEntry, quota:Math.round(yEntry.quota/4), achieved:Math.round(yEntry.achieved/4), period:targetPeriodStr, _spread:`from ${year} ÷4`});
+        continue;
+      }
+    }
+    // No entry or spread possible for this seller in this period — skip
+  }
+  return result;
+}
+
+/* ═══════════════════════════════════════
    DATA LOADING
 ═══════════════════════════════════════ */
 async function loadData(){
@@ -1188,12 +1339,12 @@ async function loadData(){
     if(isAdmin()){
       const {data}=await db.from('quota_entries').select('*').order('created_at',{ascending:false});
       allEntries=data||[];
-      entries=allEntries.filter(e=>e.period===periodStr());
+      entries=getEffectiveEntries(allEntries, periodStr());
     } else {
       const {data}=await db.from('quota_entries').select('*')
         .eq('company',currentUser).order('created_at',{ascending:false});
       allEntries=data||[];
-      entries=allEntries.filter(e=>e.period===periodStr());
+      entries=getEffectiveEntries(allEntries, periodStr());
     }
     setBar(80);
     renderCurrentView();
@@ -1243,7 +1394,7 @@ async function loadAccessLog(){
    SAVE / DELETE
 ═══════════════════════════════════════ */
 async function saveEntry(){
-  const co = isAdmin() ? (drillCompany || document.getElementById('em-co').value) : currentUser;
+  const co = _modalForceCo || (isAdmin() ? (drillCompany || document.getElementById('em-co').value) : currentUser);
   const seller = document.getElementById('em-seller').value.trim();
   const quota = parseFloat(document.getElementById('em-quota').value);
   const crmCb = document.getElementById('em-crm-cb').checked;
@@ -1297,7 +1448,7 @@ async function saveEntry(){
     spin(false); return;
   }
   toast(editEntry?'Entry updated ✓':'Entry added ✓');
-  closeModal('entry-modal'); editEntry=null;
+  closeEntryModal(); editEntry=null;
   await loadData();
   spin(false);
 }
@@ -1384,28 +1535,36 @@ function renderDashboard(){
 
   // Stats grid
   const dispCurr = co ? coCurrency(co) : 'EUR';
+  const attCardClass = att>=95?'card-green':att>=80?'card-amber':att>=60?'card-amber':'card-red';
   const sg=document.getElementById('stats-grid');
   sg.innerHTML=`
-    <div class="stat-card" style="--accent-color:var(--acc);--icon-bg:var(--acc-light)">
+    <div class="stat-card card-purple" style="--accent-color:var(--acc);--icon-bg:var(--acc-light)">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <div class="stat-val">${sellers}</div><div class="stat-lbl">Active Sellers</div>
+      <div class="stat-val" id="sv-sellers">—</div><div class="stat-lbl">Active Sellers</div>
       <div class="stat-delta" style="color:var(--txt3)">${data.length} entries this period</div>
     </div>
-    <div class="stat-card" style="--accent-color:var(--blue);--icon-bg:var(--blue-bg)">
+    <div class="stat-card card-blue" style="--accent-color:var(--blue);--icon-bg:var(--blue-bg)">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-      <div class="stat-val">${fmtCurr(totalQ,dispCurr)}</div><div class="stat-lbl">Total Quota</div>
+      <div class="stat-val" id="sv-quota">—</div><div class="stat-lbl">Total Quota</div>
       <div class="stat-delta" style="color:var(--txt3)">${displayPeriod(periodStr())}</div>
     </div>
-    <div class="stat-card" style="--accent-color:var(--green);--icon-bg:var(--green-bg)">
+    <div class="stat-card card-green" style="--accent-color:var(--green);--icon-bg:var(--green-bg)">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="stat-val">${fmtCurr(totalA,dispCurr)}</div><div class="stat-lbl">Total Achieved</div>
+      <div class="stat-val" id="sv-ach">—</div><div class="stat-lbl">Total Achieved</div>
       <div class="stat-delta" style="color:${attColor(att)}">${att}% of target</div>
     </div>
-    <div class="stat-card" style="--accent-color:${attColor(att)};--icon-bg:${att>=95?'var(--green-bg)':att>=80?'var(--amber-bg)':att>=60?'var(--orange-bg)':'var(--red-bg)'}">
+    <div class="stat-card ${attCardClass}" style="--accent-color:${attColor(att)};--icon-bg:${att>=95?'var(--green-bg)':att>=80?'var(--amber-bg)':att>=60?'var(--orange-bg)':'var(--red-bg)'}">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="${attColor(att)}" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-      <div class="stat-val" style="color:${attColor(att)}">${att}%</div><div class="stat-lbl">Attainment</div>
+      <div class="stat-val" id="sv-att" style="color:${attColor(att)}">—</div><div class="stat-lbl">Attainment</div>
       <div class="stat-delta att-bar"><div class="att-fill" style="width:${Math.min(att,100)}%;background:${attColor(att)}"></div></div>
     </div>`;
+  // Animate stat numbers in
+  setTimeout(()=>{
+    animateCount(document.getElementById('sv-sellers'), sellers);
+    animateCount(document.getElementById('sv-quota'), totalQ, 750, v=>fmtCurr(v,dispCurr));
+    animateCount(document.getElementById('sv-ach'), totalA, 750, v=>fmtCurr(v,dispCurr));
+    animateCount(document.getElementById('sv-att'), att, 600, v=>v+'%');
+  }, 50);
 
   // Gauge
   document.getElementById('gauge-wrap').innerHTML = totalQ > 0 ? svgGauge(att) : svgGauge(0);
@@ -1413,16 +1572,18 @@ function renderDashboard(){
   // Chart
   renderChart(data);
 
-  // Table
+  // Table — with left attainment border and spread indicators
   const tbody = data.map(r=>{
     const p=attPct(r.achieved,r.quota);
     const rc=r.currency||coCurrency(r.company);
+    const rowClass=p>=95?'row-excellent':p>=80?'row-good':p>=60?'row-ok':'row-poor';
     const achCell = r.crm_pull
       ? `<td class="num"><span class="badge badge-crm">🔗 CRM</span></td>`
       : `<td class="num">${fmtCurr(r.achieved,rc)}</td>`;
     const dispCo = co || r.company;
-    return `<tr>
-      <td><span style="font-weight:600;cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px" onclick="openSellerProfile('${r.seller_name.replace(/'/g,"\\'")}','${dispCo.replace(/'/g,"\\'")}') ">${r.seller_name}</span></td>
+    const spreadTag = r._spread ? `<span class="badge-spread" title="Spread ${r._spread}">${r._spread}</span>` : '';
+    return `<tr class="${rowClass}">
+      <td><span style="font-weight:600;cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px" onclick="openSellerProfile('${r.seller_name.replace(/'/g,"\\'")}','${dispCo.replace(/'/g,"\\'")}') ">${r.seller_name}</span>${spreadTag}</td>
       <td><span class="badge badge-gray">${r.sub_region}</span></td>
       <td class="num">${fmtCurr(r.quota,rc)}</td>
       ${achCell}
@@ -1563,9 +1724,17 @@ function renderSellers(){
     </tr>`;
   }).join('');
 
+  const emptySellerState = `<tr><td colspan="${colCount}" style="padding:0">
+    <div class="empty-state-full">
+      <div class="es-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <h3>${q ? 'No sellers match your search' : 'No sellers yet'}</h3>
+      <p>${q ? 'Try a different name, company, or role.' : 'Start by adding your first seller. Their quotas and performance will appear here.'}</p>
+      ${!q?`<button class="btn btn-primary btn-sm" onclick="openEntryModal(null)" style="margin-top:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add First Seller</button>`:''}
+    </div>
+  </td></tr>`;
   document.getElementById('sellers-table').innerHTML=`
     <thead><tr>${coHead}<th>Seller</th><th>Quota Type</th><th style="text-align:right">Periods</th><th>Current Period</th><th style="text-align:right">Avg Att%</th><th></th></tr></thead>
-    <tbody>${rows||`<tr class="empty-row"><td colspan="${colCount}">No sellers found — click "+ Add Entry" to register the first seller</td></tr>`}</tbody>`;
+    <tbody>${rows||emptySellerState}</tbody>`;
 }
 
 /* ═══════════════════════════════════════
@@ -1588,7 +1757,8 @@ function renderPortfolio(){
     const crm=hasCRM(c.name);
     const ap=hasAutoPull(c.name);
     const clr=q>0?attColor(p):'#94a3b8';
-    return `<div class="co-card" onclick="drillInto('${c.name}')">
+    const notSubmitted = cEntries.length === 0;
+    return `<div class="co-card${notSubmitted?' not-submitted':''}" onclick="drillInto('${c.name}')">
       <div class="co-card-top" style="--card-att-color:${clr}">
         <div style="display:flex;align-items:flex-start;justify-content:space-between">
           <div>
@@ -1602,10 +1772,10 @@ function renderPortfolio(){
           <div class="co-stat"><div class="co-stat-val">${[...new Set(cEntries.map(e=>e.seller_name))].length||'—'}</div><div class="co-stat-lbl">Sellers</div></div>
           <div class="co-stat"><div class="co-stat-val" style="font-size:12px">${q>0?fmtCurr(q,c.currency):'—'}</div><div class="co-stat-lbl">Quota</div></div>
         </div>
-        ${q>0?`<div class="co-att-bar"><div class="co-att-fill" style="width:${Math.min(p,100)}%;background:${clr}"></div></div>`:''}
+        ${q>0?`<div class="co-att-bar"><div class="co-att-fill" style="width:${Math.min(p,100)}%;background:${clr};--fill-glow:${clr}40"></div></div>`:'<div class="co-att-bar"><div class="co-att-fill" style="width:0%"></div></div>'}
       </div>
       <div class="co-card-bottom">
-        <div class="co-card-meta">${cEntries.length>0?`Submitted for ${displayPeriod(period)}`:`<span style="color:var(--amber)">Not submitted</span>`}</div>
+        <div class="co-card-meta">${cEntries.length>0?`Submitted for ${displayPeriod(period)}`:`<span style="color:var(--amber);font-weight:600">⚠ Not submitted</span>`}</div>
         <div class="co-card-meta">${allCo.length} total entries</div>
       </div>
     </div>`;
@@ -1739,6 +1909,7 @@ function renderAccessLog(){
 ═══════════════════════════════════════ */
 let sellerModalName = null;
 let sellerModalCompany = null;
+let _modalForceCo = null; // company override when entry modal opens from seller profile (avoids polluting drillCompany)
 
 function openSellerProfile(sellerName, company){
   sellerModalName = sellerName;
@@ -1813,16 +1984,16 @@ function renderSellerProfile(){
 
 function addEntryForCurrentSeller(){
   closeModal('seller-modal');
-  // Pre-fill seller name in the entry modal
-  const entry = { seller_name: sellerModalName, company: sellerModalCompany };
-  if(isAdmin()) drillCompany = sellerModalCompany;
+  // Use _modalForceCo so drillCompany is not polluted — the main UI stays unfiltered
+  _modalForceCo = sellerModalCompany;
   openEntryModal(null);
   setTimeout(()=>{ document.getElementById('em-seller').value = sellerModalName; }, 50);
 }
 
 async function editFromProfile(entry){
   closeModal('seller-modal');
-  if(isAdmin()) drillCompany = entry.company;
+  // Use _modalForceCo so drillCompany is not polluted
+  _modalForceCo = entry.company;
   openEntryModal(entry);
 }
 
@@ -1983,6 +2154,12 @@ function exportPeriod(){ downloadCSV(toCSV(entries),`everfield-quota-${displayPe
 /* ═══════════════════════════════════════
    ENTRY MODAL
 ═══════════════════════════════════════ */
+function closeEntryModal(){
+  // Always clear the temporary company override when entry modal closes
+  _modalForceCo = null;
+  closeModal('entry-modal');
+}
+
 function openEntryModal(entry){
   editEntry=entry;
   const co=entry?entry.company:(drillCompany||myCompany());

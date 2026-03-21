@@ -4,36 +4,63 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Everfield · Quota Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --sb: #13111c;
-  --sb2: #1e1b2e;
+  /* Sidebar — deep ink with subtle purple shift */
+  --sb: #0c0a14;
+  --sb2: #17132a;
+  --sb-border: rgba(255,255,255,.06);
+
+  /* Brand accent — electric violet */
   --acc: #7c3aed;
   --acc2: #6d28d9;
+  --acc3: #5b21b6;
   --acc-light: #ede9fe;
-  --bg: #f1f5f9;
+  --acc-glow: rgba(124,58,237,.22);
+
+  /* Background — warm off-white, not flat gray */
+  --bg: #f5f4f7;
+  --bg2: #eeedf2;
+
+  /* Cards */
   --card: #ffffff;
-  --border: #e2e8f0;
-  --border2: #cbd5e1;
-  --txt: #0f172a;
-  --txt2: #475569;
-  --txt3: #94a3b8;
+  --border: #e4e2ea;
+  --border2: #d0cdd8;
+
+  /* Text — rich near-black with personality */
+  --txt: #0e0c1a;
+  --txt2: #4a4560;
+  --txt3: #9590a8;
+
+  /* Status colors — vivid, not muted */
   --green: #059669; --green-bg: #d1fae5; --green-light: #ecfdf5;
-  --amber: #d97706; --amber-bg: #fef3c7; --amber-light: #fffbeb;
-  --orange: #ea580c; --orange-bg: #fff7ed;
+  --amber: #b45309; --amber-bg: #fef3c7; --amber-light: #fffbeb;
+  --orange: #c2410c; --orange-bg: #fff7ed;
   --red: #dc2626; --red-bg: #fee2e2; --red-light: #fef2f2;
-  --blue: #2563eb; --blue-bg: #dbeafe;
+  --blue: #1d4ed8; --blue-bg: #dbeafe;
   --purple: #7c3aed; --purple-bg: #ede9fe;
-  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.05);
-  --shadow-lg: 0 10px 25px rgba(0,0,0,.12);
+
+  /* Shadows — richer depth */
+  --shadow: 0 1px 3px rgba(14,12,26,.07), 0 1px 2px rgba(14,12,26,.04);
+  --shadow-md: 0 4px 12px rgba(14,12,26,.09), 0 2px 4px rgba(14,12,26,.05);
+  --shadow-lg: 0 12px 32px rgba(14,12,26,.14), 0 4px 8px rgba(14,12,26,.06);
+  --shadow-acc: 0 8px 24px rgba(124,58,237,.28);
+
   --r: 10px; --r-lg: 16px;
-  --sb-w: 220px;
+  --sb-w: 228px;
+
+  /* Typography */
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
 }
+
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;min-height:100vh}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14px;min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 
 /* ONBOARDING DOTS */
 .ob-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s ease}
@@ -61,30 +88,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .orb2{width:400px;height:400px;background:#2563eb;bottom:-100px;right:-100px;animation-delay:3s}
 .orb3{width:300px;height:300px;background:#db2777;top:40%;left:55%;animation-delay:1.5s}
 @keyframes pulse{0%{transform:scale(1) translate(0,0)}100%{transform:scale(1.15) translate(20px,-20px)}}
-.login-card{background:rgba(255,255,255,.97);backdrop-filter:blur(20px);border-radius:20px;padding:44px 40px;width:100%;max-width:430px;box-shadow:0 25px 60px rgba(0,0,0,.4);animation:fadeUp .4s ease;position:relative;z-index:2}
-.login-brand{display:flex;align-items:center;gap:14px;margin-bottom:32px}
-.login-brand-icon{width:48px;height:48px;background:var(--acc);border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(124,58,237,.4)}
+.login-card{background:rgba(255,255,255,.98);backdrop-filter:blur(24px);border-radius:24px;padding:48px 44px;width:100%;max-width:430px;box-shadow:0 30px 80px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.12);animation:fadeUp .4s ease;position:relative;z-index:2}
+.login-brand{display:flex;align-items:center;gap:14px;margin-bottom:36px}
+.login-brand-icon{width:50px;height:50px;background:linear-gradient(135deg,var(--acc),var(--acc3));border-radius:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(124,58,237,.45)}
 .login-brand-icon svg{width:26px;height:26px;fill:#fff}
-.login-brand-name{font-size:20px;font-weight:800;color:var(--txt);letter-spacing:-.5px}
-.login-brand-sub{font-size:12px;color:var(--txt3);font-weight:500}
-.login-h{font-size:24px;font-weight:700;color:var(--txt);margin-bottom:6px}
-.login-p{font-size:13px;color:var(--txt2);margin-bottom:28px}
+.login-brand-name{font-size:21px;font-weight:800;color:var(--txt);letter-spacing:-.5px;font-family:var(--font-display)}
+.login-brand-sub{font-size:12px;color:var(--txt3);font-weight:500;letter-spacing:.02em}
+.login-h{font-size:26px;font-weight:800;color:var(--txt);margin-bottom:6px;font-family:var(--font-display);letter-spacing:-.5px}
+.login-p{font-size:13px;color:var(--txt2);margin-bottom:30px;line-height:1.5}
 .fld{margin-bottom:18px}
 .fld label{display:block;font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em}
 .fld select,.fld input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;color:var(--txt);background:#fff;transition:border-color .15s,box-shadow .15s;appearance:none}
 .fld select:focus,.fld input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
 .sel-wrap{position:relative}.sel-wrap::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--txt3);pointer-events:none;font-size:12px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;line-height:1}
-.btn-primary{background:var(--acc);color:#fff;width:100%;padding:13px}
-.btn-primary:hover{background:var(--acc2);transform:translateY(-1px);box-shadow:0 4px 14px rgba(124,58,237,.35)}
-.btn-sm{padding:7px 12px;font-size:12px}
-.btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--border)}
-.btn-ghost:hover{background:var(--bg);color:var(--txt)}
-.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid #fca5a5}
-.btn-danger:hover{background:var(--red);color:#fff}
-.btn-success{background:var(--green-bg);color:var(--green)}
-.btn-success:hover{background:var(--green);color:#fff}
-.btn-icon{width:32px;height:32px;padding:0;border-radius:7px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:all .17s cubic-bezier(.4,0,.2,1);line-height:1;letter-spacing:.01em;font-family:var(--font)}
+.btn-primary{background:linear-gradient(135deg,var(--acc),var(--acc3));color:#fff;width:100%;padding:13px;box-shadow:0 2px 8px var(--acc-glow)}
+.btn-primary:hover{background:linear-gradient(135deg,var(--acc2),var(--acc3));transform:translateY(-1px);box-shadow:var(--shadow-acc)}
+.btn-sm{padding:7px 13px;font-size:12px}
+.btn-ghost{background:transparent;color:var(--txt2);border:1.5px solid var(--border)}
+.btn-ghost:hover{background:var(--bg2);color:var(--txt);border-color:var(--border2)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1.5px solid #fca5a5}
+.btn-danger:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-success{background:var(--green-bg);color:var(--green);border:1.5px solid #a7f3d0}
+.btn-success:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-icon{width:32px;height:32px;padding:0;border-radius:8px}
 .login-err{color:var(--red);font-size:12px;margin-top:10px;text-align:center;min-height:18px}
 
 /* APP SHELL */
@@ -92,54 +119,54 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .shell{display:flex;min-height:100vh}
 
 /* SIDEBAR */
-#sidebar{width:var(--sb-w);background:var(--sb);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
-.sb-brand{padding:22px 20px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.06)}
-.sb-icon{width:36px;height:36px;background:var(--acc);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#sidebar{width:var(--sb-w);background:linear-gradient(180deg,#0c0a14 0%,#12102a 60%,#0e0c1e 100%);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;border-right:1px solid rgba(255,255,255,.04)}
+.sb-brand{padding:20px 18px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--acc),var(--acc3));border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(124,58,237,.4)}
 .sb-icon svg{width:20px;height:20px;fill:#fff}
-.sb-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.3px}
-.sb-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:1px}
-.sb-nav{flex:1;padding:12px 10px}
-.nav-section{font-size:10px;font-weight:700;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.1em;padding:16px 10px 6px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:rgba(255,255,255,.55);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none;user-select:none;margin-bottom:2px}
-.nav-item svg{width:17px;height:17px;flex-shrink:0;opacity:.7}
-.nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85)}
-.nav-item.active{background:rgba(124,58,237,.25);color:#c4b5fd}
-.nav-item.active svg{opacity:1}
-.sb-user{padding:14px 16px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px}
-.sb-avatar{width:34px;height:34px;background:var(--acc);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
-.sb-uname{font-size:13px;font-weight:600;color:#fff}
-.sb-logout{font-size:11px;color:rgba(255,255,255,.4);cursor:pointer;transition:color .15s;background:none;border:none;padding:0;text-align:left}
+.sb-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.3px;font-family:var(--font-display)}
+.sb-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:1px;font-weight:500;letter-spacing:.03em}
+.sb-nav{flex:1;padding:10px 10px}
+.nav-section{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.12em;padding:16px 10px 5px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:rgba(255,255,255,.5);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none;user-select:none;margin-bottom:1px}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.65}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9)}
+.nav-item.active{background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(109,40,217,.15));color:#d4bbff;border:1px solid rgba(196,181,253,.12)}
+.nav-item.active svg{opacity:1;filter:drop-shadow(0 0 6px rgba(196,181,253,.5))}
+.sb-user{padding:14px 16px;border-top:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:10px}
+.sb-avatar{width:34px;height:34px;background:linear-gradient(135deg,var(--acc),var(--acc3));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;letter-spacing:.02em}
+.sb-uname{font-size:13px;font-weight:600;color:rgba(255,255,255,.9)}
+.sb-logout{font-size:11px;color:rgba(255,255,255,.35);cursor:pointer;transition:color .15s;background:none;border:none;padding:0;text-align:left}
 .sb-logout:hover{color:#f87171}
 
 /* CONTENT */
 #content{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
-.c-header{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0;position:sticky;top:0;z-index:50}
-.c-title{font-size:17px;font-weight:700;color:var(--txt)}
+.c-header{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0;position:sticky;top:0;z-index:50;box-shadow:0 1px 0 var(--border)}
+.c-title{font-size:18px;font-weight:700;color:var(--txt);font-family:var(--font-display);letter-spacing:-.3px}
 .c-controls{display:flex;align-items:center;gap:10px}
 .period-wrap{display:flex;align-items:center;gap:6px}
-.period-seg{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.period-seg button{padding:6px 11px;background:none;border:none;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;transition:all .15s}
-.period-seg button.active{background:var(--acc);color:#fff}
-.period-seg button:hover:not(.active){background:var(--bg)}
-.period-select{padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;font-weight:500;color:var(--txt);background:#fff;cursor:pointer}
+.period-seg{display:flex;border:1.5px solid var(--border);border-radius:9px;overflow:hidden;background:#fff}
+.period-seg button{padding:6px 13px;background:none;border:none;font-size:12px;font-weight:700;color:var(--txt2);cursor:pointer;transition:all .15s;font-family:var(--font)}
+.period-seg button.active{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.period-seg button:hover:not(.active){background:var(--bg2);color:var(--txt)}
+.period-select{padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--txt);background:#fff;cursor:pointer;font-family:var(--font)}
 .period-select:focus{outline:none;border-color:var(--acc)}
-.load-btn{padding:6px 13px;background:var(--acc);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
-.load-btn:hover{background:var(--acc2)}
+.load-btn{padding:6px 13px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;font-family:var(--font)}
+.load-btn:hover{box-shadow:var(--shadow-acc)}
 
 /* VIEWS */
-.view{display:none;padding:24px;animation:fadeUp .2s ease}
+.view{display:none;padding:28px;animation:fadeUp .2s ease}
 .view.active{display:block}
 
 /* STAT CARDS */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-.stat-card{background:var(--card);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;overflow:hidden;transition:box-shadow .15s}
-.stat-card:hover{box-shadow:var(--shadow-md)}
-.stat-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent-color,var(--acc))}
-.stat-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;background:var(--icon-bg,var(--acc-light))}
+.stat-card{background:var(--card);border-radius:var(--r-lg);padding:22px 20px 18px;box-shadow:var(--shadow-md);border:1px solid var(--border);position:relative;overflow:hidden;transition:box-shadow .2s,transform .2s}
+.stat-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent-color,var(--acc)),transparent)}
+.stat-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;background:var(--icon-bg,var(--acc-light));box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .stat-icon svg{width:20px;height:20px}
-.stat-val{font-size:26px;font-weight:800;color:var(--txt);letter-spacing:-.5px;line-height:1}
-.stat-lbl{font-size:12px;color:var(--txt3);margin-top:4px;font-weight:500}
-.stat-delta{font-size:11px;margin-top:8px;font-weight:600;display:flex;align-items:center;gap:3px}
+.stat-val{font-size:28px;font-weight:800;color:var(--txt);letter-spacing:-.8px;line-height:1;font-family:var(--font-display)}
+.stat-lbl{font-size:12px;color:var(--txt3);margin-top:5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.stat-delta{font-size:11px;margin-top:10px;font-weight:600;display:flex;align-items:center;gap:3px}
 
 /* GAUGE + CHART SECTION */
 .vis-row{display:grid;grid-template-columns:200px 1fr;gap:16px;margin-bottom:24px}
@@ -150,17 +177,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .chart-wrap{position:relative}
 
 /* TABLE */
-.table-card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden}
-.table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
-.table-header-title{font-size:14px;font-weight:700;color:var(--txt)}
+.table-card{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-md);border:1px solid var(--border);overflow:hidden}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border)}
+.table-header-title{font-size:14px;font-weight:700;color:var(--txt);font-family:var(--font-display)}
 .tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;background:#fafafa;border-bottom:1px solid var(--border)}
-.tbl td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl th{padding:10px 18px;text-align:left;font-size:10.5px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;background:var(--bg);border-bottom:1px solid var(--border)}
+.tbl td{padding:12px 18px;border-bottom:1px solid var(--border);vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}
-.tbl tr:hover td{background:#fafbff}
-.tbl .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.tbl tr:hover td{background:#f8f7fb}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-family:var(--font-display)}
 .tbl .mono{font-family:ui-monospace,monospace;font-size:12px}
-.empty-row td{text-align:center;padding:48px;color:var(--txt3)}
+.empty-row td{text-align:center;padding:56px;color:var(--txt3)}
 
 /* BADGES */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
@@ -186,20 +213,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .toggle input:checked+.tog-sl::before{transform:translateX(18px)}
 
 /* PORTFOLIO GRID */
-.portfolio-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.co-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .15s,transform .15s;cursor:pointer}
-.co-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
-.co-card-top{padding:18px 18px 14px;border-left:4px solid var(--card-att-color,#e2e8f0)}
-.co-card-name{font-size:15px;font-weight:700;color:var(--txt)}
-.co-card-region{font-size:11px;color:var(--txt3);margin-top:2px}
-.co-card-stats{display:flex;gap:16px;margin-top:12px}
+.portfolio-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px}
+.co-card{background:var(--card);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow-md);overflow:hidden;transition:box-shadow .2s,transform .2s;cursor:pointer}
+.co-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}
+.co-card-top{padding:20px 20px 16px;border-left:4px solid var(--card-att-color,var(--border))}
+.co-card-name{font-size:16px;font-weight:700;color:var(--txt);font-family:var(--font-display);letter-spacing:-.2px}
+.co-card-region{font-size:11px;color:var(--txt3);margin-top:2px;font-weight:500}
+.co-card-stats{display:flex;gap:16px;margin-top:14px}
 .co-stat{flex:1}
-.co-stat-val{font-size:17px;font-weight:700;color:var(--txt)}
-.co-stat-lbl{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em}
-.co-card-bottom{padding:10px 18px;background:#fafafa;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.co-card-meta{font-size:11px;color:var(--txt3)}
-.co-att-bar{height:4px;border-radius:2px;background:#e2e8f0;overflow:hidden;margin-top:8px}
-.co-att-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.co-stat-val{font-size:18px;font-weight:800;color:var(--txt);font-family:var(--font-display);letter-spacing:-.3px}
+.co-stat-lbl{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-top:1px}
+.co-card-bottom{padding:10px 20px;background:var(--bg);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.co-card-meta{font-size:11px;color:var(--txt3);font-weight:500}
+.co-att-bar{height:5px;border-radius:3px;background:var(--border);overflow:hidden;margin-top:9px}
+.co-att-fill{height:100%;border-radius:3px;transition:width .5s ease}
 
 /* CRM SETTINGS TABLE */
 .crm-table{width:100%;border-collapse:collapse;font-size:13px}
@@ -226,19 +253,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .export-meta{font-size:11px;color:var(--txt3);margin-top:6px}
 
 /* MODAL */
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(10,8,20,.55);backdrop-filter:blur(3px);z-index:1000;align-items:center;justify-content:center;padding:20px}
 .modal-backdrop.open{display:flex}
-.modal{background:#fff;border-radius:var(--r-lg);width:100%;max-width:500px;box-shadow:var(--shadow-lg);animation:fadeUp .2s ease}
+.modal{background:#fff;border-radius:18px;width:100%;max-width:500px;box-shadow:0 24px 60px rgba(0,0,0,.2),0 4px 12px rgba(0,0,0,.08);animation:modalIn .25s cubic-bezier(.34,1.4,.64,1)}
 .modal-lg{max-width:680px}
-.modal-head{padding:22px 24px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.modal-head h2{font-size:16px;font-weight:700;color:var(--txt)}
-.modal-close{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:20px;line-height:1;padding:4px;border-radius:6px;transition:color .15s}
-.modal-close:hover{color:var(--txt)}
-.modal-body{padding:22px 24px}
-.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.modal-head{padding:22px 26px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-head h2{font-size:16px;font-weight:700;color:var(--txt);font-family:var(--font-display);letter-spacing:-.2px}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:20px;line-height:1;padding:6px;border-radius:8px;transition:all .15s;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:var(--bg);color:var(--txt)}
+.modal-body{padding:22px 26px}
+.modal-foot{padding:16px 26px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;background:#fafaf9;border-radius:0 0 18px 18px}
 .fld-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .fld-full{grid-column:1/-1}
 .field-hint{font-size:11px;color:var(--txt3);margin-top:4px}
+@keyframes modalIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 
 /* CRM DECISION MODAL */
 .crm-dec-card{padding:24px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all .2s;margin-bottom:12px;display:flex;gap:16px;align-items:flex-start}
@@ -270,9 +298,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .empty-state p{font-size:13px;line-height:1.6}
 
 /* SECTION HEADER */
-.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.sec-title{font-size:15px;font-weight:700;color:var(--txt)}
-.sec-sub{font-size:12px;color:var(--txt3);margin-top:2px}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.sec-title{font-size:16px;font-weight:700;color:var(--txt);font-family:var(--font-display);letter-spacing:-.2px}
+.sec-sub{font-size:12px;color:var(--txt3);margin-top:3px;font-weight:500}
 
 /* MISC */
 .row-actions{display:flex;gap:6px;justify-content:flex-end}
@@ -297,13 +325,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   .sb-user{justify-content:center}
 }
 
-/* ── DESIGN REFRESH ── */
-
-/* Sidebar */
-#sidebar{background:linear-gradient(180deg,#0d0b18 0%,#13111c 55%,#1a1535 100%)}
-.nav-item.active{background:rgba(124,58,237,.18);color:#c4b5fd;border-left:3px solid var(--acc);padding-left:9px;box-shadow:inset 8px 0 24px rgba(124,58,237,.06)}
-.nav-item.active svg{opacity:1;filter:drop-shadow(0 0 4px rgba(196,181,253,.4))}
-.sb-brand{padding:18px 18px 16px}
+/* ── DESIGN REFRESH ── (now redundant — merged into base CSS) */
 
 /* Logo containers */
 .logo-svg-light,.logo-svg-dark{display:block}
@@ -1397,23 +1419,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <!-- BULK PERIOD ENTRY MODAL -->
 <div class="modal-backdrop" id="bulk-modal">
-  <div class="modal" style="max-width:660px">
+  <div class="modal" style="max-width:700px">
     <div class="modal-head">
       <div>
-        <h2 id="bulk-title">Configure Periods</h2>
+        <h2 id="bulk-title">Set Quotas by Period</h2>
         <div id="bulk-meta" style="font-size:12px;color:var(--txt3);margin-top:2px"></div>
       </div>
       <button class="modal-close" onclick="closeModal('bulk-modal')">×</button>
     </div>
     <div class="modal-body" style="padding:0">
+
       <!-- Controls row -->
-      <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fafafa">
+      <div style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fafafa">
         <div class="period-seg" id="bulk-period-seg">
           <button type="button" onclick="setBulkPeriodType('Monthly')" class="active">Monthly</button>
           <button type="button" onclick="setBulkPeriodType('Quarterly')">Quarterly</button>
           <button type="button" onclick="setBulkPeriodType('Yearly')">Yearly</button>
         </div>
         <select id="bulk-year" class="period-select" onchange="renderBulkTable()">
+          <option value="2025">2025</option>
           <option value="2026">2026</option>
           <option value="2027">2027</option>
         </select>
@@ -1423,13 +1447,53 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <option value="PLN">PLN (zł)</option>
           <option value="DKK">DKK (kr)</option>
         </select>
-        <div style="margin-left:auto;font-size:11px;color:var(--txt3)">Leave quota blank to skip a period</div>
       </div>
+
+      <!-- Quick Fill panel -->
+      <div style="padding:14px 20px;background:linear-gradient(135deg,var(--acc-light),#f0f9ff);border-bottom:2px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Quick Fill — apply to all periods at once</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <!-- Mode selector -->
+          <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;flex-shrink:0">
+            <button id="qf-mode-same" type="button" onclick="setQfMode('same')"
+              style="padding:7px 14px;font-size:12px;font-weight:600;background:var(--acc);color:#fff;border:none;cursor:pointer">
+              Same each period
+            </button>
+            <button id="qf-mode-spread" type="button" onclick="setQfMode('spread')"
+              style="padding:7px 14px;font-size:12px;font-weight:600;background:transparent;color:var(--txt2);border:none;cursor:pointer">
+              Spread from total
+            </button>
+          </div>
+          <!-- Amount input -->
+          <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:160px">
+            <span id="qf-sym" style="font-size:13px;color:var(--txt2);font-weight:600;flex-shrink:0">€</span>
+            <input type="number" id="qf-amount" min="0" placeholder="e.g. 10,000"
+              style="flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;color:var(--txt)">
+          </div>
+          <!-- Helper label -->
+          <div id="qf-hint" style="font-size:11px;color:var(--txt3);min-width:140px;line-height:1.45">Same quota target<br>applied to every period</div>
+          <!-- Apply button -->
+          <button type="button" onclick="bulkQuickFill()"
+            style="padding:8px 16px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
+            Apply to all →
+          </button>
+          <!-- Clear button -->
+          <button type="button" onclick="bulkClearAll()"
+            style="padding:8px 12px;background:#fff;color:var(--txt3);border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">
+            Clear all
+          </button>
+        </div>
+      </div>
+
       <!-- Table -->
-      <div style="max-height:400px;overflow-y:auto">
+      <div style="max-height:340px;overflow-y:auto">
         <table class="tbl" id="bulk-table" style="margin-bottom:0"></table>
       </div>
+
+      <!-- Live summary bar -->
+      <div id="bulk-summary" style="padding:10px 20px;background:#fafafa;border-top:1px solid var(--border);display:flex;gap:20px;font-size:12px;color:var(--txt2)"></div>
     </div>
+
     <div class="modal-foot" style="justify-content:space-between">
       <div id="bulk-err" style="color:var(--red);font-size:12px;align-self:center"></div>
       <div style="display:flex;gap:10px">
@@ -2058,10 +2122,38 @@ async function saveEntry(){
     toast('Save failed — '+error.message,'error');
     spin(false); return;
   }
-  toast(editEntry?'Entry updated ✓':'Entry added ✓');
+  const wasNew = !editEntry;
+  const savedSeller = document.getElementById('em-seller').value.trim();
+  const savedCo = _modalForceCo || (isAdmin() ? (drillCompany || document.getElementById('em-co').value) : currentUser);
+  toast(wasNew?'Entry added ✓':'Entry updated ✓');
   closeEntryModal(); editEntry=null;
   await loadData();
   spin(false);
+  // After adding a NEW entry, prompt to set quotas for other periods
+  if(wasNew && savedSeller && savedCo){
+    setTimeout(()=>showBulkPromptToast(savedSeller, savedCo), 400);
+  }
+}
+
+function showBulkPromptToast(seller, company){
+  const id = 'bulk-prompt-'+Date.now();
+  const el = document.createElement('div');
+  el.id = id;
+  el.className = 'toast-item info';
+  el.style.cssText = 'display:flex;align-items:center;gap:12px;max-width:360px;padding:14px 16px';
+  el.innerHTML = `
+    <div style="flex:1">
+      <div style="font-weight:700;margin-bottom:2px">Set quotas for other periods?</div>
+      <div style="font-size:12px;opacity:.85">${seller} — fill in all months or quarters at once</div>
+    </div>
+    <button onclick="document.getElementById('${id}').remove();openBulkEntry('${seller.replace(/'/g,"\\'")}','${company.replace(/'/g,"\\'")}');"
+      style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
+      Set Quotas →
+    </button>
+    <button onclick="document.getElementById('${id}').remove()"
+      style="background:none;border:none;color:rgba(255,255,255,.6);font-size:18px;cursor:pointer;padding:0;line-height:1">×</button>`;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 10000);
 }
 
 async function deleteEntry(id){
@@ -2361,8 +2453,8 @@ function renderSellers(){
             Profile
           </button>
           <button class="btn btn-primary btn-sm" onclick="openBulkEntry('${s.seller_name.replace(/'/g,"\\'")}','${s.company.replace(/'/g,"\\'")}')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Periods
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Set Quotas
           </button>
         </div>
       </td>
@@ -2956,17 +3048,21 @@ function updateEmCurrencyLabels(co){
 let bulkSellerName = null;
 let bulkSellerCompany = null;
 let bulkPType = 'Monthly';
+let qfMode = 'same'; // 'same' | 'spread'
 
 function openBulkEntry(sellerName, company){
   bulkSellerName = sellerName;
   bulkSellerCompany = company;
   bulkPType = 'Monthly';
+  qfMode = 'same';
   document.getElementById('bulk-title').textContent = sellerName;
-  document.getElementById('bulk-meta').textContent = company + ' · Enter quotas and actuals across multiple periods at once';
+  document.getElementById('bulk-meta').textContent = company + ' · Set a different quota for each period, or use Quick Fill to apply one value to all';
   document.getElementById('bulk-year').value = pYear;
   document.getElementById('bulk-currency').value = coCurrency(company);
   document.getElementById('bulk-err').textContent = '';
+  document.getElementById('qf-amount').value = '';
   document.querySelectorAll('#bulk-period-seg button').forEach(b=>b.classList.toggle('active',b.textContent==='Monthly'));
+  setQfMode('same');
   renderBulkTable();
   openModal('bulk-modal');
 }
@@ -2974,7 +3070,76 @@ function openBulkEntry(sellerName, company){
 function setBulkPeriodType(t){
   bulkPType = t;
   document.querySelectorAll('#bulk-period-seg button').forEach(b=>b.classList.toggle('active',b.textContent===t));
+  updateQfHint();
   renderBulkTable();
+}
+
+function setQfMode(mode){
+  qfMode = mode;
+  const isSame = mode==='same';
+  const btnSame = document.getElementById('qf-mode-same');
+  const btnSpread = document.getElementById('qf-mode-spread');
+  if(btnSame){
+    btnSame.style.background = isSame ? 'var(--acc)' : 'transparent';
+    btnSame.style.color = isSame ? '#fff' : 'var(--txt2)';
+  }
+  if(btnSpread){
+    btnSpread.style.background = isSame ? 'transparent' : 'var(--acc)';
+    btnSpread.style.color = isSame ? 'var(--txt2)' : '#fff';
+  }
+  updateQfHint();
+}
+
+function updateQfHint(){
+  const hint = document.getElementById('qf-hint');
+  if(!hint) return;
+  const slotCount = bulkPType==='Monthly' ? 12 : bulkPType==='Quarterly' ? 4 : 1;
+  if(qfMode==='same'){
+    hint.innerHTML = `Same quota target<br>applied to every period`;
+  } else {
+    hint.innerHTML = `Annual total ÷ ${slotCount}<br>distributed evenly`;
+  }
+  // Update sym
+  const curr = document.getElementById('bulk-currency')?.value || 'EUR';
+  const sym = document.getElementById('qf-sym');
+  if(sym) sym.textContent = CURR_SYMBOLS[curr] || curr;
+}
+
+function bulkQuickFill(){
+  const raw = parseFloat(document.getElementById('qf-amount').value);
+  if(isNaN(raw) || raw <= 0){ toast('Enter a quota amount first','error'); return; }
+  const slotCount = bulkPType==='Monthly' ? 12 : bulkPType==='Quarterly' ? 4 : 1;
+  const perPeriod = qfMode==='spread' ? Math.round(raw / slotCount) : raw;
+  document.querySelectorAll('.bulk-quota-inp').forEach(inp=>{ inp.value = perPeriod; });
+  updateBulkSummary();
+  toast(`Applied ${CURR_SYMBOLS[document.getElementById('bulk-currency').value]||''}${perPeriod.toLocaleString()} to all periods`);
+}
+
+function bulkClearAll(){
+  document.querySelectorAll('.bulk-quota-inp').forEach(inp=>{ inp.value = ''; });
+  document.querySelectorAll('.bulk-ach-inp').forEach(inp=>{ inp.value = ''; });
+  updateBulkSummary();
+}
+
+function updateBulkSummary(){
+  const curr = document.getElementById('bulk-currency')?.value || 'EUR';
+  const sym = CURR_SYMBOLS[curr] || curr;
+  const inputs = [...document.querySelectorAll('.bulk-quota-inp')];
+  const filled = inputs.filter(i=>i.value!=='');
+  const total = filled.reduce((s,i)=>s+parseFloat(i.value||0),0);
+  const avg = filled.length ? Math.round(total/filled.length) : 0;
+  const summaryEl = document.getElementById('bulk-summary');
+  if(!summaryEl) return;
+  if(!filled.length){
+    summaryEl.innerHTML = `<span style="color:var(--txt3)">Fill in quota values above — blank rows are skipped on save.</span>`;
+    return;
+  }
+  summaryEl.innerHTML = `
+    <span><strong>${filled.length}</strong> of ${inputs.length} periods filled</span>
+    <span style="color:var(--border)">|</span>
+    <span>Total: <strong style="color:var(--acc)">${sym}${Math.round(total).toLocaleString()}</strong></span>
+    <span style="color:var(--border)">|</span>
+    <span>Average: <strong>${sym}${avg.toLocaleString()}</strong>/period</span>`;
 }
 
 function renderBulkTable(){
@@ -2998,21 +3163,33 @@ function renderBulkTable(){
     const quota = ex?.quota ?? '';
     const achieved = ex?.achieved ?? '';
     const saved = !!ex;
+    const isSpread = !saved && getEffectiveEntries(allEntries, p.key).find(e=>e.seller_name===bulkSellerName && e._spread);
     const rowBg = saved ? 'background:#f0fdf4' : '';
-    const savedBadge = saved
+    const statusBadge = saved
       ? `<span class="badge badge-green" style="font-size:10px">✓ Saved</span>`
-      : `<span class="badge badge-gray" style="font-size:10px">New</span>`;
+      : `<span class="badge badge-gray" style="font-size:10px;opacity:.6">Not set</span>`;
     const achCol = autopull
       ? `<td style="text-align:center"><span class="badge badge-crm" style="font-size:10px">🔗 CRM</span></td>`
-      : `<td><input type="number" class="bulk-ach-inp" data-period="${p.key}" min="0" placeholder="0" value="${achieved}" style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right"></td>`;
+      : `<td><input type="number" class="bulk-ach-inp" data-period="${p.key}" min="0" placeholder="0" value="${achieved}"
+           oninput="updateBulkSummary()"
+           style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right"></td>`;
     return `<tr style="${rowBg}">
-      <td style="font-weight:500;white-space:nowrap;font-size:12px">
-        ${saved?'<span style="color:var(--green);font-size:11px">●</span> ':'<span style="color:var(--txt3);font-size:11px">○</span> '}
-        ${p.label}
+      <td style="font-weight:600;white-space:nowrap;font-size:12px;color:var(--txt)">
+        ${saved?`<span style="color:var(--green);font-size:10px">●</span>`:`<span style="color:var(--border);font-size:10px">○</span>`}
+        <span style="margin-left:4px">${p.label}</span>
       </td>
-      <td><input type="number" class="bulk-quota-inp" data-period="${p.key}" min="0" placeholder="—" value="${quota}" style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right"></td>
+      <td style="width:140px">
+        <input type="number" class="bulk-quota-inp" data-period="${p.key}" min="0" placeholder="—" value="${quota}"
+          oninput="updateBulkSummary()"
+          style="width:100%;padding:5px 8px;border:1.5px solid ${saved?'var(--green)':'var(--border)'};border-radius:6px;font-size:12px;text-align:right;font-weight:${saved?'700':'400'}">
+      </td>
       ${achCol}
-      <td style="text-align:center">${savedBadge}</td>
+      <td style="text-align:center;white-space:nowrap">${statusBadge}</td>
+      <td style="width:24px;padding:4px">
+        <button type="button" onclick="this.closest('tr').querySelector('.bulk-quota-inp').value='';this.closest('tr').querySelector('.bulk-ach-inp')&&(this.closest('tr').querySelector('.bulk-ach-inp').value='');updateBulkSummary()"
+          style="width:20px;height:20px;border:none;background:none;color:var(--txt3);cursor:pointer;font-size:14px;padding:0;line-height:1;border-radius:4px"
+          title="Clear this row">×</button>
+      </td>
     </tr>`;
   }).join('');
 
@@ -3020,8 +3197,17 @@ function renderBulkTable(){
     ? `<th style="text-align:center">Achieved</th>`
     : `<th style="text-align:right">Achieved (${sym})</th>`;
   document.getElementById('bulk-table').innerHTML = `
-    <thead><tr><th>Period</th><th style="text-align:right">Quota (${sym})</th>${achHead}<th>Status</th></tr></thead>
+    <thead><tr>
+      <th>Period</th>
+      <th style="text-align:right">Quota (${sym})</th>
+      ${achHead}
+      <th style="text-align:center">Status</th>
+      <th></th>
+    </tr></thead>
     <tbody>${rows}</tbody>`;
+
+  updateQfHint();
+  updateBulkSummary();
 }
 
 async function saveBulkEntries(){

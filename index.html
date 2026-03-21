@@ -141,6 +141,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 /* CONTENT */
 #content{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .c-header{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0;position:sticky;top:0;z-index:50;box-shadow:0 1px 0 var(--border)}
+.c-header-center{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;pointer-events:none}
+.c-header-center>*{pointer-events:auto}
 .c-title{font-size:18px;font-weight:700;color:var(--txt);font-family:var(--font-display);letter-spacing:-.3px}
 .c-controls{display:flex;align-items:center;gap:10px}
 .period-wrap{display:flex;align-items:center;gap:6px}
@@ -351,8 +353,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 .bulk-fmt-hint{font-size:10px;color:var(--txt3);text-align:right;margin-top:2px;font-family:var(--font-display)}
 
 /* INLINE COMMENT SYSTEM */
-#header-note-btn{display:none;align-items:center;gap:5px;padding:6px 12px;background:var(--amber-bg);border:1.5px solid var(--amber);border-radius:8px;color:var(--amber);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;font-family:var(--font)}
-#header-note-btn:hover{background:var(--amber);color:#fff;border-color:var(--amber)}
+#header-note-btn{display:none;align-items:center;gap:8px;padding:10px 22px;background:var(--amber-bg);border:2px solid var(--amber);border-radius:10px;color:var(--amber);font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;font-family:var(--font);letter-spacing:.01em;white-space:nowrap}
+#header-note-btn:hover{background:var(--amber);color:#fff;border-color:var(--amber);box-shadow:0 4px 14px rgba(180,83,9,.28);transform:translateY(-1px)}
 #header-note-btn.active{background:var(--amber);border-color:var(--amber);color:#fff;box-shadow:0 3px 12px rgba(180,83,9,.35)}
 #comment-mode-banner{display:none;background:var(--amber);color:#fff;font-size:12px;font-weight:600;padding:9px 20px;text-align:center;letter-spacing:.01em;position:fixed;top:62px;left:var(--sb-w);right:0;z-index:49;box-shadow:0 2px 8px rgba(180,83,9,.3)}
 #comment-mode-banner.on{display:block}
@@ -608,6 +610,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
   <!-- Header -->
   <div class="c-header">
     <div class="c-title" id="c-title">Dashboard</div>
+    <!-- Centre: Add Note (admin only, absolutely centred in header) -->
+    <div class="c-header-center">
+      <button id="header-note-btn" onclick="toggleCommentMode()" title="Enter note mode — click anywhere on the page to pin a comment">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Add Note to Page
+      </button>
+    </div>
     <div class="c-controls">
       <div class="period-wrap">
         <div class="period-seg" id="period-seg">
@@ -625,11 +634,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
         <select class="period-select" id="period-val-1" onchange="onPeriodChange()" style="display:none"></select>
         <select class="period-select" id="period-val-2" onchange="onPeriodChange()" style="display:none"></select>
       </div>
-      <!-- Admin: inline note button (always visible in header when admin is logged in) -->
-      <button id="header-note-btn" onclick="toggleCommentMode()" title="Click to enter note mode, then click anywhere on the page to leave a note">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        Add Note
-      </button>
       <button class="btn btn-primary btn-sm" id="add-btn" onclick="openNewSellerModal()" style="display:none">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         <span>Add Entry</span>
@@ -4571,28 +4575,59 @@ async function loadFeedbackInbox(){
     const date = new Date(s.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
     const time = new Date(s.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     const icon = tagIcon[s.submission_type] || '💬';
-    const color = tagColor[s.submission_type] || 'var(--txt3)';
-    const typeLabel = isNote ? 'Inline note' : s.submission_type;
-    const context = isNote
-      ? `<span style="font-size:11px;background:var(--amber-bg);color:var(--amber);border-radius:5px;padding:2px 7px;font-weight:600">📌 Note · ${pos.view||'page'}</span>`
-      : `<span style="font-size:11px;padding:2px 7px;border-radius:5px;font-weight:600;background:var(--bg2);color:var(--txt2)">${icon} ${typeLabel}</span>`;
+    const typeLabel = isNote ? 'Inline Note' : s.submission_type;
+
+    // Human-readable position for inline notes
+    let locationHtml = '';
+    if(isNote && pos.view){
+      const viewLabels = {
+        dashboard:'Dashboard', sellers:'Sellers', portfolio:'Portfolio', feedback:'Feedback',
+        companies:'Companies', passwords:'Passwords', export:'Export', submissions:'Submissions',
+        changelog:'What\'s New', 'access-log':'Access Log', 'crm-settings':'CRM Settings',
+        'submit-docs':'Submit Docs', 'getting-started':'Getting Started'
+      };
+      const viewName = viewLabels[pos.view] || pos.view;
+      const xPct = parseFloat(pos.x)||50;
+      const yPct = parseFloat(pos.y)||50;
+      const hPos = xPct < 33 ? 'left' : xPct < 66 ? 'centre' : 'right';
+      const vPos = yPct < 33 ? 'top' : yPct < 66 ? 'middle' : 'bottom';
+      locationHtml = `<div style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:4px 10px;background:var(--amber-bg);border-radius:6px;font-size:11px;color:var(--amber);font-weight:600">
+        📍 Left on <strong style="margin:0 3px">${viewName}</strong> page · ${vPos}-${hPos} area
+      </div>`;
+    }
+
     const statusBadge = !isNote
-      ? `<span class="badge badge-${s.status==='pending'?'amber':s.status==='approved'?'green':'red'}" style="font-size:10px">${s.status||'pending'}</span>`
+      ? `<span style="padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700;background:${s.status==='approved'?'var(--green-bg)':s.status==='rejected'?'var(--red-bg)':'var(--amber-bg)'};color:${s.status==='approved'?'var(--green)':s.status==='rejected'?'var(--red)':'var(--amber)'}">${s.status||'pending'}</span>`
       : '';
+
+    const accentColor = isNote ? 'var(--amber)' : (tagColor[s.submission_type]||'var(--acc)');
     const content = s.notes || s.description || '—';
-    return `<div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='var(--border)'">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          ${context}
-          ${statusBadge}
-          <span style="font-size:11px;color:var(--txt3);font-weight:500">${s.company||'unknown'} · ${date} ${time}</span>
+
+    // Action buttons — larger and clearer
+    const resolveBtn = (isNote || s.status !== 'pending') ? '' :
+      `<button onclick="markFeedbackDone('${s.id}')" style="display:flex;align-items:center;gap:5px;padding:7px 14px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font);transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Resolve
+      </button>`;
+    const deleteBtn = `<button onclick="deleteFeedbackItem('${s.id}')" style="display:flex;align-items:center;gap:5px;padding:7px 14px;background:var(--red-bg);color:var(--red);border:1.5px solid var(--red);border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font);transition:all .15s" onmouseover="this.style.background='var(--red)';this.style.color='#fff'" onmouseout="this.style.background='var(--red-bg)';this.style.color='var(--red)'">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete
+    </button>`;
+
+    return `<div style="background:#fff;border:1.5px solid var(--border);border-left:3px solid ${accentColor};border-radius:12px;padding:16px 18px;margin-bottom:10px;transition:border-color .15s;border-left-width:4px" onmouseover="this.style.borderColor='${accentColor}';this.style.borderLeftColor='${accentColor}'" onmouseout="this.style.borderColor='var(--border)';this.style.borderLeftColor='${accentColor}'">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="font-size:12px;padding:3px 9px;border-radius:6px;font-weight:700;background:${isNote?'var(--amber-bg)':'var(--bg2)'};color:${isNote?'var(--amber)':'var(--txt2)'}">${icon} ${typeLabel}</span>
+            ${statusBadge}
+            <span style="font-size:11px;color:var(--txt3)">${isNote?'Admin':'From'} <strong>${s.company||'unknown'}</strong> · ${date} at ${time}</span>
+          </div>
+          <div style="font-size:13px;color:var(--txt);line-height:1.65;white-space:pre-wrap;word-break:break-word">${content}</div>
+          ${locationHtml}
         </div>
-        <div style="display:flex;gap:6px;flex-shrink:0">
-          ${!isNote && s.status==='pending' ? `<button onclick="markFeedbackDone('${s.id}')" style="font-size:11px;padding:4px 9px;background:var(--green-bg);color:var(--green);border:1px solid var(--green);border-radius:6px;cursor:pointer;font-weight:600">✓ Mark done</button>` : ''}
-          <button onclick="deleteFeedbackItem('${s.id}')" style="font-size:11px;padding:4px 9px;background:#fff;color:var(--txt3);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-weight:600">🗑</button>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end">
+          ${resolveBtn}
+          ${deleteBtn}
         </div>
       </div>
-      <div style="font-size:13px;color:var(--txt);line-height:1.6">${content}</div>
     </div>`;
   }).join('');
 }

@@ -247,7 +247,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 .admin-drill-back:hover{border-color:var(--acc);color:var(--acc)}
 
 /* FEEDBACK FLOATING BUTTON */
-#feedback-fab{position:fixed;bottom:24px;left:24px;z-index:800;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:50px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:var(--shadow-acc);display:none;align-items:center;gap:7px;font-family:var(--font);transition:box-shadow .2s,transform .2s}
+#feedback-fab{position:fixed;bottom:80px;right:24px;z-index:800;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:50px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:var(--shadow-acc);display:none;align-items:center;gap:7px;font-family:var(--font);transition:box-shadow .2s,transform .2s}
 #feedback-fab:hover{box-shadow:0 10px 30px rgba(124,58,237,.45);transform:translateY(-2px)}
 
 /* CHANGELOG */
@@ -349,6 +349,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 .sm-plan-pct{font-size:11px;font-weight:700;text-align:right;font-family:var(--font-display)}
 .sm-plan-empty{color:var(--txt3);font-style:italic;font-size:11px}
 .sm-plan-spread{font-size:10px;color:var(--txt3);margin-left:4px}
+.bulk-fmt-hint{font-size:10px;color:var(--txt3);text-align:right;margin-top:2px;font-family:var(--font-display)}
+
+/* INLINE COMMENT SYSTEM */
+#comment-mode-btn{position:fixed;bottom:24px;right:80px;z-index:800;background:#1e1e2e;color:#a9b8c8;border:1.5px solid rgba(255,255,255,.15);border-radius:50px;padding:8px 15px;font-size:12px;font-weight:700;cursor:pointer;display:none;align-items:center;gap:6px;font-family:var(--font);transition:all .2s}
+#comment-mode-btn.active{background:var(--amber);color:#fff;border-color:var(--amber)}
+#comment-mode-btn:hover{transform:translateY(-2px)}
+.comment-pin{position:fixed;width:26px;height:26px;border-radius:50%;background:var(--amber);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:900;box-shadow:0 3px 10px rgba(180,83,9,.4);transform:translate(-50%,-50%);transition:transform .15s;font-family:var(--font-display)}
+.comment-pin:hover{transform:translate(-50%,-50%) scale(1.15)}
+#comment-input-bubble{position:fixed;z-index:1100;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);padding:14px;width:260px;display:none}
+#comment-input-bubble textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;font-family:var(--font);resize:none;min-height:72px;outline:none;transition:border-color .15s}
+#comment-input-bubble textarea:focus{border-color:var(--acc)}
+#comment-sidebar{position:fixed;right:0;top:0;height:100vh;width:280px;background:#fff;border-left:1px solid var(--border);z-index:700;display:none;flex-direction:column;box-shadow:-8px 0 32px rgba(0,0,0,.08)}
 
 /* EMPTY STATE */
 .empty-state{text-align:center;padding:60px 20px;color:var(--txt3)}
@@ -475,6 +487,31 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
   Feedback
 </button>
+
+<!-- ADMIN INLINE COMMENT BUTTON -->
+<button id="comment-mode-btn" onclick="toggleCommentMode()" title="Toggle comment mode — click anywhere to leave a note">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  💬 Comment
+</button>
+
+<!-- COMMENT INPUT BUBBLE -->
+<div id="comment-input-bubble">
+  <div style="font-size:11px;font-weight:700;color:var(--txt3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">Leave a comment</div>
+  <textarea id="comment-text" placeholder="What do you want to flag or suggest?"></textarea>
+  <div style="display:flex;gap:6px;margin-top:8px">
+    <button onclick="saveInlineComment()" style="flex:1;background:var(--acc);color:#fff;border:none;border-radius:7px;padding:7px;font-size:12px;font-weight:700;cursor:pointer">Post</button>
+    <button onclick="cancelInlineComment()" style="background:#fff;color:var(--txt3);border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer">✕</button>
+  </div>
+</div>
+
+<!-- COMMENT SIDEBAR -->
+<div id="comment-sidebar">
+  <div style="padding:16px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:14px;font-weight:700;color:var(--txt);font-family:var(--font-display)">💬 Comments</div>
+    <button onclick="toggleCommentSidebar(false)" style="background:none;border:none;cursor:pointer;color:var(--txt3);font-size:18px">×</button>
+  </div>
+  <div id="comment-sidebar-list" style="flex:1;overflow-y:auto;padding:12px"></div>
+</div>
 
 <!-- APP -->
 <div id="app">
@@ -648,14 +685,29 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 
   <!-- SELLERS VIEW -->
   <div class="view" id="view-sellers">
+    <!-- Back breadcrumb (shown when admin is drilled into a company) -->
+    <div id="sellers-back-row" style="display:none;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+      <button class="btn btn-ghost btn-sm" onclick="sellersClearDrill()" style="display:flex;align-items:center;gap:5px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        All Sellers
+      </button>
+      <span style="color:var(--txt3);font-size:12px">/</span>
+      <span id="sellers-back-co" style="font-size:12px;font-weight:700;color:var(--txt)"></span>
+    </div>
     <div class="table-card">
       <div class="table-header">
         <div>
           <div class="table-header-title" id="sellers-title">My Team</div>
-          <div style="font-size:11px;color:var(--txt3);margin-top:2px">Click a seller name to view their profile · Use <strong>Manage Quotas</strong> to set or edit their targets</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:2px">Click a seller name to view their profile · Use <strong>Manage Quotas</strong> to set or edit targets</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="text" placeholder="Search sellers…" id="seller-search" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;width:160px" oninput="renderSellers()">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <!-- Sales type filter -->
+          <div id="seller-type-filter" style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:#fff">
+            <button type="button" onclick="setSellerTypeFilter('all')" id="stf-all" style="padding:5px 11px;font-size:11px;font-weight:600;background:var(--acc);color:#fff;border:none;cursor:pointer">All</button>
+            <button type="button" onclick="setSellerTypeFilter('New Name')" id="stf-nn" style="padding:5px 11px;font-size:11px;font-weight:600;background:transparent;color:var(--txt2);border:none;cursor:pointer">New Name</button>
+            <button type="button" onclick="setSellerTypeFilter('Back to Base')" id="stf-bb" style="padding:5px 11px;font-size:11px;font-weight:600;background:transparent;color:var(--txt2);border:none;cursor:pointer">Back to Base</button>
+          </div>
+          <input type="text" placeholder="Search sellers…" id="seller-search" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;width:150px" oninput="renderSellers()">
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--txt2);cursor:pointer;white-space:nowrap">
             <input type="checkbox" id="seller-inactive-cb" onchange="renderSellers()"> Show inactive
           </label>
@@ -707,12 +759,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
   <!-- COMPANIES VIEW -->
   <div class="view" id="view-companies">
     <div class="sec-header">
-      <div><div class="sec-title">Company Management</div><div class="sec-sub">Built-in companies + any custom companies you add</div></div>
+      <div><div class="sec-title">Company Management</div><div class="sec-sub">Click any company to view its sellers · Use Edit to update settings</div></div>
       <button class="btn btn-primary btn-sm" onclick="openAddCompanyModal()">+ Add Company</button>
     </div>
-    <div class="table-card">
-      <table class="tbl" id="companies-table"></table>
-    </div>
+    <div id="companies-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:20px"></div>
   </div>
 
   <!-- PASSWORDS VIEW -->
@@ -1125,11 +1175,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
         </div>
         <div class="fld">
           <label id="em-quota-lbl">Quota</label>
-          <input type="number" id="em-quota" min="0" placeholder="0">
+          <input type="number" id="em-quota" min="0" placeholder="0" oninput="document.getElementById('em-quota-fmt').textContent=this.value?Number(this.value).toLocaleString():''" style="margin-bottom:2px">
+          <div id="em-quota-fmt" style="font-size:10px;color:var(--txt3);text-align:right;font-family:var(--font-display);min-height:14px"></div>
         </div>
         <div class="fld" id="em-ach-wrap">
           <label id="em-ach-lbl">Achieved</label>
-          <input type="number" id="em-ach" min="0" placeholder="0">
+          <input type="number" id="em-ach" min="0" placeholder="0" oninput="document.getElementById('em-ach-fmt').textContent=this.value?Number(this.value).toLocaleString():''" style="margin-bottom:2px">
+          <div id="em-ach-fmt" style="font-size:10px;color:var(--txt3);text-align:right;font-family:var(--font-display);min-height:14px"></div>
         </div>
       </div>
       <div class="fld-row" style="margin-top:4px">
@@ -1264,92 +1316,68 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
     <div id="aob-steps" style="padding:24px 28px 8px;min-height:340px">
       <!-- Step 1: Welcome -->
       <div id="aob-step-1">
-        <div style="font-size:32px;margin-bottom:12px">🏢</div>
-        <div style="font-size:20px;font-weight:800;color:var(--txt);font-family:var(--font-display);margin-bottom:8px">Welcome, Everfield Admin</div>
-        <div style="font-size:14px;color:var(--txt2);line-height:1.7;margin-bottom:16px">You manage a portfolio of companies. This platform gives you a live, real-time view of quota attainment across every company and seller — all in one place.</div>
+        <div style="font-size:36px;margin-bottom:10px">👋</div>
+        <div style="font-size:20px;font-weight:800;color:var(--txt);font-family:var(--font-display);margin-bottom:6px">Welcome to Everfield</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.65;margin-bottom:16px">You have a live view of every company's quota performance. Three things you can do here:</div>
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
-          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--bg);padding:10px 14px;border-radius:8px">
-            <span style="font-size:16px">📊</span>
-            <div><strong style="font-size:13px">Track quotas & actuals</strong><div style="font-size:12px;color:var(--txt2);margin-top:1px">Monthly, quarterly, and yearly views with attainment bars and percentages</div></div>
+          <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:10px 14px;border-radius:8px">
+            <span style="font-size:20px">📊</span>
+            <div style="font-size:13px;color:var(--txt)"><strong>See performance</strong> — quota vs actuals for every seller and company</div>
           </div>
-          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--bg);padding:10px 14px;border-radius:8px">
-            <span style="font-size:16px">🏢</span>
-            <div><strong style="font-size:13px">Company-first view</strong><div style="font-size:12px;color:var(--txt2);margin-top:1px">See all portfolio companies at a glance, then drill into any team</div></div>
+          <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:10px 14px;border-radius:8px">
+            <span style="font-size:20px">🏢</span>
+            <div style="font-size:13px;color:var(--txt)"><strong>Manage companies</strong> — add sellers, set quotas, update passwords</div>
           </div>
-          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--bg);padding:10px 14px;border-radius:8px">
-            <span style="font-size:16px">📁</span>
-            <div><strong style="font-size:13px">Review submissions</strong><div style="font-size:12px;color:var(--txt2);margin-top:1px">Companies submit their quota documents for you to approve and migrate</div></div>
+          <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:10px 14px;border-radius:8px">
+            <span style="font-size:20px">💬</span>
+            <div style="font-size:13px;color:var(--txt)"><strong>Leave comments</strong> — flag issues on any page instantly with the comment tool</div>
           </div>
         </div>
       </div>
       <!-- Step 2: Dashboard -->
       <div id="aob-step-2" style="display:none">
-        <div style="font-size:32px;margin-bottom:12px">🗂️</div>
-        <div style="font-size:20px;font-weight:800;color:var(--txt);font-family:var(--font-display);margin-bottom:8px">Your Portfolio Dashboard</div>
-        <div style="font-size:14px;color:var(--txt2);line-height:1.7;margin-bottom:16px">The Dashboard shows all portfolio companies as cards — each with attainment, seller count, and quota. Filter by region to focus on a segment.</div>
-        <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:12px">
-          <div style="font-size:12px;font-weight:700;color:var(--txt);margin-bottom:10px">How to navigate:</div>
-          <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--txt2)">
-            <div>🎯 <strong>Click any company card</strong> → see that company's sellers and performance</div>
-            <div>🗂️ <strong>Region tabs</strong> → filter cards to CEE, DACH, UK&amp;I, France, etc.</div>
-            <div>‹ March 2026 › <strong>Period stepper</strong> → navigate periods instantly</div>
-            <div>📈 <strong>Sellers view</strong> → see every seller across all companies in a flat list</div>
-          </div>
+        <div style="font-size:36px;margin-bottom:10px">📊</div>
+        <div style="font-size:20px;font-weight:800;color:var(--txt);font-family:var(--font-display);margin-bottom:6px">The Dashboard</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.65;margin-bottom:14px">Your homepage. Every company shown as a card with live attainment data.</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px">
+          <div style="font-size:12px;color:var(--txt2);background:var(--bg);padding:9px 12px;border-radius:8px">🎯 <strong>Click a company card</strong> → drill into its sellers</div>
+          <div style="font-size:12px;color:var(--txt2);background:var(--bg);padding:9px 12px;border-radius:8px">🗂️ <strong>Region tabs</strong> → focus on CEE, DACH, UK&amp;I, France, etc.</div>
+          <div style="font-size:12px;color:var(--txt2);background:var(--bg);padding:9px 12px;border-radius:8px">‹ › <strong>Period stepper</strong> → switch between months, quarters, or years</div>
         </div>
-        <button class="ob-expand-btn" onclick="aobToggleExpand('aob-ex-2')">💡 What do the attainment colours mean?</button>
+        <button class="ob-expand-btn" onclick="aobToggleExpand('aob-ex-2')">What do the colours mean?</button>
         <div id="aob-ex-2" class="ob-expand-content">
-          <strong>🟢 Green (≥95%)</strong> — on or above target<br>
-          <strong>🟡 Amber (80–94%)</strong> — close to target, watch closely<br>
-          <strong>🟠 Orange (60–79%)</strong> — below target, intervention may be needed<br>
-          <strong>🔴 Red (&lt;60%)</strong> — significantly behind, requires attention
+          🟢 <strong>Green ≥95%</strong> — on target &nbsp; 🟡 <strong>Amber 80–94%</strong> — close &nbsp; 🟠 <strong>Orange 60–79%</strong> — below &nbsp; 🔴 <strong>Red &lt;60%</strong> — needs attention
         </div>
       </div>
       <!-- Step 3: Seller performance -->
       <div id="aob-step-3" style="display:none">
-        <div style="font-size:32px;margin-bottom:12px">👤</div>
-        <div style="font-size:20px;font-weight:800;color:var(--txt);font-family:var(--font-display);margin-bottom:8px">Tracking Seller Performance</div>
-        <div style="font-size:14px;color:var(--txt2);line-height:1.7;margin-bottom:16px">Click any seller name to open their Quota Plan — a complete view of their targets and actuals across every period.</div>
-        <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:12px">
-          <div style="font-size:12px;font-weight:700;color:var(--txt);margin-bottom:10px">Key actions:</div>
-          <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--txt2)">
-            <div>📅 <strong>Toggle Monthly / Quarterly / Yearly</strong> inside any seller profile</div>
-            <div>📊 <strong>"Set Quotas"</strong> → opens the bulk editor to set or update targets for all periods at once</div>
-            <div>✏️ <strong>Edit individual entries</strong> → adjust quota, actuals, or seller status</div>
-            <div>↗ <strong>est. label</strong> → value is spread from a parent period, not directly entered</div>
-          </div>
+        <div style="font-size:36px;margin-bottom:10px">👤</div>
+        <div style="font-size:20px;font-weight:800;color:var(--txt);font-family:var(--font-display);margin-bottom:6px">Sellers &amp; Quotas</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.65;margin-bottom:14px">Click any seller name to see their full quota history and performance.</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px">
+          <div style="font-size:12px;color:var(--txt2);background:var(--bg);padding:9px 12px;border-radius:8px">👆 <strong>Click a seller name</strong> → view their quota plan (all periods at a glance)</div>
+          <div style="font-size:12px;color:var(--txt2);background:var(--bg);padding:9px 12px;border-radius:8px">✏️ <strong>Manage Quotas</strong> → set or edit targets for every period in one screen</div>
+          <div style="font-size:12px;color:var(--txt2);background:var(--bg);padding:9px 12px;border-radius:8px">🏷️ <strong>Filter by type</strong> → use "New Name" / "Back to Base" tabs to focus on a segment</div>
         </div>
-        <button class="ob-expand-btn" onclick="aobToggleExpand('aob-ex-3')">💡 How does period spreading work?</button>
+        <button class="ob-expand-btn" onclick="aobToggleExpand('aob-ex-3')">What is ↗ est.?</button>
         <div id="aob-ex-3" class="ob-expand-content">
-          If a seller only has a <strong>Quarterly quota</strong>, the Monthly view will show ÷3 estimates (marked ↗ est.). These are proportional estimates — not exact values.<br><br>
-          If the seller has individual monthly entries, those are shown directly with no estimation.
+          When a seller has a <strong>quarterly</strong> quota but you're viewing <strong>monthly</strong>, the platform estimates monthly values (÷3). These show as "↗ est." and are not directly entered data.
         </div>
       </div>
       <!-- Step 4: Managing data -->
       <div id="aob-step-4" style="display:none">
-        <div style="font-size:32px;margin-bottom:12px">⚙️</div>
-        <div style="font-size:20px;font-weight:800;color:var(--txt);font-family:var(--font-display);margin-bottom:8px">Managing Data &amp; Settings</div>
-        <div style="font-size:14px;color:var(--txt2);line-height:1.7;margin-bottom:16px">As an admin, you have full control over all company data, access, and settings.</div>
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
-          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--bg);padding:10px 14px;border-radius:8px">
-            <span style="font-size:15px">📁</span>
-            <div><strong style="font-size:13px">Submissions</strong><div style="font-size:12px;color:var(--txt2)">Review documents and files submitted by companies for data migration</div></div>
-          </div>
-          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--bg);padding:10px 14px;border-radius:8px">
-            <span style="font-size:15px">🔗</span>
-            <div><strong style="font-size:13px">CRM Settings</strong><div style="font-size:12px;color:var(--txt2)">Connect company CRMs to auto-populate actuals for each seller</div></div>
-          </div>
-          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--bg);padding:10px 14px;border-radius:8px">
-            <span style="font-size:15px">🔑</span>
-            <div><strong style="font-size:13px">Passwords &amp; Access</strong><div style="font-size:12px;color:var(--txt2)">Manage company login credentials and monitor the access log</div></div>
-          </div>
-          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--bg);padding:10px 14px;border-radius:8px">
-            <span style="font-size:15px">📥</span>
-            <div><strong style="font-size:13px">Export</strong><div style="font-size:12px;color:var(--txt2)">Download all quota and actuals data as CSV for reporting</div></div>
-          </div>
+        <div style="font-size:36px;margin-bottom:10px">⚙️</div>
+        <div style="font-size:20px;font-weight:800;color:var(--txt);font-family:var(--font-display);margin-bottom:6px">Admin Tools</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.65;margin-bottom:14px">Everything you need to manage the portfolio is in the sidebar:</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+          <div style="font-size:12px;color:var(--txt2);background:var(--bg);padding:9px 12px;border-radius:8px">📁 <strong>Doc Submissions</strong> — companies upload their quota docs here for you to review</div>
+          <div style="font-size:12px;color:var(--txt2);background:var(--bg);padding:9px 12px;border-radius:8px">🔑 <strong>Companies</strong> — manage company details, passwords, and regions in one place</div>
+          <div style="font-size:12px;color:var(--txt2);background:var(--bg);padding:9px 12px;border-radius:8px">🔗 <strong>CRM Settings</strong> — link company CRMs to pull actuals automatically</div>
+          <div style="font-size:12px;color:var(--txt2);background:var(--bg);padding:9px 12px;border-radius:8px">📥 <strong>Export</strong> — download all data as CSV at any time</div>
         </div>
-        <button class="ob-expand-btn" onclick="aobToggleExpand('aob-ex-4')">💡 Where do I replay this tour?</button>
+        <button class="ob-expand-btn" onclick="aobToggleExpand('aob-ex-4')">How do I replay this tour?</button>
         <div id="aob-ex-4" class="ob-expand-content">
-          You can replay this tour at any time from the <strong>What's New</strong> page (sidebar), or by clicking your avatar at the bottom of the sidebar.
+          Go to <strong>What's New</strong> in the sidebar → click "Replay Tour".
         </div>
       </div>
     </div>
@@ -2341,6 +2369,7 @@ async function loginAs(co){
   // Show feedback FAB for all users
   const fab = document.getElementById('feedback-fab');
   if(fab) fab.style.display = 'flex';
+  if(isAdmin()) initCommentSystem();
 }
 
 function doLogout(){
@@ -2844,6 +2873,22 @@ function renderChart(data){
 /* ═══════════════════════════════════════
    SELLERS VIEW  (seller-centric — one row per unique seller)
 ═══════════════════════════════════════ */
+function setSellerTypeFilter(f){
+  sellerTypeFilter = f;
+  const styles = {all:'stf-all', 'New Name':'stf-nn', 'Back to Base':'stf-bb'};
+  ['stf-all','stf-nn','stf-bb'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){ el.style.background = (styles[f]===id) ? 'var(--acc)' : 'transparent'; el.style.color = (styles[f]===id) ? '#fff' : 'var(--txt2)'; }
+  });
+  renderSellers();
+}
+
+function sellersClearDrill(){
+  drillCompany = null;
+  document.getElementById('sellers-back-row').style.display = 'none';
+  renderSellers();
+}
+
 function renderSellers(){
   const q=(document.getElementById('seller-search')?.value||'').toLowerCase();
   const showInactive=document.getElementById('seller-inactive-cb')?.checked;
@@ -2853,6 +2898,17 @@ function renderSellers(){
 
   const title = drillCompany ? `${drillCompany} — Sellers` : (isAdmin() ? 'All Sellers' : 'My Team');
   document.getElementById('sellers-title').textContent=title;
+  // Back breadcrumb
+  const backRow = document.getElementById('sellers-back-row');
+  if(backRow){
+    if(drillCompany && isAdmin()){
+      backRow.style.display='flex';
+      const backCo = document.getElementById('sellers-back-co');
+      if(backCo) backCo.textContent = drillCompany;
+    } else {
+      backRow.style.display='none';
+    }
+  }
 
   // Group by (company + seller_name) → one row per unique seller
   const sellerMap={};
@@ -2884,6 +2940,8 @@ function renderSellers(){
     s.company.toLowerCase().includes(q)||
     (s.role||'').toLowerCase().includes(q)
   );
+  // Sales type filter
+  if(sellerTypeFilter !== 'all') sellers=sellers.filter(s=>s.quota_type===sellerTypeFilter);
   sellers.sort((a,b)=>a.company.localeCompare(b.company)||a.seller_name.localeCompare(b.seller_name));
 
   const coHead=isAdmin()?'<th>Company</th>':'';
@@ -3144,10 +3202,14 @@ function periodToSortKey(p){
 function openSellerProfile(sellerName, company){
   sellerModalName = sellerName;
   sellerModalCompany = company;
-  smPType = 'Monthly';
   smYear  = parseInt(pYear) || new Date().getFullYear();
+  // Auto-detect best period type from seller's actual entries
+  const sellerRaw = allEntries.filter(e=>e.seller_name===sellerName && e.company===company);
+  const typeCounts = {Monthly:0, Quarterly:0, Yearly:0};
+  sellerRaw.forEach(e=>{ const t=e.period.split('|')[0]; if(typeCounts[t]!==undefined) typeCounts[t]++; });
+  smPType = Object.keys(typeCounts).reduce((a,b)=>typeCounts[a]>=typeCounts[b]?a:b, 'Monthly');
   // reset segment button styles
-  document.querySelectorAll('.sm-seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.pt==='Monthly'));
+  document.querySelectorAll('.sm-seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.pt===smPType));
   document.getElementById('sm-year-display').textContent = smYear;
   // Show/hide Set Quotas button (company users or admin)
   const sqBtn = document.getElementById('sm-set-quotas-btn');
@@ -3346,32 +3408,70 @@ async function deleteFromProfile(id){
    COMPANIES VIEW
 ═══════════════════════════════════════ */
 function renderCompanies(){
-  const rows=allCompanies().map(c=>{
-    const isCustom=!!c.custom;
-    const pw=getPw(c.name);
-    const deleteBtn=isCustom?`<button class="btn btn-danger btn-sm" onclick="deleteCompany('${c.name}')">Remove</button>`:'<span class="badge badge-gray">Built-in</span>';
-    return `<tr>
-      <td>
-        <div style="font-weight:700">${c.name}</div>
-        <div style="font-size:11px;color:var(--txt3)">Password: <span class="mono" style="font-size:11px">${pw}</span></div>
-      </td>
-      <td><span class="badge badge-gray">${c.region}</span></td>
-      <td style="font-size:12px;color:var(--txt2)">${c.sub||'—'}</td>
-      <td><span class="badge badge-blue">${c.currency||'EUR'}</span></td>
-      <td>
-        <div class="row-actions">
-          <button class="btn btn-ghost btn-sm" onclick="openEditCompanyModal('${c.name.replace(/'/g,"\\'")}')">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Edit
-          </button>
-          ${deleteBtn}
+  const period = periodStr();
+  const cards = allCompanies().map(c=>{
+    const isCustom = !!c.custom;
+    const pw = getPw(c.name);
+    const cEntries = entries.filter(e=>e.company===c.name);
+    const allCo = allEntries.filter(e=>e.company===c.name);
+    const q = cEntries.reduce((s,r)=>s+Number(r.quota),0);
+    const a = cEntries.reduce((s,r)=>s+Number(r.achieved),0);
+    const p = attPct(a,q);
+    const sellerCount = [...new Set(allCo.map(e=>e.seller_name))].length;
+    const hasData = cEntries.length > 0;
+    const attClr = hasData ? attColor(p) : 'var(--txt3)';
+    const crm = hasCRM(c.name);
+    const lastLogin = loginLogs.find(l=>l.company===c.name);
+    const lastLoginStr = lastLogin ? new Date(lastLogin.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : 'Never';
+    const safeName = c.name.replace(/'/g,"\\'");
+    return `<div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);transition:box-shadow .2s,border-color .2s" onmouseover="this.style.borderColor='var(--acc)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow)'">
+      <!-- Card header — clickable to view sellers -->
+      <div style="padding:14px 16px 10px;cursor:pointer" onclick="companiesViewSellers('${safeName}')">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+          <div>
+            <div style="font-size:14px;font-weight:800;color:var(--txt);font-family:var(--font-display)">${c.name}</div>
+            <div style="font-size:11px;color:var(--txt3);margin-top:2px">${c.region} › ${c.sub||'—'}</div>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center">
+            ${crm?`<span class="badge badge-crm" style="font-size:10px">🔗 CRM</span>`:''}
+            ${!isCustom?`<span class="badge badge-gray" style="font-size:10px">Built-in</span>`:``}
+          </div>
         </div>
-      </td>
-    </tr>`;
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div style="text-align:center;padding:8px;background:var(--bg);border-radius:8px">
+            <div style="font-size:16px;font-weight:800;color:${attClr};font-family:var(--font-display)">${hasData?p+'%':'—'}</div>
+            <div style="font-size:10px;color:var(--txt3)">Attainment</div>
+          </div>
+          <div style="text-align:center;padding:8px;background:var(--bg);border-radius:8px">
+            <div style="font-size:16px;font-weight:800;color:var(--txt);font-family:var(--font-display)">${sellerCount||'—'}</div>
+            <div style="font-size:10px;color:var(--txt3)">Sellers</div>
+          </div>
+          <div style="text-align:center;padding:8px;background:var(--bg);border-radius:8px">
+            <div style="font-size:13px;font-weight:800;color:var(--txt);font-family:var(--font-display)">${hasData?fmtCurr(q,c.currency||'EUR'):'—'}</div>
+            <div style="font-size:10px;color:var(--txt3)">Quota</div>
+          </div>
+        </div>
+      </div>
+      <!-- Footer — management actions -->
+      <div style="padding:8px 12px;background:#fafafa;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:10px;color:var(--txt3)">
+          <span class="mono" style="font-size:10px">${pw}</span>
+          <span style="margin:0 4px">·</span>Last login: ${lastLoginStr}
+        </div>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:4px 8px" onclick="openEditCompanyModal('${safeName}')">Edit</button>
+          ${isCustom?`<button class="btn btn-danger btn-sm" style="font-size:11px;padding:4px 8px" onclick="deleteCompany('${safeName}')">Remove</button>`:''}
+        </div>
+      </div>
+    </div>`;
   }).join('');
-  document.getElementById('companies-table').innerHTML=`
-    <thead><tr><th>Company</th><th>Region</th><th>Sub-region</th><th>Currency</th><th></th></tr></thead>
-    <tbody>${rows}</tbody>`;
+  const grid = document.getElementById('companies-cards-grid');
+  if(grid) grid.innerHTML = cards || '<div style="color:var(--txt3);padding:20px">No companies found.</div>';
+}
+
+function companiesViewSellers(coName){
+  drillCompany = coName;
+  showView('sellers', document.querySelector('[data-view=sellers]'));
 }
 
 function openAddCompanyModal(){
@@ -3725,6 +3825,7 @@ function updateEmCurrencyLabels(co){
 let bulkSellerName = null;
 let bulkSellerCompany = null;
 let bulkPType = 'Monthly';
+let sellerTypeFilter = 'all'; // 'all' | 'New Name' | 'Back to Base'
 let qfMode = 'same'; // 'same' | 'spread'
 
 // New seller wizard context — carried into saveBulkEntries
@@ -3898,8 +3999,9 @@ function renderBulkTable(){
     const achCol = autopull
       ? `<td style="text-align:center"><span class="badge badge-crm" style="font-size:10px">🔗 CRM</span></td>`
       : `<td><input type="number" class="bulk-ach-inp" data-period="${p.key}" min="0" placeholder="0" value="${achieved}"
-           oninput="updateBulkSummary()"
-           style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right"></td>`;
+           oninput="updateBulkSummary();this.nextElementSibling&&(this.nextElementSibling.textContent=this.value?Number(this.value).toLocaleString()+' '+sym:'')"
+           style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right">
+         <div class="bulk-fmt-hint">${achieved?Number(achieved).toLocaleString()+' '+sym:''}</div></td>`;
     return `<tr style="${rowBg}">
       <td style="font-weight:600;white-space:nowrap;font-size:12px;color:var(--txt)">
         ${saved?`<span style="color:var(--green);font-size:10px">●</span>`:`<span style="color:var(--border);font-size:10px">○</span>`}
@@ -3907,8 +4009,9 @@ function renderBulkTable(){
       </td>
       <td style="width:140px">
         <input type="number" class="bulk-quota-inp" data-period="${p.key}" min="0" placeholder="—" value="${quota}"
-          oninput="updateBulkSummary()"
+          oninput="updateBulkSummary();this.nextElementSibling&&(this.nextElementSibling.textContent=this.value?Number(this.value).toLocaleString()+' '+sym:'')"
           style="width:100%;padding:5px 8px;border:1.5px solid ${saved?'var(--green)':'var(--border)'};border-radius:6px;font-size:12px;text-align:right;font-weight:${saved?'700':'400'}">
+        <div class="bulk-fmt-hint">${quota?Number(quota).toLocaleString()+' '+sym:''}</div>
       </td>
       ${achCol}
       <td style="text-align:center;white-space:nowrap">${statusBadge}</td>
@@ -4207,12 +4310,17 @@ function renderAdminDashboard(){
   const totalQ = entries.reduce((s,r)=>s+Number(r.quota),0);
   const totalA = entries.reduce((s,r)=>s+Number(r.achieved),0);
   const att = attPct(totalA,totalQ);
+  // Calculate extra stats
+  const cosWithData = allCos.filter(c=>entries.some(e=>e.company===c.name)).length;
+  const quotaCompletion = allCos.length ? Math.round(cosWithData/allCos.length*100) : 0;
   const totalSellers = [...new Set(allEntries.map(e=>e.seller_name))].length;
+  const newNameCount = [...new Set(allEntries.filter(e=>e.quota_type==='New Name').map(e=>e.seller_name))].length;
+  const b2bCount = [...new Set(allEntries.filter(e=>e.quota_type==='Back to Base').map(e=>e.seller_name))].length;
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-card card-purple" style="--accent-color:var(--acc);--icon-bg:var(--acc-light)">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
-      <div class="stat-val">${allCos.length}</div><div class="stat-lbl">Portfolio Companies</div>
-      <div class="stat-delta" style="color:var(--txt3)">${totalSellers} total sellers</div>
+      <div class="stat-val">${allCos.length}</div><div class="stat-lbl">Companies</div>
+      <div class="stat-delta" style="color:var(--txt3)">${totalSellers} sellers registered</div>
     </div>
     <div class="stat-card card-blue">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
@@ -4221,13 +4329,14 @@ function renderAdminDashboard(){
     </div>
     <div class="stat-card card-green">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="stat-val">${fmtCurr(totalA,'EUR')}</div><div class="stat-lbl">Portfolio Achieved</div>
+      <div class="stat-val">${fmtCurr(totalA,'EUR')}</div><div class="stat-lbl">Achieved</div>
       <div class="stat-delta" style="color:${attColor(att)}">${att}% of target</div>
     </div>
-    <div class="stat-card" style="--accent-color:${attColor(att)}">
-      <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="${attColor(att)}" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-      <div class="stat-val" style="color:${attColor(att)}">${att}%</div><div class="stat-lbl">Portfolio Attainment</div>
-      <div class="stat-delta att-bar"><div class="att-fill" style="width:${Math.min(att,100)}%;background:${attColor(att)}"></div></div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#f0fdf4"><svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg></div>
+      <div class="stat-val" style="color:${quotaCompletion>=80?'var(--green)':quotaCompletion>=50?'var(--amber)':'var(--red)'}">${quotaCompletion}%</div>
+      <div class="stat-lbl">Data Submitted</div>
+      <div class="stat-delta" style="color:var(--txt3)">${cosWithData}/${allCos.length} companies · ${newNameCount} NN / ${b2bCount} B2B sellers</div>
     </div>`;
 
   // Region filter tabs
@@ -4382,7 +4491,7 @@ const CHANGELOG = [
   },
   {
     version: 'v1.3',
-    date: 'February 2026',
+    date: 'March 2026',
     title: 'Bulk Quota Editor, Quick Fill & Visual Redesign',
     items: [
       {tag:'feat', text:'Bulk quota editor — set all periods for a seller in one screen with Quick Fill (same / spread from total)'},
@@ -4393,7 +4502,7 @@ const CHANGELOG = [
   },
   {
     version: 'v1.2',
-    date: 'February 2026',
+    date: 'March 2026',
     title: 'Onboarding, Doc Submissions & Bi-directional Spreading',
     items: [
       {tag:'feat', text:'Company user onboarding — 4-step walkthrough shown on first login'},
@@ -4417,6 +4526,144 @@ const CHANGELOG = [
 ];
 
 const tagLabels = {feat:'Feature',fix:'Fix',ux:'UX',data:'Data'};
+
+/* ═══════════════════════════════════════
+   INLINE COMMENT / ANNOTATION SYSTEM
+═══════════════════════════════════════ */
+let commentMode = false;
+let pendingCommentX = 0;
+let pendingCommentY = 0;
+let inlineComments = [];
+let commentCount = 0;
+
+function initCommentSystem(){
+  if(!isAdmin()) return;
+  const btn = document.getElementById('comment-mode-btn');
+  if(btn) btn.style.display = 'flex';
+  document.addEventListener('click', onPageClick, true);
+  loadInlineComments();
+}
+
+function onPageClick(e){
+  if(!commentMode) return;
+  // Ignore clicks on the comment UI itself
+  if(e.target.closest('#comment-input-bubble') || e.target.closest('#comment-mode-btn') || e.target.closest('#comment-sidebar') || e.target.closest('.comment-pin')) return;
+  e.stopPropagation();
+  e.preventDefault();
+  pendingCommentX = e.clientX;
+  pendingCommentY = e.clientY;
+  const bubble = document.getElementById('comment-input-bubble');
+  const ta = document.getElementById('comment-text');
+  if(!bubble) return;
+  ta.value = '';
+  // Position bubble near click
+  let left = e.clientX + 12;
+  let top = e.clientY - 20;
+  if(left + 270 > window.innerWidth) left = e.clientX - 282;
+  if(top + 160 > window.innerHeight) top = e.clientY - 160;
+  bubble.style.left = left + 'px';
+  bubble.style.top = top + 'px';
+  bubble.style.display = 'block';
+  setTimeout(()=>ta.focus(), 50);
+}
+
+async function saveInlineComment(){
+  const text = document.getElementById('comment-text').value.trim();
+  if(!text) return;
+  const xPct = Math.round(pendingCommentX / window.innerWidth * 1000) / 10;
+  const yPct = Math.round(pendingCommentY / window.innerHeight * 1000) / 10;
+  const payload = {
+    company: 'admin',
+    seller_name: currentUser || 'admin',
+    file_ref: JSON.stringify({x:xPct, y:yPct, view:currentView}),
+    notes: text,
+    submission_type: 'page_comment'
+  };
+  await db.from('quota_submissions').insert([payload]);
+  document.getElementById('comment-input-bubble').style.display = 'none';
+  cancelInlineComment();
+  await loadInlineComments();
+  toast('Comment saved','success');
+}
+
+function cancelInlineComment(){
+  document.getElementById('comment-input-bubble').style.display = 'none';
+}
+
+async function loadInlineComments(){
+  if(!dbTables.company_logins) return; // DB not set up yet
+  const {data} = await db.from('quota_submissions').select('*').eq('submission_type','page_comment').order('created_at',{ascending:true});
+  inlineComments = data || [];
+  renderCommentPins();
+  renderCommentSidebar();
+}
+
+function renderCommentPins(){
+  // Remove existing pins
+  document.querySelectorAll('.comment-pin').forEach(p=>p.remove());
+  inlineComments.forEach((c,i)=>{
+    let pos = {x:50,y:50,view:'all'};
+    try{ pos = JSON.parse(c.file_ref||'{}'); }catch(e){}
+    if(pos.view && pos.view !== 'all' && pos.view !== currentView) return;
+    const pin = document.createElement('div');
+    pin.className = 'comment-pin';
+    pin.textContent = i+1;
+    pin.title = c.notes;
+    pin.style.left = pos.x + 'vw';
+    pin.style.top = pos.y + 'vh';
+    pin.onclick = (e)=>{ e.stopPropagation(); toggleCommentSidebar(true, i); };
+    document.body.appendChild(pin);
+  });
+}
+
+function toggleCommentMode(){
+  commentMode = !commentMode;
+  const btn = document.getElementById('comment-mode-btn');
+  if(btn) btn.classList.toggle('active', commentMode);
+  document.body.style.cursor = commentMode ? 'crosshair' : '';
+  if(commentMode) toast('Comment mode ON — click anywhere to leave a note','info');
+  else { cancelInlineComment(); document.body.style.cursor=''; }
+}
+
+function toggleCommentSidebar(show, scrollTo){
+  const sb = document.getElementById('comment-sidebar');
+  if(!sb) return;
+  sb.style.display = show ? 'flex' : 'none';
+  if(show && scrollTo !== undefined){
+    setTimeout(()=>{
+      const el = sb.querySelector(`[data-ci="${scrollTo}"]`);
+      if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+    }, 100);
+  }
+}
+
+function renderCommentSidebar(){
+  const list = document.getElementById('comment-sidebar-list');
+  if(!list) return;
+  if(!inlineComments.length){
+    list.innerHTML = '<div style="text-align:center;padding:30px 16px;color:var(--txt3);font-size:13px">No comments yet.<br>Enable comment mode and click anywhere on the page to leave a note.</div>';
+    return;
+  }
+  list.innerHTML = inlineComments.map((c,i)=>{
+    let pos = {view:'all'}; try{ pos=JSON.parse(c.file_ref||'{}'); }catch(e){}
+    const date = new Date(c.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `<div data-ci="${i}" style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:8px;border:1.5px solid var(--border)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--amber);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
+          <div style="font-size:10px;color:var(--txt3)">${pos.view||''} · ${date}</div>
+        </div>
+        <button onclick="deleteInlineComment('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--txt3);font-size:14px;padding:0;line-height:1">🗑</button>
+      </div>
+      <div style="font-size:13px;color:var(--txt);line-height:1.5">${c.notes}</div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteInlineComment(id){
+  await db.from('quota_submissions').delete().eq('id',id);
+  await loadInlineComments();
+}
 
 function replayTour(){
   if(isAdmin()){

@@ -4786,8 +4786,8 @@ function initCommentSystem(){
 
 function onPageClick(e){
   if(!commentMode) return;
-  // Ignore clicks on the comment UI itself
-  if(e.target.closest('#comment-input-bubble') || e.target.closest('#comment-mode-btn') || e.target.closest('#comment-sidebar') || e.target.closest('.comment-pin')) return;
+  // Ignore clicks on the comment UI, toggle buttons (header + sidebar), banner, and pins
+  if(e.target.closest('#comment-input-bubble') || e.target.closest('#header-note-btn') || e.target.closest('#sb-note-btn') || e.target.closest('#sb-note-btn-wrap') || e.target.closest('#comment-mode-banner') || e.target.closest('.comment-pin')) return;
   e.stopPropagation();
   e.preventDefault();
   pendingCommentX = e.clientX;

@@ -4576,52 +4576,102 @@ async function loadFeedbackInbox(){
     const time = new Date(s.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     const icon = tagIcon[s.submission_type] || '💬';
     const typeLabel = isNote ? 'Inline Note' : s.submission_type;
-
-    // Human-readable position for inline notes
-    let locationHtml = '';
-    if(isNote && pos.view){
-      const viewLabels = {
-        dashboard:'Dashboard', sellers:'Sellers', portfolio:'Portfolio', feedback:'Feedback',
-        companies:'Companies', passwords:'Passwords', export:'Export', submissions:'Submissions',
-        changelog:'What\'s New', 'access-log':'Access Log', 'crm-settings':'CRM Settings',
-        'submit-docs':'Submit Docs', 'getting-started':'Getting Started'
-      };
-      const viewName = viewLabels[pos.view] || pos.view;
-      const xPct = parseFloat(pos.x)||50;
-      const yPct = parseFloat(pos.y)||50;
-      const hPos = xPct < 33 ? 'left' : xPct < 66 ? 'centre' : 'right';
-      const vPos = yPct < 33 ? 'top' : yPct < 66 ? 'middle' : 'bottom';
-      locationHtml = `<div style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:4px 10px;background:var(--amber-bg);border-radius:6px;font-size:11px;color:var(--amber);font-weight:600">
-        📍 Left on <strong style="margin:0 3px">${viewName}</strong> page · ${vPos}-${hPos} area
-      </div>`;
-    }
-
-    const statusBadge = !isNote
-      ? `<span style="padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700;background:${s.status==='approved'?'var(--green-bg)':s.status==='rejected'?'var(--red-bg)':'var(--amber-bg)'};color:${s.status==='approved'?'var(--green)':s.status==='rejected'?'var(--red)':'var(--amber)'}">${s.status||'pending'}</span>`
-      : '';
-
     const accentColor = isNote ? 'var(--amber)' : (tagColor[s.submission_type]||'var(--acc)');
     const content = s.notes || s.description || '—';
 
-    // Action buttons — larger and clearer
-    const resolveBtn = (isNote || s.status !== 'pending') ? '' :
-      `<button onclick="markFeedbackDone('${s.id}')" style="display:flex;align-items:center;gap:5px;padding:7px 14px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font);transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+    // Action buttons
+    const resolveBtn = s.status !== 'pending' ? '' :
+      `<button onclick="markFeedbackDone('${s.id}')" style="display:flex;align-items:center;gap:5px;padding:7px 14px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font)" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Resolve
       </button>`;
     const deleteBtn = `<button onclick="deleteFeedbackItem('${s.id}')" style="display:flex;align-items:center;gap:5px;padding:7px 14px;background:var(--red-bg);color:var(--red);border:1.5px solid var(--red);border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font);transition:all .15s" onmouseover="this.style.background='var(--red)';this.style.color='#fff'" onmouseout="this.style.background='var(--red-bg)';this.style.color='var(--red)'">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete
     </button>`;
 
-    return `<div style="background:#fff;border:1.5px solid var(--border);border-left:3px solid ${accentColor};border-radius:12px;padding:16px 18px;margin-bottom:10px;transition:border-color .15s;border-left-width:4px" onmouseover="this.style.borderColor='${accentColor}';this.style.borderLeftColor='${accentColor}'" onmouseout="this.style.borderColor='var(--border)';this.style.borderLeftColor='${accentColor}'">
+    if(isNote){
+      // ── INLINE NOTE CARD — visual mini-map + note content ────────────────
+      const viewLabels = {
+        dashboard:'Dashboard', sellers:'Sellers', portfolio:'Portfolio', feedback:'Feedback',
+        companies:'Companies', passwords:'Passwords', export:'Export', submissions:'Submissions',
+        changelog:"What's New", 'access-log':'Access Log', 'crm-settings':'CRM Settings',
+        'submit-docs':'Submit Docs', 'getting-started':'Getting Started'
+      };
+      const viewName = viewLabels[pos.view] || pos.view || 'Unknown page';
+      const xPct = parseFloat(pos.x)||50;
+      const yPct = parseFloat(pos.y)||50;
+      const hPos = xPct < 33 ? 'left side' : xPct < 66 ? 'centre' : 'right side';
+      const vPos = yPct < 33 ? 'top' : yPct < 66 ? 'middle' : 'bottom';
+      // SVG mini-map: 180×110 viewBox, sidebar=28px, header=13px
+      const pinX = Math.round(xPct / 100 * 180);
+      const pinY = Math.round(yPct / 100 * 110);
+      const statusBadge = `<span style="padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;background:${s.status==='approved'?'var(--green-bg)':'var(--amber-bg)'};color:${s.status==='approved'?'var(--green)':'var(--amber)'}">${s.status||'pending'}</span>`;
+      const jumpBtn = pos.view && pos.view !== 'feedback'
+        ? `<button onclick="jumpToNoteView('${pos.view}','${s.id}')" style="width:100%;margin-top:6px;padding:5px 8px;background:var(--amber);color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--font)">View on page →</button>`
+        : '';
+      return `<div style="background:#fff;border:1.5px solid var(--border);border-left:4px solid var(--amber);border-radius:12px;padding:16px 18px;margin-bottom:10px">
+        <!-- Header row -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="font-size:12px;padding:3px 9px;border-radius:6px;font-weight:700;background:var(--amber-bg);color:var(--amber)">📌 Inline Note</span>
+          ${statusBadge}
+          <span style="font-size:11px;color:var(--txt3)">By admin · ${date} at ${time}</span>
+          <div style="margin-left:auto;display:flex;gap:6px">${resolveBtn}${deleteBtn}</div>
+        </div>
+        <!-- Map + content -->
+        <div style="display:flex;gap:16px;align-items:flex-start">
+          <!-- Mini page map -->
+          <div style="flex-shrink:0;text-align:center">
+            <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Click location</div>
+            <svg viewBox="0 0 180 110" width="180" height="110" style="border-radius:8px;border:1.5px solid var(--border);display:block">
+              <rect width="180" height="110" fill="#f5f4f7"/>
+              <!-- Sidebar -->
+              <rect width="28" height="110" fill="#0c0a14"/>
+              <rect x="4" y="16" width="20" height="3" rx="1.5" fill="rgba(255,255,255,.15)"/>
+              <rect x="4" y="24" width="20" height="3" rx="1.5" fill="rgba(255,255,255,.15)"/>
+              <rect x="4" y="32" width="20" height="3" rx="1.5" fill="rgba(255,255,255,.15)"/>
+              <rect x="4" y="40" width="20" height="3" rx="1.5" fill="rgba(255,255,255,.15)"/>
+              <rect x="4" y="48" width="20" height="3" rx="1.5" fill="rgba(255,255,255,.15)"/>
+              <!-- Header bar -->
+              <rect x="28" y="0" width="152" height="13" fill="#ffffff"/>
+              <line x1="28" y1="13" x2="180" y2="13" stroke="#e4e2ea" stroke-width="0.5"/>
+              <!-- Content area cards -->
+              <rect x="34" y="19" width="36" height="22" rx="3" fill="#ffffff" stroke="#e4e2ea" stroke-width="0.5"/>
+              <rect x="75" y="19" width="36" height="22" rx="3" fill="#ffffff" stroke="#e4e2ea" stroke-width="0.5"/>
+              <rect x="116" y="19" width="36" height="22" rx="3" fill="#ffffff" stroke="#e4e2ea" stroke-width="0.5"/>
+              <rect x="34" y="47" width="138" height="7" rx="2" fill="#eeedf2"/>
+              <rect x="34" y="58" width="115" height="5" rx="2" fill="#eeedf2"/>
+              <rect x="34" y="67" width="125" height="5" rx="2" fill="#eeedf2"/>
+              <rect x="34" y="76" width="90" height="5" rx="2" fill="#eeedf2"/>
+              <rect x="34" y="87" width="138" height="16" rx="3" fill="#ffffff" stroke="#e4e2ea" stroke-width="0.5"/>
+              <!-- Pin pulse ring -->
+              <circle cx="${pinX}" cy="${pinY}" r="11" fill="#b45309" opacity="0.18"/>
+              <circle cx="${pinX}" cy="${pinY}" r="7" fill="#b45309" opacity="0.35"/>
+              <!-- Pin -->
+              <circle cx="${pinX}" cy="${pinY}" r="5" fill="#b45309"/>
+              <circle cx="${pinX}" cy="${pinY-1}" r="2" fill="rgba(255,255,255,.7)"/>
+            </svg>
+            <div style="font-size:10px;color:var(--amber);font-weight:600;margin-top:4px">📍 ${viewName} · ${vPos} ${hPos}</div>
+            ${jumpBtn}
+          </div>
+          <!-- Note text -->
+          <div style="flex:1;min-width:0">
+            <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Note content</div>
+            <div style="font-size:14px;color:var(--txt);line-height:1.7;white-space:pre-wrap;word-break:break-word;background:var(--amber-light);border:1.5px solid var(--amber-bg);border-radius:10px;padding:12px 14px">${content}</div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // ── FORM FEEDBACK CARD ─────────────────────────────────────────────────
+    const statusBadge = `<span style="padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700;background:${s.status==='approved'?'var(--green-bg)':s.status==='rejected'?'var(--red-bg)':'var(--amber-bg)'};color:${s.status==='approved'?'var(--green)':s.status==='rejected'?'var(--red)':'var(--amber)'}">${s.status||'pending'}</span>`;
+    return `<div style="background:#fff;border:1.5px solid var(--border);border-left:4px solid ${accentColor};border-radius:12px;padding:16px 18px;margin-bottom:10px">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
         <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-            <span style="font-size:12px;padding:3px 9px;border-radius:6px;font-weight:700;background:${isNote?'var(--amber-bg)':'var(--bg2)'};color:${isNote?'var(--amber)':'var(--txt2)'}">${icon} ${typeLabel}</span>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <span style="font-size:12px;padding:3px 9px;border-radius:6px;font-weight:700;background:var(--bg2);color:var(--txt2)">${icon} ${typeLabel}</span>
             ${statusBadge}
-            <span style="font-size:11px;color:var(--txt3)">${isNote?'Admin':'From'} <strong>${s.company||'unknown'}</strong> · ${date} at ${time}</span>
+            <span style="font-size:11px;color:var(--txt3)">From <strong>${s.company||'unknown'}</strong> · ${date} at ${time}</span>
           </div>
-          <div style="font-size:13px;color:var(--txt);line-height:1.65;white-space:pre-wrap;word-break:break-word">${content}</div>
-          ${locationHtml}
+          <div style="font-size:14px;color:var(--txt);line-height:1.7;white-space:pre-wrap;word-break:break-word;background:var(--bg);border-radius:8px;padding:10px 12px;border:1px solid var(--border)">${content}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end">
           ${resolveBtn}
@@ -4817,7 +4867,10 @@ async function saveInlineComment(){
     seller_name: currentUser || 'admin',
     file_ref: JSON.stringify({x:xPct, y:yPct, view:currentView}),
     notes: text,
-    submission_type: 'page_comment'
+    description: text,
+    submission_type: 'page_comment',
+    period_covered: 'Inline Note',
+    status: 'pending'
   };
   await db.from('quota_submissions').insert([payload]);
   document.getElementById('comment-input-bubble').style.display = 'none';
@@ -4831,6 +4884,26 @@ async function saveInlineComment(){
 
 function cancelInlineComment(){
   document.getElementById('comment-input-bubble').style.display = 'none';
+}
+
+function jumpToNoteView(viewName, noteId){
+  if(!viewName || viewName === 'feedback') return;
+  const navEl = document.querySelector(`.nav-item[data-view="${viewName}"]`);
+  showView(viewName, navEl);
+  // Give the view time to render, then re-render pins and highlight the target
+  setTimeout(()=>{
+    renderCommentPins();
+    if(noteId){
+      // Flash-highlight the specific pin matching this note
+      document.querySelectorAll('.comment-pin').forEach(pin=>{
+        if(pin.dataset.noteId === noteId){
+          pin.style.transform = 'translate(-50%,-50%) scale(1.6)';
+          pin.style.boxShadow = '0 0 0 8px rgba(180,83,9,.35), 0 4px 14px rgba(180,83,9,.5)';
+          setTimeout(()=>{ pin.style.transform='translate(-50%,-50%)'; pin.style.boxShadow=''; }, 1800);
+        }
+      });
+    }
+  }, 120);
 }
 
 async function loadInlineComments(){
@@ -4850,8 +4923,9 @@ function renderCommentPins(){
     if(pos.view && pos.view !== 'all' && pos.view !== currentView) return;
     const pin = document.createElement('div');
     pin.className = 'comment-pin';
+    pin.dataset.noteId = c.id;
     pin.textContent = i+1;
-    pin.title = c.notes;
+    pin.title = c.notes || c.description || '';
     pin.style.left = pos.x + 'vw';
     pin.style.top = pos.y + 'vh';
     pin.onclick = (e)=>{ e.stopPropagation(); toggleCommentSidebar(true, i); };

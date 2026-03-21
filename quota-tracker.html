@@ -297,13 +297,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 /* MODAL */
 .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(10,8,20,.55);backdrop-filter:blur(3px);z-index:1000;align-items:center;justify-content:center;padding:20px}
 .modal-backdrop.open{display:flex}
-.modal{background:#fff;border-radius:18px;width:100%;max-width:500px;box-shadow:0 24px 60px rgba(0,0,0,.2),0 4px 12px rgba(0,0,0,.08);animation:modalIn .25s cubic-bezier(.34,1.4,.64,1)}
-.modal-lg{max-width:680px}
-.modal-head{padding:22px 26px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.modal-head h2{font-size:16px;font-weight:700;color:var(--txt);font-family:var(--font-display);letter-spacing:-.2px}
+.modal{background:#fff;border-radius:18px;width:100%;max-width:540px;box-shadow:0 24px 60px rgba(0,0,0,.2),0 4px 12px rgba(0,0,0,.08);animation:modalIn .25s cubic-bezier(.34,1.4,.64,1)}
+.modal-lg{max-width:720px}
+.modal-head{padding:22px 28px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-head h2{font-size:17px;font-weight:700;color:var(--txt);font-family:var(--font-display);letter-spacing:-.2px}
 .modal-close{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:20px;line-height:1;padding:6px;border-radius:8px;transition:all .15s;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
 .modal-close:hover{background:var(--bg);color:var(--txt)}
-.modal-body{padding:22px 26px}
+.modal-body{padding:24px 28px}
 .modal-foot{padding:16px 26px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;background:#fafaf9;border-radius:0 0 18px 18px}
 .fld-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .fld-full{grid-column:1/-1}
@@ -665,6 +665,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
       <div id="dash-feedback-widget" style="display:none"></div>
       <!-- Region filter tabs -->
       <div class="region-filter" id="dash-region-filter"></div>
+      <!-- Sub-region filter tabs (appears when a region is selected and has multiple sub-regions) -->
+      <div class="region-filter" id="dash-sub-filter" style="display:none;margin-top:2px;padding-top:6px;border-top:1px dashed var(--border)"></div>
       <!-- Company cards grid -->
       <div class="portfolio-grid" id="dash-company-cards"></div>
     </div>
@@ -718,6 +720,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
             <button type="button" onclick="setSellerTypeFilter('all')" id="stf-all" style="padding:5px 11px;font-size:11px;font-weight:600;background:var(--acc);color:#fff;border:none;cursor:pointer">All</button>
             <button type="button" onclick="setSellerTypeFilter('New Name')" id="stf-nn" style="padding:5px 11px;font-size:11px;font-weight:600;background:transparent;color:var(--txt2);border:none;cursor:pointer">New Name</button>
             <button type="button" onclick="setSellerTypeFilter('Back to Base')" id="stf-bb" style="padding:5px 11px;font-size:11px;font-weight:600;background:transparent;color:var(--txt2);border:none;cursor:pointer">Back to Base</button>
+            <button type="button" onclick="setSellerTypeFilter('Hybrid')" id="stf-hy" style="padding:5px 11px;font-size:11px;font-weight:600;background:transparent;color:var(--txt2);border:none;cursor:pointer">Hybrid</button>
           </div>
           <input type="text" placeholder="Search sellers…" id="seller-search" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;width:150px" oninput="renderSellers()">
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--txt2);cursor:pointer;white-space:nowrap">
@@ -1166,11 +1169,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
       <div id="em-crm-notice" style="display:none" class="success-box"></div>
       <div class="fld-row">
         <div class="fld fld-full" id="em-co-wrap" style="display:none">
-          <label>Company</label>
+          <label>🏢 Company</label>
           <div class="sel-wrap"><select id="em-co" onchange="onEmCoChange()"></select></div>
         </div>
         <div class="fld fld-full">
-          <label>Seller Name</label>
+          <label>👤 Seller Name</label>
           <input type="text" id="em-seller" placeholder="Full name">
         </div>
         <div class="fld" id="em-region-wrap">
@@ -1182,7 +1185,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
           <div class="sel-wrap"><select id="em-sub" disabled style="background:#fafafa;color:var(--txt2)"></select></div>
         </div>
         <div class="fld fld-full">
-          <label>Period</label>
+          <label>📅 Period</label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
             <div class="period-seg" id="em-period-seg">
               <button type="button" onclick="setEmPeriodType('Monthly')">Monthly</button>
@@ -1205,27 +1208,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
           </div>
         </div>
         <div class="fld">
-          <label id="em-quota-lbl">Quota</label>
+          <label id="em-quota-lbl">🎯 Quota</label>
           <input type="number" id="em-quota" min="0" placeholder="0" oninput="document.getElementById('em-quota-fmt').textContent=this.value?Number(this.value).toLocaleString():''" style="margin-bottom:2px">
           <div id="em-quota-fmt" style="font-size:10px;color:var(--txt3);text-align:right;font-family:var(--font-display);min-height:14px"></div>
         </div>
         <div class="fld" id="em-ach-wrap">
-          <label id="em-ach-lbl">Achieved</label>
+          <label id="em-ach-lbl">✅ Achieved</label>
           <input type="number" id="em-ach" min="0" placeholder="0" oninput="document.getElementById('em-ach-fmt').textContent=this.value?Number(this.value).toLocaleString():''" style="margin-bottom:2px">
           <div id="em-ach-fmt" style="font-size:10px;color:var(--txt3);text-align:right;font-family:var(--font-display);min-height:14px"></div>
         </div>
       </div>
       <div class="fld-row" style="margin-top:4px">
         <div class="fld">
-          <label>Role</label>
+          <label>💼 Role</label>
           <input type="text" id="em-role" placeholder="e.g. Account Executive">
         </div>
         <div class="fld">
-          <label>Quota Type</label>
+          <label>🏷️ Quota Type</label>
           <div class="sel-wrap">
             <select id="em-quota-type">
               <option value="New Name">New Name</option>
               <option value="Back to Base">Back to Base</option>
+              <option value="Hybrid">Hybrid</option>
             </select>
           </div>
         </div>
@@ -1283,6 +1287,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
             <select id="nsm-quota-type">
               <option value="New Name">New Name</option>
               <option value="Back to Base">Back to Base</option>
+              <option value="Hybrid">Hybrid</option>
             </select>
           </div>
         </div>
@@ -1782,9 +1787,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
           <span style="font-size:13px;font-weight:700;color:var(--txt)">Entry History</span>
           <span id="sm-entry-filter-label" style="font-size:11px;color:var(--txt3);margin-left:8px"></span>
         </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" id="sm-add-btn" onclick="addEntryForCurrentSeller()">+ Add Entry</button>
-        </div>
+        <div style="display:flex;gap:6px"></div>
       </div>
       <table class="tbl" id="sm-table" style="margin-bottom:0"></table>
     </div>
@@ -1976,7 +1979,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
     </div>
 
     <div class="modal-foot" style="justify-content:space-between">
-      <div id="bulk-err" style="color:var(--red);font-size:12px;align-self:center"></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button id="bulk-back-btn" class="btn btn-ghost" onclick="backToSellerProfile()" style="display:none">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to Profile
+        </button>
+        <div id="bulk-err" style="color:var(--red);font-size:12px"></div>
+      </div>
       <div style="display:flex;gap:10px">
         <button class="btn btn-ghost" onclick="closeModal('bulk-modal')">Cancel</button>
         <button class="btn btn-primary" onclick="saveBulkEntries()">
@@ -2708,10 +2717,18 @@ async function deleteEntry(id){
 }
 
 async function savePassword(co, pw){
-  try{
-    await db.from('company_passwords').upsert([{company:co,password:pw,updated_at:new Date().toISOString()}]);
-    passwords[co]=pw; toast('Password updated');
-  } catch(e){ toast('Failed to save password','error'); }
+  const {error} = await db.from('company_passwords')
+    .upsert([{company:co, password:pw, updated_at:new Date().toISOString()}], {onConflict:'company'});
+  if(error){
+    // Fallback: try explicit update then insert if that fails
+    const {error:upErr} = await db.from('company_passwords').update({password:pw, updated_at:new Date().toISOString()}).eq('company',co);
+    if(upErr){
+      const {error:inErr} = await db.from('company_passwords').insert([{company:co, password:pw}]);
+      if(inErr){ toast('Failed to save password: '+inErr.message,'error'); return; }
+    }
+  }
+  passwords[co] = pw;
+  toast('✓ Password updated');
 }
 
 async function saveCrmSetting(co, crmEnabled, crmAutoPull){
@@ -2921,8 +2938,8 @@ function renderChart(data){
 ═══════════════════════════════════════ */
 function setSellerTypeFilter(f){
   sellerTypeFilter = f;
-  const styles = {all:'stf-all', 'New Name':'stf-nn', 'Back to Base':'stf-bb'};
-  ['stf-all','stf-nn','stf-bb'].forEach(id=>{
+  const styles = {all:'stf-all', 'New Name':'stf-nn', 'Back to Base':'stf-bb', 'Hybrid':'stf-hy'};
+  ['stf-all','stf-nn','stf-bb','stf-hy'].forEach(id=>{
     const el = document.getElementById(id);
     if(el){ el.style.background = (styles[f]===id) ? 'var(--acc)' : 'transparent'; el.style.color = (styles[f]===id) ? '#fff' : 'var(--txt2)'; }
   });
@@ -3001,7 +3018,7 @@ function renderSellers(){
     const curPCell=s.curP!==null
       ?`<div style="display:flex;align-items:center;gap:6px"><span class="badge badge-${attClass(s.curP)}">${s.curP}%</span><div style="flex:1;height:4px;background:#e2e8f0;border-radius:2px;min-width:40px"><div style="height:100%;border-radius:2px;width:${Math.min(s.curP,100)}%;background:${attColor(s.curP)}"></div></div></div>`
       :`<span class="badge badge-gray" style="font-size:10px">Not submitted</span>`;
-    const qtCell=s.quota_type?`<span class="badge badge-${s.quota_type==='New Name'?'blue':'purple'}" style="font-size:10px">${s.quota_type}</span>`:`<span style="color:var(--txt3);font-size:12px">—</span>`;
+    const qtCell=s.quota_type?`<span class="badge badge-${s.quota_type==='New Name'?'blue':s.quota_type==='Hybrid'?'green':'purple'}" style="font-size:10px">${s.quota_type}</span>`:`<span style="color:var(--txt3);font-size:12px">—</span>`;
     const crmBadge=hasCRM(s.company)?`<span class="badge badge-crm" style="font-size:10px">🔗</span>`:'';
     return `<tr style="${s.is_active===false?'opacity:.55':''}">
       ${coCell}
@@ -3294,7 +3311,7 @@ function renderSellerProfile(){
   // Header
   document.getElementById('sm-title').textContent = name;
   document.getElementById('sm-meta').innerHTML =
-    `<strong>${co}</strong>${role?' · '+role:''}${quotaType?' · <span class="badge badge-'+(quotaType==='New Name'?'blue':'purple')+'" style="font-size:10px">'+quotaType+'</span>':''}` +
+    `<strong>${co}</strong>${role?' · '+role:''}${quotaType?' · <span class="badge badge-'+(quotaType==='New Name'?'blue':quotaType==='Hybrid'?'green':'purple')+'" style="font-size:10px">'+quotaType+'</span>':''}` +
     (isActive ? '' : ' <span class="badge badge-red" style="font-size:10px">Inactive</span>');
 
   // Stat bar — use only direct (non-spread) entries for accurate summary
@@ -3308,12 +3325,10 @@ function renderSellerProfile(){
     <div class="sm-stat"><div class="sm-stat-val" style="color:${attColor(avgAtt)}">${avgAtt}%</div><div class="sm-stat-lbl">Avg Attainment</div></div>
     <div class="sm-stat"><div class="sm-stat-val" style="color:${attColor(best)}">${best}%</div><div class="sm-stat-lbl">Best Period</div></div>`;
 
-  // Show/hide add + set quotas buttons
+  // Show/hide Manage Quotas button
   const canEdit = isAdmin() || currentUser===co;
-  const addBtn = document.getElementById('sm-add-btn');
-  const sqBtn  = document.getElementById('sm-set-quotas-btn');
-  if(addBtn) addBtn.style.display = canEdit ? '' : 'none';
-  if(sqBtn)  sqBtn.style.display  = canEdit ? '' : 'none';
+  const sqBtn = document.getElementById('sm-set-quotas-btn');
+  if(sqBtn) sqBtn.style.display = canEdit ? '' : 'none';
 
   // Render quota plan
   renderSmPlan();
@@ -3411,7 +3426,12 @@ function renderSmPlan(){
 
 function setQuotasFromProfile(){
   closeModal('seller-modal');
-  openBulkEntry(sellerModalName, sellerModalCompany);
+  openBulkEntry(sellerModalName, sellerModalCompany, true);
+}
+
+function backToSellerProfile(){
+  closeModal('bulk-modal');
+  setTimeout(()=>openSellerProfile(sellerModalName, sellerModalCompany), 60);
 }
 
 function addEntryForCurrentSeller(){
@@ -3912,11 +3932,13 @@ function newSellerContinue(){
   openBulkEntry(name, co);
 }
 
-function openBulkEntry(sellerName, company){
+function openBulkEntry(sellerName, company, fromProfile=false){
   bulkSellerName = sellerName;
   bulkSellerCompany = company;
   bulkPType = 'Monthly';
   qfMode = 'same';
+  const backBtn = document.getElementById('bulk-back-btn');
+  if(backBtn) backBtn.style.display = fromProfile ? 'flex' : 'none';
   document.getElementById('bulk-title').textContent = sellerName;
   document.getElementById('bulk-meta').textContent = company + ' · Set or edit targets per period — use Quick Fill to populate all at once';
   document.getElementById('bulk-year').value = pYear;
@@ -4258,11 +4280,35 @@ function aobToggleExpand(id){
    ADMIN DASHBOARD — COMPANY-FIRST VIEW
 ═══════════════════════════════════════ */
 let adminRegionFilter = 'all';
+let adminSubFilter = 'all';
 
 function setAdminRegion(r){
   adminRegionFilter = r;
-  document.querySelectorAll('.region-tab').forEach(b=>b.classList.toggle('active', b.dataset.region===r));
+  adminSubFilter = 'all';
+  document.querySelectorAll('.region-tab[data-region]').forEach(b=>b.classList.toggle('active', b.dataset.region===r));
+  renderSubRegionFilter();
   renderAdminCompanyCards();
+}
+
+function setAdminSub(s){
+  adminSubFilter = s;
+  document.querySelectorAll('.region-tab[data-sub]').forEach(b=>b.classList.toggle('active', b.dataset.sub===s));
+  renderAdminCompanyCards();
+}
+
+function renderSubRegionFilter(){
+  const subEl = document.getElementById('dash-sub-filter');
+  if(!subEl) return;
+  if(adminRegionFilter==='all'){ subEl.style.display='none'; return; }
+  const cosInRegion = allCompanies().filter(c=>c.region===adminRegionFilter);
+  const subs = [...new Set(cosInRegion.map(c=>c.sub))];
+  if(subs.length<=1){ subEl.style.display='none'; return; }
+  const tabs = ['all',...subs].map(s=>{
+    const count = s==='all' ? cosInRegion.length : cosInRegion.filter(c=>c.sub===s).length;
+    return `<button class="region-tab${s===adminSubFilter?' active':''}" data-sub="${s}" onclick="setAdminSub('${s}')">${s==='all'?'All Sub-regions':s}<span class="region-count">${count}</span></button>`;
+  }).join('');
+  subEl.innerHTML = tabs;
+  subEl.style.display = '';
 }
 
 function renderAdminDashboard(){
@@ -4356,6 +4402,7 @@ function renderAdminDashboard(){
   const totalSellers = [...new Set(allEntries.map(e=>e.seller_name))].length;
   const newNameCount = [...new Set(allEntries.filter(e=>e.quota_type==='New Name').map(e=>e.seller_name))].length;
   const b2bCount = [...new Set(allEntries.filter(e=>e.quota_type==='Back to Base').map(e=>e.seller_name))].length;
+  const hybridCount = [...new Set(allEntries.filter(e=>e.quota_type==='Hybrid').map(e=>e.seller_name))].length;
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-card card-purple" style="--accent-color:var(--acc);--icon-bg:var(--acc-light)">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
@@ -4376,7 +4423,7 @@ function renderAdminDashboard(){
       <div class="stat-icon" style="background:#f0fdf4"><svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg></div>
       <div class="stat-val" style="color:${quotaCompletion>=80?'var(--green)':quotaCompletion>=50?'var(--amber)':'var(--red)'}">${quotaCompletion}%</div>
       <div class="stat-lbl">Data Submitted</div>
-      <div class="stat-delta" style="color:var(--txt3)">${cosWithData}/${allCos.length} companies · ${newNameCount} NN / ${b2bCount} B2B sellers</div>
+      <div class="stat-delta" style="color:var(--txt3)">${cosWithData}/${allCos.length} companies · ${newNameCount} NN / ${b2bCount} B2B${hybridCount?` / ${hybridCount} Hybrid`:''}</div>
     </div>`;
 
   // Feedback widget (async)
@@ -4394,14 +4441,16 @@ function renderAdminDashboard(){
   }).join('');
   document.getElementById('dash-region-filter').innerHTML = tabs;
 
+  renderSubRegionFilter();
   renderAdminCompanyCards();
 }
 
 function renderAdminCompanyCards(){
   const period = periodStr();
-  const filtered = adminRegionFilter==='all'
+  let filtered = adminRegionFilter==='all'
     ? allCompanies()
     : allCompanies().filter(c=>c.region===adminRegionFilter);
+  if(adminSubFilter!=='all') filtered = filtered.filter(c=>c.sub===adminSubFilter);
 
   const cards = filtered.map(c=>{
     const cEntries = entries.filter(e=>e.company===c.name);

@@ -35,6 +35,10 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;min-height:100vh}
 
+/* ONBOARDING DOTS */
+.ob-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s ease}
+.ob-dot-active{background:var(--acc);width:22px;border-radius:4px}
+
 /* LOADING */
 #loading-bar{position:fixed;top:0;left:0;height:3px;background:var(--acc);width:0;z-index:9999;transition:width .3s ease,opacity .4s ease}
 #spinner{display:none;position:fixed;inset:0;background:rgba(255,255,255,.55);z-index:9998;align-items:center;justify-content:center}
@@ -419,6 +423,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span>Sellers</span>
     </div>
+    <div class="nav-item company-only" data-view="submit-docs" onclick="showView('submit-docs',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Submit Docs</span>
+    </div>
     <div class="nav-section admin-only" id="sb-admin-label">Admin</div>
     <div class="nav-item admin-only" data-view="portfolio" onclick="showView('portfolio',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -443,6 +451,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="nav-item admin-only" data-view="export" onclick="showView('export',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       <span>Export</span>
+    </div>
+    <div class="nav-item admin-only" data-view="submissions" onclick="showView('submissions',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><polyline points="12 11 12 17"/><polyline points="9 14 12 17 15 14"/></svg>
+      <span>Submissions</span>
     </div>
   </nav>
   <div class="sb-user">
@@ -628,6 +640,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 
+  <!-- SUBMISSIONS VIEW (admin) -->
+  <div class="view" id="view-submissions">
+    <div class="sec-header">
+      <div><div class="sec-title">Doc Submissions</div><div class="sec-sub">Review quota documentation submitted by companies</div></div>
+    </div>
+    <div class="table-card" style="padding:0;overflow:hidden">
+      <div id="submissions-list"></div>
+    </div>
+  </div>
+
+  <!-- SUBMIT DOCS VIEW (company) -->
+  <div class="view" id="view-submit-docs">
+    <div class="sec-header">
+      <div><div class="sec-title">Submit Documents</div><div class="sec-sub">Share your existing quota tracking documents with the Everfield team</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openSubmitDocsModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Submission
+      </button>
+    </div>
+    <div class="table-card" style="padding:0;margin-bottom:20px;overflow:hidden">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--acc-light),#f0f9ff)">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="font-size:24px">📤</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--acc2)">How this works</div>
+            <div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-top:2px">Already tracking quotas in Excel, Word, or email? Submit your existing documents here and the Everfield team will review them, help migrate your data, and get you set up on the platform.</div>
+          </div>
+        </div>
+      </div>
+      <div id="my-submissions-list"></div>
+    </div>
+  </div>
+
 </div><!-- /content -->
 </div><!-- /shell -->
 </div><!-- /app -->
@@ -750,6 +795,159 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <div class="crm-dec-desc">You will enter actuals for each seller yourself. You can optionally tag individual entries as CRM-sourced.</div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ONBOARDING MODAL -->
+<div class="modal-backdrop" id="onboarding-modal" style="display:none;align-items:center;justify-content:center;background:rgba(13,11,24,.75);backdrop-filter:blur(4px)">
+  <div class="modal" style="max-width:520px;border-radius:20px;overflow:hidden;padding:0;box-shadow:0 30px 80px rgba(0,0,0,.35)">
+    <!-- Progress bar -->
+    <div style="height:4px;background:var(--border);width:100%">
+      <div id="ob-progress" style="height:4px;background:var(--acc);width:25%;transition:width .4s ease"></div>
+    </div>
+    <!-- Steps container -->
+    <div id="ob-steps" style="padding:36px 36px 28px">
+      <!-- Step 1 -->
+      <div id="ob-step-1">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--acc),#6d28d9);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 8px 24px rgba(124,58,237,.35)">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:var(--txt);margin-bottom:8px;letter-spacing:-.4px">Welcome to Everfield 👋</div>
+        <div style="font-size:14px;color:var(--txt2);line-height:1.6;margin-bottom:24px">This is your quota tracking platform. You can track your team's targets, monitor performance, and report results — all in one place. Let's walk you through the basics in 3 quick steps.</div>
+        <div style="display:flex;gap:12px;padding:16px;background:var(--acc-light);border-radius:12px;align-items:flex-start">
+          <div style="font-size:20px;flex-shrink:0">💡</div>
+          <div style="font-size:13px;color:var(--acc2);line-height:1.5">Your data is private to your company. Only Everfield admins can see data across all companies.</div>
+        </div>
+      </div>
+      <!-- Step 2 -->
+      <div id="ob-step-2" style="display:none">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#2563eb,#3b82f6);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 8px 24px rgba(37,99,235,.35)">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:var(--txt);margin-bottom:8px;letter-spacing:-.4px">Add your sellers</div>
+        <div style="font-size:14px;color:var(--txt2);line-height:1.6;margin-bottom:20px">Go to the <strong>Sellers</strong> tab to add each person on your team. For every seller, you can set their role and whether they're active.</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px">
+            <div style="width:32px;height:32px;background:var(--blue-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">1️⃣</div>
+            <div style="font-size:13px;color:var(--txt)">Click <strong>"Add Entry"</strong> in the top right corner</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px">
+            <div style="width:32px;height:32px;background:var(--blue-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">2️⃣</div>
+            <div style="font-size:13px;color:var(--txt)">Enter the seller's <strong>name, role</strong>, and <strong>quota period</strong></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px">
+            <div style="width:32px;height:32px;background:var(--blue-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">3️⃣</div>
+            <div style="font-size:13px;color:var(--txt)">Use <strong>"Periods"</strong> on a seller card to fill in multiple months at once</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 3 -->
+      <div id="ob-step-3" style="display:none">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#059669,#10b981);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 8px 24px rgba(5,150,105,.35)">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:var(--txt);margin-bottom:8px;letter-spacing:-.4px">Set your quotas</div>
+        <div style="font-size:14px;color:var(--txt2);line-height:1.6;margin-bottom:20px">Enter targets as <strong>monthly, quarterly, or yearly</strong> — the platform will automatically convert between formats. A yearly target becomes monthly (÷12) and quarterly (÷4) automatically.</div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1;padding:14px;background:var(--green-light);border:1.5px solid #a7f3d0;border-radius:10px;text-align:center">
+            <div style="font-size:20px;margin-bottom:4px">📅</div>
+            <div style="font-size:12px;font-weight:700;color:var(--green)">Monthly</div>
+            <div style="font-size:11px;color:var(--txt2);margin-top:2px">Per month targets</div>
+          </div>
+          <div style="flex:1;padding:14px;background:var(--amber-light);border:1.5px solid #fcd34d;border-radius:10px;text-align:center">
+            <div style="font-size:20px;margin-bottom:4px">📊</div>
+            <div style="font-size:12px;font-weight:700;color:var(--amber)">Quarterly</div>
+            <div style="font-size:11px;color:var(--txt2);margin-top:2px">Q1–Q4 targets</div>
+          </div>
+          <div style="flex:1;padding:14px;background:var(--purple-bg);border:1.5px solid #c4b5fd;border-radius:10px;text-align:center">
+            <div style="font-size:20px;margin-bottom:4px">🗓️</div>
+            <div style="font-size:12px;font-weight:700;color:var(--purple)">Yearly</div>
+            <div style="font-size:11px;color:var(--txt2);margin-top:2px">Annual targets</div>
+          </div>
+        </div>
+      </div>
+      <!-- Step 4 -->
+      <div id="ob-step-4" style="display:none">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#db2777,#ec4899);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 8px 24px rgba(219,39,119,.35)">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:var(--txt);margin-bottom:8px;letter-spacing:-.4px">You're all set! 🚀</div>
+        <div style="font-size:14px;color:var(--txt2);line-height:1.6;margin-bottom:20px">Your dashboard shows real-time attainment, top performers, and quota vs. achieved for every period. You can also submit your existing quota documents for the Everfield team to review.</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px">
+            <div style="font-size:18px;flex-shrink:0">📊</div>
+            <div style="font-size:13px;color:var(--txt)"><strong>Dashboard</strong> — summary stats and attainment chart</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px">
+            <div style="font-size:18px;flex-shrink:0">👥</div>
+            <div style="font-size:13px;color:var(--txt)"><strong>Sellers</strong> — manage your team and see individual performance</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px">
+            <div style="font-size:18px;flex-shrink:0">📤</div>
+            <div style="font-size:13px;color:var(--txt)"><strong>Submit Docs</strong> — share your existing quota docs with Everfield</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Footer navigation -->
+    <div style="padding:0 36px 28px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;gap:8px" id="ob-dots">
+        <div class="ob-dot ob-dot-active"></div>
+        <div class="ob-dot"></div>
+        <div class="ob-dot"></div>
+        <div class="ob-dot"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn btn-ghost btn-sm" id="ob-back-btn" onclick="obBack()" style="display:none">← Back</button>
+        <button class="btn btn-primary btn-sm" id="ob-next-btn" onclick="obNext()" style="min-width:100px">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMIT DOCS MODAL -->
+<div class="modal-backdrop" id="submit-docs-modal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <h2>📤 Submit Quota Documents</h2>
+      <button class="modal-close" onclick="closeModal('submit-docs-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:20px">Share your existing quota tracking documents with Everfield. We'll review them and help migrate your data to the platform.</p>
+      <div class="fld">
+        <label>Document Type</label>
+        <div class="sel-wrap">
+          <select id="sdm-type">
+            <option value="">Select type…</option>
+            <option value="Excel spreadsheet">Excel spreadsheet</option>
+            <option value="Word document">Word document</option>
+            <option value="PDF report">PDF report</option>
+            <option value="Email chain">Email chain</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="fld">
+        <label>Period Covered <span style="font-weight:400;color:var(--txt3)">(optional)</span></label>
+        <input type="text" id="sdm-period" placeholder="e.g. Q1 2026, Full Year 2025…">
+      </div>
+      <div class="fld">
+        <label>Description</label>
+        <textarea id="sdm-description" rows="3" placeholder="Briefly describe what's in this document and what you need help with…" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;resize:vertical;font-family:inherit;color:var(--txt)"></textarea>
+      </div>
+      <div class="fld">
+        <label>File Name <span style="font-weight:400;color:var(--txt3)">(optional — for reference)</span></label>
+        <input type="text" id="sdm-filename" placeholder="e.g. Q1_quotas_2026.xlsx">
+      </div>
+      <div style="padding:12px 14px;background:var(--amber-light);border:1px solid #fcd34d;border-radius:8px;font-size:12px;color:#92400e;line-height:1.5">
+        💡 You don't need to upload a file here — just describe your document. The Everfield team will follow up with you directly.
+      </div>
+      <div class="login-err" id="sdm-err" style="text-align:left;margin-top:10px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('submit-docs-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDocSubmission()">Submit to Everfield</button>
     </div>
   </div>
 </div>
@@ -988,7 +1186,7 @@ alter table quota_entries add column if not exists is_active boolean default tru
    COMPANY DATA
 ═══════════════════════════════════════ */
 const COMPANIES = [
-  {name:'BBT',region:'CEE & PL',sub:'Vistula',currency:'PLN'},
+  {name:'BBT',region:'CEE & PL',sub:'Vistula',currency:'EUR'},
   {name:'GO',region:'CEE & PL',sub:'Vistula',currency:'PLN'},
   {name:'Atmoterm',region:'CEE & PL',sub:'Vistula',currency:'PLN'},
   {name:'AGroup',region:'CEE & PL',sub:'Vistula',currency:'EUR'},
@@ -1249,6 +1447,7 @@ async function loginAs(co){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=isAd?'':'none');
+  document.querySelectorAll('.company-only').forEach(el=>el.style.display=isAd?'none':'');
   document.getElementById('sb-admin-label').style.display=isAd?'':'none';
   document.getElementById('add-btn').style.display='';
   document.getElementById('sellers-add-btn').style.display='';
@@ -1264,6 +1463,10 @@ async function loginAs(co){
   if(!isAd && hasCRM(co) && !crmDecided(co)){
     setTimeout(()=>openModal('crm-modal'),600);
   }
+  // Show onboarding for new company users
+  if(!isAd){
+    setTimeout(()=>maybeShowOnboarding(co), 900);
+  }
 }
 
 function doLogout(){
@@ -1276,11 +1479,11 @@ function doLogout(){
 }
 
 /* ═══════════════════════════════════════
-   SMART QUOTA SPREADING
+   SMART QUOTA SPREADING (bi-directional)
    Rules (no double-counting — one entry per seller per period):
-     Viewing Monthly  → prefer Monthly, fallback Quarterly÷3, fallback Yearly÷12
-     Viewing Quarterly → prefer Quarterly, fallback Yearly÷4
-     Viewing Yearly   → prefer Yearly only (no spread needed)
+     Viewing Monthly   → prefer Monthly, fallback Q÷3, fallback Y÷12
+     Viewing Quarterly → prefer Quarterly, fallback aggregate 3 months (×), fallback Y÷4
+     Viewing Yearly    → prefer Yearly, fallback aggregate 4 quarters (×), fallback aggregate 12 months (×)
 ═══════════════════════════════════════ */
 function getEffectiveEntries(sourceEntries, targetPeriodStr){
   // Group entries by (company + seller_name) to avoid double-counting
@@ -1290,6 +1493,26 @@ function getEffectiveEntries(sourceEntries, targetPeriodStr){
     if(!groups[k]) groups[k] = [];
     groups[k].push(e);
   });
+
+  // Helper: extrapolate sum to full period when some sub-periods may be missing
+  // e.g. 2 out of 3 months present → multiply sum by 3/2 to estimate full quarter
+  function extrapolate(entries, totalSlots){
+    const present = entries.filter(Boolean);
+    if(!present.length) return null;
+    const factor = totalSlots / present.length;
+    return {
+      quota: Math.round(present.reduce((s,e)=>s+Number(e.quota),0) * factor),
+      achieved: Math.round(present.reduce((s,e)=>s+Number(e.achieved),0) * factor),
+      label: `${present.length}/${totalSlots} ${present.length<totalSlots?'(est.)':''}`.trim()
+    };
+  }
+
+  // Quarter helpers: which months belong to a quarter?
+  function monthsInQuarter(q){ // q = 'Q1'..'Q4', returns MONTHS entries
+    const qNum = parseInt(q[1])-1; // 0-based quarter
+    return MONTHS.slice(qNum*3, qNum*3+3);
+  }
+  function quarterNum(q){ return parseInt(q[1]); }
 
   const result = [];
   for(const sellerEntries of Object.values(groups)){
@@ -1301,16 +1524,17 @@ function getEffectiveEntries(sourceEntries, targetPeriodStr){
     const year = parts[parts.length-1];
 
     if(parts[0]==='Monthly'){
+      // ── Downward only (finer granularity) ──────────────────────────────
       const monthIdx = MONTHS.indexOf(parts[1]); // 0-11
-      const quarter = 'Q'+Math.ceil((monthIdx+1)/3); // e.g. Q1
+      const quarter = 'Q'+Math.ceil((monthIdx+1)/3);
 
-      // 2. Quarterly parent → divide by 3 months per quarter
+      // Quarterly parent → ÷3
       const qEntry = sellerEntries.find(e=>e.period===`Quarterly|${quarter}|${year}`);
       if(qEntry){
         result.push({...qEntry, quota:Math.round(qEntry.quota/3), achieved:Math.round(qEntry.achieved/3), period:targetPeriodStr, _spread:`from ${quarter} ÷3`});
         continue;
       }
-      // 3. Yearly parent → divide by 12 months per year
+      // Yearly parent → ÷12
       const yEntry = sellerEntries.find(e=>e.period===`Yearly|${year}`);
       if(yEntry){
         result.push({...yEntry, quota:Math.round(yEntry.quota/12), achieved:Math.round(yEntry.achieved/12), period:targetPeriodStr, _spread:`from ${year} ÷12`});
@@ -1318,10 +1542,44 @@ function getEffectiveEntries(sourceEntries, targetPeriodStr){
       }
 
     } else if(parts[0]==='Quarterly'){
-      // 2. Yearly parent → divide by 4 quarters per year
+      const quarter = parts[1]; // 'Q1'..'Q4'
+
+      // ── Upward: aggregate from Monthly entries in this quarter ──────────
+      const months = monthsInQuarter(quarter);
+      const monthEntries = months.map(m=>sellerEntries.find(e=>e.period===`Monthly|${m}|${year}`));
+      const agg = extrapolate(monthEntries.filter(Boolean), 3);
+      if(agg){
+        const base = sellerEntries.find(e=>e.period===`Monthly|${months[0]}|${year}`) || sellerEntries[0];
+        result.push({...base, quota:agg.quota, achieved:agg.achieved, period:targetPeriodStr,
+          _spread:`from months ×3${agg.label.includes('est.')?'~':''}`});
+        continue;
+      }
+
+      // ── Downward: Yearly parent → ÷4 ──────────────────────────────────
       const yEntry = sellerEntries.find(e=>e.period===`Yearly|${year}`);
       if(yEntry){
         result.push({...yEntry, quota:Math.round(yEntry.quota/4), achieved:Math.round(yEntry.achieved/4), period:targetPeriodStr, _spread:`from ${year} ÷4`});
+        continue;
+      }
+
+    } else if(parts[0]==='Yearly'){
+      // ── Upward: aggregate from Quarterly entries ────────────────────────
+      const qEntries = QUARTERS.map(q=>sellerEntries.find(e=>e.period===`Quarterly|${q}|${year}`));
+      const qAgg = extrapolate(qEntries.filter(Boolean), 4);
+      if(qAgg){
+        const base = qEntries.find(Boolean) || sellerEntries[0];
+        result.push({...base, quota:qAgg.quota, achieved:qAgg.achieved, period:targetPeriodStr,
+          _spread:`from quarters ×4${qAgg.label.includes('est.')?'~':''}`});
+        continue;
+      }
+
+      // ── Upward: aggregate from Monthly entries ─────────────────────────
+      const mEntries = MONTHS.map(m=>sellerEntries.find(e=>e.period===`Monthly|${m}|${year}`));
+      const mAgg = extrapolate(mEntries.filter(Boolean), 12);
+      if(mAgg){
+        const base = mEntries.find(Boolean) || sellerEntries[0];
+        result.push({...base, quota:mAgg.quota, achieved:mAgg.achieved, period:targetPeriodStr,
+          _spread:`from months ×12${mAgg.label.includes('est.')?'~':''}`});
         continue;
       }
     }
@@ -1496,7 +1754,7 @@ function showView(view, el){
   if(el) el.classList.add('active');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
-  const titles={dashboard:'Dashboard',sellers:'Sellers',portfolio:'Portfolio Overview','crm-settings':'CRM Settings','access-log':'Access Log',companies:'Companies',passwords:'Passwords',export:'Export Data'};
+  const titles={dashboard:'Dashboard',sellers:'Sellers',portfolio:'Portfolio Overview','crm-settings':'CRM Settings','access-log':'Access Log',companies:'Companies',passwords:'Passwords',export:'Export Data',submissions:'Doc Submissions','submit-docs':'Submit Documents'};
   document.getElementById('c-title').textContent=titles[view]||view;
   renderCurrentView();
 }
@@ -1510,6 +1768,39 @@ function renderCurrentView(){
   else if(currentView==='companies') renderCompanies();
   else if(currentView==='passwords') renderPasswords();
   else if(currentView==='export') renderExport();
+  else if(currentView==='submissions') loadSubmissions();
+  else if(currentView==='submit-docs') renderSubmitDocsView();
+}
+
+function renderSubmitDocsView(){
+  const co = currentUser;
+  // render company submissions list
+  const container = document.getElementById('my-submissions-list');
+  if(!container) return;
+  container.innerHTML = '<div style="color:var(--txt3);font-size:13px;padding:20px">Loading…</div>';
+  db.from('quota_submissions').select('*').eq('company',co).order('created_at',{ascending:false}).then(({data,error})=>{
+    if(error||!data||!data.length){
+      container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--txt3)"><div style="font-size:32px;margin-bottom:10px">📤</div><div style="font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:4px">No submissions yet</div><div style="font-size:13px">Use the button above to submit your quota documents.</div></div>`;
+      return;
+    }
+    const statusColors={pending:'var(--amber)',approved:'var(--green)',rejected:'var(--red)'};
+    const statusBg={pending:'var(--amber-bg)',approved:'var(--green-bg)',rejected:'var(--red-bg)'};
+    container.innerHTML = data.map(s=>`
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px">
+        <div style="font-size:22px;flex-shrink:0;margin-top:1px">${subTypeIcon(s.submission_type)}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-weight:600;font-size:13px;color:var(--txt)">${escHtml(s.submission_type)}</span>
+            <span style="padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;background:${statusBg[s.status]||'var(--bg)'};color:${statusColors[s.status]||'var(--txt3)'}">${s.status}</span>
+            <span style="font-size:11px;color:var(--txt3)">${new Date(s.created_at).toLocaleDateString()}</span>
+          </div>
+          ${s.period_covered?`<div style="font-size:12px;color:var(--txt3)">Period: ${escHtml(s.period_covered)}</div>`:''}
+          <div style="font-size:12px;color:var(--txt2);margin-top:2px">${escHtml(s.description)}</div>
+          ${s.file_name?`<div style="font-size:11px;color:var(--blue)">📎 ${escHtml(s.file_name)}</div>`:''}
+          ${s.admin_note?`<div style="font-size:11px;color:var(--txt2);margin-top:4px;background:var(--bg);padding:4px 8px;border-radius:6px">💬 Everfield: ${escHtml(s.admin_note)}</div>`:''}
+        </div>
+      </div>`).join('');
+  });
 }
 
 /* ═══════════════════════════════════════
@@ -2434,6 +2725,156 @@ async function saveBulkEntries(){
   closeModal('bulk-modal');
   await loadData();
   spin(false);
+}
+
+/* ═══════════════════════════════════════
+   ONBOARDING FLOW
+═══════════════════════════════════════ */
+let obCurrentStep = 1;
+const OB_TOTAL = 4;
+
+function maybeShowOnboarding(co){
+  if(isAdmin()) return; // admin doesn't need onboarding
+  const key = `onboarding_seen_${co}`;
+  if(!sessionStorage.getItem(key)){
+    obCurrentStep = 1;
+    obRenderStep();
+    document.getElementById('onboarding-modal').style.display = 'flex';
+  }
+}
+
+function obRenderStep(){
+  for(let i=1;i<=OB_TOTAL;i++){
+    const el = document.getElementById(`ob-step-${i}`);
+    if(el) el.style.display = (i===obCurrentStep) ? '' : 'none';
+  }
+  // progress bar
+  document.getElementById('ob-progress').style.width = `${(obCurrentStep/OB_TOTAL)*100}%`;
+  // dots
+  document.querySelectorAll('.ob-dot').forEach((d,i)=>{
+    d.classList.toggle('ob-dot-active', i===obCurrentStep-1);
+  });
+  // buttons
+  document.getElementById('ob-back-btn').style.display = obCurrentStep>1 ? '' : 'none';
+  const nextBtn = document.getElementById('ob-next-btn');
+  nextBtn.textContent = obCurrentStep===OB_TOTAL ? "Let's go! 🚀" : 'Next →';
+}
+
+function obNext(){
+  if(obCurrentStep<OB_TOTAL){
+    obCurrentStep++;
+    obRenderStep();
+  } else {
+    // Mark as seen and close
+    sessionStorage.setItem(`onboarding_seen_${currentUser}`, '1');
+    document.getElementById('onboarding-modal').style.display = 'none';
+  }
+}
+
+function obBack(){
+  if(obCurrentStep>1){
+    obCurrentStep--;
+    obRenderStep();
+  }
+}
+
+/* ═══════════════════════════════════════
+   DOCUMENTATION SUBMISSION FLOW
+═══════════════════════════════════════ */
+async function loadSubmissions(){
+  const container = document.getElementById('submissions-list');
+  if(!container) return;
+  container.innerHTML = '<div style="color:var(--txt3);font-size:13px;padding:20px">Loading submissions…</div>';
+  const {data, error} = await db.from('quota_submissions').select('*').order('created_at',{ascending:false});
+  if(error){ container.innerHTML = `<div style="color:var(--red);font-size:13px;padding:20px">Error: ${error.message}</div>`; return; }
+  if(!data || !data.length){
+    container.innerHTML = `
+      <div style="text-align:center;padding:48px 24px;color:var(--txt3)">
+        <div style="font-size:40px;margin-bottom:12px">📭</div>
+        <div style="font-size:15px;font-weight:600;color:var(--txt2);margin-bottom:6px">No submissions yet</div>
+        <div style="font-size:13px">Company submissions will appear here for your review.</div>
+      </div>`; return;
+  }
+  const statusColors = {pending:'var(--amber)',approved:'var(--green)',rejected:'var(--red)'};
+  const statusBg = {pending:'var(--amber-bg)',approved:'var(--green-bg)',rejected:'var(--red-bg)'};
+  container.innerHTML = data.map(s=>`
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px" id="sub-row-${s.id}">
+      <div style="width:38px;height:38px;border-radius:9px;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${subTypeIcon(s.submission_type)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-weight:700;font-size:13px;color:var(--txt)">${escHtml(s.company)}</span>
+          <span style="padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;background:${statusBg[s.status]||'var(--bg)'};color:${statusColors[s.status]||'var(--txt3)'}">${s.status}</span>
+          <span style="font-size:11px;color:var(--txt3)">${new Date(s.created_at).toLocaleDateString()}</span>
+        </div>
+        <div style="font-size:13px;color:var(--txt2);margin-top:3px">${escHtml(s.submission_type)}${s.period_covered?' · '+escHtml(s.period_covered):''}</div>
+        <div style="font-size:12px;color:var(--txt3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:400px">${escHtml(s.description)}</div>
+        ${s.file_name?`<div style="font-size:11px;color:var(--blue);margin-top:2px">📎 ${escHtml(s.file_name)}</div>`:''}
+        ${s.admin_note?`<div style="font-size:11px;color:var(--txt2);margin-top:4px;background:var(--bg);padding:4px 8px;border-radius:6px">Admin note: ${escHtml(s.admin_note)}</div>`:''}
+      </div>
+      ${s.status==='pending'?`
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-success btn-sm" onclick="reviewSubmission('${s.id}','approved')">✓ Approve</button>
+        <button class="btn btn-danger btn-sm" onclick="reviewSubmission('${s.id}','rejected')">✗ Reject</button>
+      </div>`:''}
+    </div>`).join('');
+}
+
+function subTypeIcon(type){
+  if(!type) return '📄';
+  const t = type.toLowerCase();
+  if(t.includes('excel')||t.includes('spreadsheet')) return '📊';
+  if(t.includes('word')||t.includes('doc')) return '📝';
+  if(t.includes('pdf')) return '📕';
+  if(t.includes('email')) return '📧';
+  return '📄';
+}
+
+function escHtml(str){
+  if(!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function reviewSubmission(id, status){
+  const note = status==='rejected' ? prompt('Optional: leave a note for the company (or press Enter to skip)') : null;
+  const payload = {status, reviewed_at: new Date().toISOString()};
+  if(note !== null && note.trim()) payload.admin_note = note.trim();
+  const {error} = await db.from('quota_submissions').update(payload).eq('id', id);
+  if(error){ toast('Failed to update submission', 'error'); return; }
+  toast(`Submission ${status} ✓`);
+  loadSubmissions();
+}
+
+async function openSubmitDocsModal(){
+  document.getElementById('sdm-type').value='';
+  document.getElementById('sdm-period').value='';
+  document.getElementById('sdm-description').value='';
+  document.getElementById('sdm-filename').value='';
+  document.getElementById('sdm-err').textContent='';
+  openModal('submit-docs-modal');
+}
+
+async function saveDocSubmission(){
+  const type = document.getElementById('sdm-type').value;
+  const period = document.getElementById('sdm-period').value;
+  const description = document.getElementById('sdm-description').value.trim();
+  const filename = document.getElementById('sdm-filename').value.trim();
+  const errEl = document.getElementById('sdm-err');
+  if(!type){ errEl.textContent='Please select a document type.'; return; }
+  if(!description){ errEl.textContent='Please add a brief description.'; return; }
+  const payload = {
+    company: currentUser,
+    submission_type: type,
+    description,
+    period_covered: period || null,
+    file_name: filename || null,
+    status: 'pending'
+  };
+  spin(true);
+  const {error} = await db.from('quota_submissions').insert([payload]);
+  spin(false);
+  if(error){ errEl.textContent = `Failed: ${error.message}`; return; }
+  toast('Submission sent to Everfield ✓');
+  closeModal('submit-docs-modal');
 }
 
 /* ═══════════════════════════════════════

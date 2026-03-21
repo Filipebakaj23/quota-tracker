@@ -326,6 +326,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 /* SETUP SQL MODAL */
 .sql-block{background:#1e1e2e;color:#a9b8c8;padding:16px;border-radius:8px;font-size:11px;font-family:ui-monospace,monospace;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;line-height:1.6}
 
+/* SELLER MODAL — scrollable body, header+footer always visible */
+#seller-modal .modal{max-height:calc(100vh - 40px);display:flex;flex-direction:column;overflow:hidden}
+#seller-modal .modal-body{flex:1;overflow-y:auto;min-height:0}
+
 /* SELLER MODAL STAT BAR */
 .sm-stat{padding:16px 20px;border-right:1px solid var(--border);text-align:center}
 .sm-stat:last-child{border-right:none}
@@ -648,7 +652,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
       <div class="table-header">
         <div>
           <div class="table-header-title" id="sellers-title">My Team</div>
-          <div style="font-size:11px;color:var(--txt3);margin-top:2px">Click a seller name to view their full profile · Use "Periods" to configure quotas in bulk</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:2px">Click a seller name to view their profile · Use <strong>Manage Quotas</strong> to set or edit their targets</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
           <input type="text" placeholder="Search sellers…" id="seller-search" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;width:160px" oninput="renderSellers()">
@@ -1715,14 +1719,22 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 
       <!-- All entries / history -->
       <div style="padding:14px 24px 8px;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:13px;font-weight:700;color:var(--txt)">All Entries</div>
-        <button class="btn btn-ghost btn-sm" id="sm-add-btn" onclick="addEntryForCurrentSeller()">+ Add Entry</button>
+        <div>
+          <span style="font-size:13px;font-weight:700;color:var(--txt)">Entry History</span>
+          <span id="sm-entry-filter-label" style="font-size:11px;color:var(--txt3);margin-left:8px"></span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" id="sm-add-btn" onclick="addEntryForCurrentSeller()">+ Add Entry</button>
+        </div>
       </div>
       <table class="tbl" id="sm-table" style="margin-bottom:0"></table>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('seller-modal')">Close</button>
-      <button class="btn btn-primary" id="sm-set-quotas-btn" onclick="setQuotasFromProfile()">📊 Set Quotas</button>
+      <button class="btn btn-primary" id="sm-set-quotas-btn" onclick="setQuotasFromProfile()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Manage Quotas
+      </button>
     </div>
   </div>
 </div>
@@ -1766,12 +1778,65 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
   </div>
 </div>
 
+<!-- EDIT COMPANY MODAL -->
+<div class="modal-backdrop" id="edit-co-modal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <div>
+        <h2>Edit Company</h2>
+        <div id="eco-meta" style="font-size:12px;color:var(--txt3);margin-top:2px"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('edit-co-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="eco-original-name">
+      <input type="hidden" id="eco-is-custom">
+      <div class="fld">
+        <label>Company Name</label>
+        <input type="text" id="eco-name" placeholder="Company name">
+        <div class="field-hint" id="eco-name-hint" style="display:none;color:var(--txt3)">Name cannot be changed for built-in companies.</div>
+      </div>
+      <div class="fld-row">
+        <div class="fld">
+          <label>Region</label>
+          <div class="sel-wrap"><select id="eco-region" onchange="onEcoRegionChange()">
+            <option>CEE &amp; PL</option><option>DACH</option><option>France</option><option>UK&amp;I</option><option>Spain</option><option>Other</option>
+          </select></div>
+        </div>
+        <div class="fld">
+          <label>Sub-region</label>
+          <input type="text" id="eco-sub" placeholder="e.g. Vistula">
+        </div>
+      </div>
+      <div class="fld">
+        <label>Currency</label>
+        <div class="sel-wrap"><select id="eco-currency">
+          <option value="EUR">EUR — Euro (€)</option>
+          <option value="GBP">GBP — British Pound (£)</option>
+          <option value="PLN">PLN — Polish Złoty (zł)</option>
+          <option value="DKK">DKK — Danish Krone (kr)</option>
+        </select></div>
+      </div>
+      <div class="fld" style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+        <label>Access Password</label>
+        <input type="text" id="eco-password" placeholder="e.g. acme-2026" autocomplete="off">
+        <div class="field-hint">This is the password company users enter to log in.</div>
+      </div>
+      <div class="login-err" id="eco-err" style="text-align:left"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('edit-co-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditCompany()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- BULK PERIOD ENTRY MODAL -->
 <div class="modal-backdrop" id="bulk-modal">
   <div class="modal" style="max-width:700px">
     <div class="modal-head">
       <div>
-        <h2 id="bulk-title">Set Quotas by Period</h2>
+        <h2 id="bulk-title">Manage Quotas</h2>
         <div id="bulk-meta" style="font-size:12px;color:var(--txt3);margin-top:2px"></div>
       </div>
       <button class="modal-close" onclick="closeModal('bulk-modal')">×</button>
@@ -1800,27 +1865,35 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 
       <!-- Quick Fill panel -->
       <div style="padding:14px 20px;background:linear-gradient(135deg,var(--acc-light),#f0f9ff);border-bottom:2px solid var(--border)">
-        <div style="font-size:11px;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Quick Fill — apply to all periods at once</div>
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">⚡ Quick Fill — apply one value to all periods at once</div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <!-- Mode selector -->
-          <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;flex-shrink:0">
-            <button id="qf-mode-same" type="button" onclick="setQfMode('same')"
-              style="padding:7px 14px;font-size:12px;font-weight:600;background:var(--acc);color:#fff;border:none;cursor:pointer">
-              Same each period
-            </button>
-            <button id="qf-mode-spread" type="button" onclick="setQfMode('spread')"
-              style="padding:7px 14px;font-size:12px;font-weight:600;background:transparent;color:var(--txt2);border:none;cursor:pointer">
-              Spread from total
-            </button>
+          <div style="flex-shrink:0">
+            <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Mode</div>
+            <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:#fff">
+              <button id="qf-mode-same" type="button" onclick="setQfMode('same')"
+                style="padding:7px 14px;font-size:12px;font-weight:600;background:var(--acc);color:#fff;border:none;cursor:pointer">
+                Repeat per period
+              </button>
+              <button id="qf-mode-spread" type="button" onclick="setQfMode('spread')"
+                style="padding:7px 14px;font-size:12px;font-weight:600;background:transparent;color:var(--txt2);border:none;cursor:pointer">
+                Split from total
+              </button>
+            </div>
           </div>
           <!-- Amount input -->
-          <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:160px">
-            <span id="qf-sym" style="font-size:13px;color:var(--txt2);font-weight:600;flex-shrink:0">€</span>
-            <input type="number" id="qf-amount" min="0" placeholder="e.g. 10,000"
-              style="flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;color:var(--txt)">
+          <div style="flex:1;min-width:160px">
+            <div id="qf-input-label" style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Quota per period</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span id="qf-sym" style="font-size:13px;color:var(--txt2);font-weight:600;flex-shrink:0">€</span>
+              <input type="number" id="qf-amount" min="0" placeholder="e.g. 10,000"
+                style="flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;color:var(--txt)">
+            </div>
           </div>
           <!-- Helper label -->
-          <div id="qf-hint" style="font-size:11px;color:var(--txt3);min-width:140px;line-height:1.45">Same quota target<br>applied to every period</div>
+          <div id="qf-hint" style="font-size:11px;color:var(--acc2);background:rgba(124,58,237,.07);border-radius:7px;padding:7px 10px;min-width:180px;line-height:1.55">
+            Enter a value — it will be copied<br>to <strong>every period</strong> as-is
+          </div>
           <!-- Apply button -->
           <button type="button" onclick="bulkQuickFill()"
             style="padding:8px 16px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
@@ -2854,11 +2927,11 @@ function renderSellers(){
         <div class="row-actions">
           <button class="btn btn-ghost btn-sm" onclick="openSellerProfile('${s.seller_name.replace(/'/g,"\\'")}','${s.company.replace(/'/g,"\\'")}')">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            Profile
+            View Profile
           </button>
           <button class="btn btn-primary btn-sm" onclick="openBulkEntry('${s.seller_name.replace(/'/g,"\\'")}','${s.company.replace(/'/g,"\\'")}')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Set Quotas
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Manage Quotas
           </button>
         </div>
       </td>
@@ -2874,7 +2947,7 @@ function renderSellers(){
     </div>
   </td></tr>`;
   document.getElementById('sellers-table').innerHTML=`
-    <thead><tr>${coHead}<th>Seller</th><th>Quota Type</th><th style="text-align:right">Periods</th><th>Current Period</th><th style="text-align:right">Avg Att%</th><th></th></tr></thead>
+    <thead><tr>${coHead}<th>Seller</th><th>Quota Type</th><th style="text-align:right">Periods</th><th>${displayPeriod(periodStr())}</th><th style="text-align:right">Avg Att%</th><th></th></tr></thead>
     <tbody>${rows||emptySellerState}</tbody>`;
 }
 
@@ -3054,6 +3127,20 @@ let _modalForceCo = null; // company override when entry modal opens from seller
 let smPType = 'Monthly';
 let smYear  = new Date().getFullYear();
 
+/* Sort helper — converts a period string to a comparable key for chronological ordering */
+function periodToSortKey(p){
+  const parts = p.split('|');
+  if(parts[0]==='Monthly'){
+    const idx = MONTHS.indexOf(parts[1]);
+    return `${parts[2]}-1-${String(idx).padStart(2,'0')}`;
+  } else if(parts[0]==='Quarterly'){
+    const idx = QUARTERS.indexOf(parts[1]);
+    return `${parts[2]}-2-${idx}`;
+  } else {
+    return `${parts[1]}-3-0`;
+  }
+}
+
 function openSellerProfile(sellerName, company){
   sellerModalName = sellerName;
   sellerModalCompany = company;
@@ -3072,24 +3159,26 @@ function openSellerProfile(sellerName, company){
 function setSmPType(t){
   smPType = t;
   document.querySelectorAll('.sm-seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.pt===t));
-  renderSmPlan();
+  renderSellerProfile();
 }
 
 function setSmYear(y){
   smYear = y;
   document.getElementById('sm-year-display').textContent = y;
-  renderSmPlan();
+  renderSellerProfile();
 }
 
 function renderSellerProfile(){
   const name = sellerModalName;
   const co = sellerModalCompany;
+  // All entries for this seller, sorted chronologically (oldest first)
   const sellerEntries = allEntries
     .filter(e => e.seller_name === name && e.company === co)
-    .sort((a,b) => b.period.localeCompare(a.period));
+    .sort((a,b) => periodToSortKey(a.period).localeCompare(periodToSortKey(b.period)));
 
-  const rc = sellerEntries[0]?.currency || coCurrency(co);
-  const latestEntry = sellerEntries[0];
+  // latestEntry = the most recently created entry (use reverse-chrono for metadata)
+  const latestEntry = [...sellerEntries].sort((a,b)=>b.period.localeCompare(a.period))[0];
+  const rc = latestEntry?.currency || coCurrency(co);
   const role = latestEntry?.role || '';
   const quotaType = latestEntry?.quota_type || '';
   const isActive = latestEntry?.is_active !== false;
@@ -3121,8 +3210,20 @@ function renderSellerProfile(){
   // Render quota plan
   renderSmPlan();
 
-  // All-entries history table
-  const rows = sellerEntries.map(r => {
+  // Filter entries for "Entry History" table to match selected period type + year
+  const year = String(smYear);
+  const filteredEntries = sellerEntries.filter(r => {
+    const parts = r.period.split('|');
+    if(smPType==='Monthly')   return parts[0]==='Monthly'   && parts[2]===year;
+    if(smPType==='Quarterly') return parts[0]==='Quarterly' && parts[2]===year;
+    return parts[0]==='Yearly' && parts[1]===year;
+  });
+
+  // Update filter label
+  const filterLabel = document.getElementById('sm-entry-filter-label');
+  if(filterLabel) filterLabel.textContent = `Showing ${smPType} · ${year}  (${filteredEntries.length} of ${sellerEntries.length} total)`;
+
+  const rows = filteredEntries.map(r => {
     const p = attPct(r.achieved, r.quota);
     const achCell = r.crm_pull
       ? `<td class="num"><span class="badge badge-crm">🔗 CRM</span></td>`
@@ -3138,15 +3239,18 @@ function renderSellerProfile(){
       <td class="num"><span class="badge badge-${attClass(p)}" style="min-width:44px;text-align:center">${p}%</span></td>
       ${activeCell}
       <td><div class="row-actions">
-        <button class="btn btn-ghost btn-sm btn-icon" onclick="editFromProfile(${JSON.stringify(r).replace(/"/g,'&quot;')})" title="Edit">✏️</button>
-        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteFromProfile('${r.id}')" title="Delete">🗑</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteFromProfile('${r.id}')" title="Delete entry">🗑</button>
       </div></td>
     </tr>`;
   }).join('');
 
+  const emptyMsg = filteredEntries.length===0 && sellerEntries.length>0
+    ? `<tr class="empty-row"><td colspan="6">No ${smPType.toLowerCase()} entries for ${year} — use <strong>Manage Quotas</strong> to add them</td></tr>`
+    : `<tr class="empty-row"><td colspan="6">No entries yet — click <strong>Manage Quotas</strong> to start</td></tr>`;
+
   document.getElementById('sm-table').innerHTML = `
     <thead><tr><th>Period</th><th>Type</th><th style="text-align:right">Quota</th><th style="text-align:right">Achieved</th><th style="text-align:right">Att%</th><th>Status</th><th></th></tr></thead>
-    <tbody>${rows || '<tr class="empty-row"><td colspan="7">No entries yet — click "+ Add Entry" or "Set Quotas" to start</td></tr>'}</tbody>`;
+    <tbody>${rows || emptyMsg}</tbody>`;
 }
 
 function renderSmPlan(){
@@ -3244,13 +3348,25 @@ async function deleteFromProfile(id){
 function renderCompanies(){
   const rows=allCompanies().map(c=>{
     const isCustom=!!c.custom;
+    const pw=getPw(c.name);
     const deleteBtn=isCustom?`<button class="btn btn-danger btn-sm" onclick="deleteCompany('${c.name}')">Remove</button>`:'<span class="badge badge-gray">Built-in</span>';
     return `<tr>
-      <td style="font-weight:600">${c.name}</td>
+      <td>
+        <div style="font-weight:700">${c.name}</div>
+        <div style="font-size:11px;color:var(--txt3)">Password: <span class="mono" style="font-size:11px">${pw}</span></div>
+      </td>
       <td><span class="badge badge-gray">${c.region}</span></td>
-      <td>${c.sub}</td>
+      <td style="font-size:12px;color:var(--txt2)">${c.sub||'—'}</td>
       <td><span class="badge badge-blue">${c.currency||'EUR'}</span></td>
-      <td>${deleteBtn}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openEditCompanyModal('${c.name.replace(/'/g,"\\'")}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Edit
+          </button>
+          ${deleteBtn}
+        </div>
+      </td>
     </tr>`;
   }).join('');
   document.getElementById('companies-table').innerHTML=`
@@ -3308,6 +3424,76 @@ async function deleteCompany(name){
   buildLoginDropdown();
   renderCompanies();
   toast('Company removed');
+  spin(false);
+}
+
+function openEditCompanyModal(coName){
+  const co = allCompanies().find(c=>c.name===coName);
+  if(!co) return;
+  const isCustom = !!co.custom;
+  const pw = getPw(coName);
+  document.getElementById('eco-original-name').value = coName;
+  document.getElementById('eco-is-custom').value = isCustom ? '1' : '0';
+  document.getElementById('eco-name').value = coName;
+  document.getElementById('eco-name').disabled = !isCustom;
+  const hint = document.getElementById('eco-name-hint');
+  if(hint) hint.style.display = isCustom ? 'none' : '';
+  document.getElementById('eco-region').value = co.region || 'CEE & PL';
+  document.getElementById('eco-sub').value = co.sub || '';
+  document.getElementById('eco-currency').value = co.currency || 'EUR';
+  document.getElementById('eco-password').value = pw;
+  document.getElementById('eco-err').textContent = '';
+  document.getElementById('eco-meta').textContent = isCustom ? 'Custom company — all fields editable' : 'Built-in company — name is locked';
+  // Disable region/sub/currency for built-in companies too? No — allow region/currency edits via password table for built-ins
+  openModal('edit-co-modal');
+}
+
+function onEcoRegionChange(){
+  const region = document.getElementById('eco-region').value;
+  const defaults = {'CEE & PL':'Vistula','DACH':'Danube','France':'France','UK&I':'Tamar','Spain':'Spain'};
+  const currencies = {'UK&I':'GBP','CEE & PL':'PLN'};
+  if(!document.getElementById('eco-sub').value || Object.values(defaults).includes(document.getElementById('eco-sub').value)){
+    document.getElementById('eco-sub').value = defaults[region] || '';
+  }
+  if(currencies[region]) document.getElementById('eco-currency').value = currencies[region];
+  else document.getElementById('eco-currency').value = 'EUR';
+}
+
+async function saveEditCompany(){
+  const originalName = document.getElementById('eco-original-name').value;
+  const isCustom = document.getElementById('eco-is-custom').value === '1';
+  const newName = isCustom ? document.getElementById('eco-name').value.trim() : originalName;
+  const region = document.getElementById('eco-region').value;
+  const sub = document.getElementById('eco-sub').value.trim();
+  const currency = document.getElementById('eco-currency').value;
+  const pw = document.getElementById('eco-password').value.trim();
+  const errEl = document.getElementById('eco-err');
+  if(!newName){ errEl.textContent='Company name is required.'; return; }
+  if(!pw){ errEl.textContent='Password cannot be empty.'; return; }
+  spin(true);
+  // Update custom_companies if custom
+  if(isCustom){
+    const {error} = await db.from('custom_companies').update({name:newName,region,sub_region:sub,currency}).eq('name',originalName);
+    if(error){ errEl.textContent='Save failed: '+error.message; spin(false); return; }
+    // Update local array
+    const idx = customCompanies.findIndex(c=>c.name===originalName);
+    if(idx>=0) customCompanies[idx] = {...customCompanies[idx], name:newName, region, sub, currency};
+  }
+  // Always update password
+  await savePassword(originalName, pw);
+  // If name changed, update password entry to new name
+  if(isCustom && newName !== originalName){
+    await db.from('company_passwords').upsert([{company:newName, password:pw, updated_at:new Date().toISOString()}]);
+    passwords[newName] = pw;
+    delete passwords[originalName];
+  } else {
+    passwords[originalName] = pw;
+  }
+  closeModal('edit-co-modal');
+  buildLoginDropdown();
+  renderCompanies();
+  if(currentView==='passwords') renderPasswords();
+  toast(`"${newName}" updated ✓`);
   spin(false);
 }
 
@@ -3593,7 +3779,7 @@ function openBulkEntry(sellerName, company){
   bulkPType = 'Monthly';
   qfMode = 'same';
   document.getElementById('bulk-title').textContent = sellerName;
-  document.getElementById('bulk-meta').textContent = company + ' · Set a different quota for each period, or use Quick Fill to apply one value to all';
+  document.getElementById('bulk-meta').textContent = company + ' · Set or edit targets per period — use Quick Fill to populate all at once';
   document.getElementById('bulk-year').value = pYear;
   document.getElementById('bulk-currency').value = coCurrency(company);
   document.getElementById('bulk-err').textContent = '';
@@ -3629,12 +3815,16 @@ function setQfMode(mode){
 
 function updateQfHint(){
   const hint = document.getElementById('qf-hint');
+  const inputLabel = document.getElementById('qf-input-label');
   if(!hint) return;
   const slotCount = bulkPType==='Monthly' ? 12 : bulkPType==='Quarterly' ? 4 : 1;
+  const periodWord = bulkPType==='Monthly' ? 'month' : bulkPType==='Quarterly' ? 'quarter' : 'year';
   if(qfMode==='same'){
-    hint.innerHTML = `Same quota target<br>applied to every period`;
+    hint.innerHTML = `<strong>Repeat per period:</strong> The value you enter is copied to every ${periodWord} as-is.<br><span style="color:var(--txt3)">e.g. 10,000 → 10,000 × ${slotCount} ${periodWord}s</span>`;
+    if(inputLabel) inputLabel.textContent = `Quota per ${periodWord}`;
   } else {
-    hint.innerHTML = `Annual total ÷ ${slotCount}<br>distributed evenly`;
+    hint.innerHTML = `<strong>Split from total:</strong> Enter a grand total — it will be divided equally across all ${slotCount} ${periodWord}s.<br><span style="color:var(--txt3)">e.g. 120,000 ÷ ${slotCount} = ${Math.round(120000/slotCount).toLocaleString()} per ${periodWord}</span>`;
+    if(inputLabel) inputLabel.textContent = `Total to split across all ${periodWord}s`;
   }
   // Update sym
   const curr = document.getElementById('bulk-currency')?.value || 'EUR';
@@ -4214,7 +4404,7 @@ const CHANGELOG = [
   },
   {
     version: 'v1.0',
-    date: 'January 2026',
+    date: 'March 2026',
     title: 'Initial Launch',
     items: [
       {tag:'feat', text:'Multi-company quota tracking with period navigation (Monthly / Quarterly / Yearly)'},

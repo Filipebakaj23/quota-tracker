@@ -247,8 +247,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 .admin-drill-back:hover{border-color:var(--acc);color:var(--acc)}
 
 /* FEEDBACK FLOATING BUTTON */
-#feedback-fab{position:fixed;bottom:80px;right:24px;z-index:800;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:50px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:var(--shadow-acc);display:none;align-items:center;gap:7px;font-family:var(--font);transition:box-shadow .2s,transform .2s}
-#feedback-fab:hover{box-shadow:0 10px 30px rgba(124,58,237,.45);transform:translateY(-2px)}
+/* feedback-fab removed — feedback accessible via sidebar */
 
 /* CHANGELOG */
 .changelog-entry{padding:20px 0;border-bottom:1px solid var(--border)}
@@ -352,15 +351,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 .bulk-fmt-hint{font-size:10px;color:var(--txt3);text-align:right;margin-top:2px;font-family:var(--font-display)}
 
 /* INLINE COMMENT SYSTEM */
-#comment-mode-btn{position:fixed;bottom:24px;right:80px;z-index:800;background:#1e1e2e;color:#a9b8c8;border:1.5px solid rgba(255,255,255,.15);border-radius:50px;padding:8px 15px;font-size:12px;font-weight:700;cursor:pointer;display:none;align-items:center;gap:6px;font-family:var(--font);transition:all .2s}
-#comment-mode-btn.active{background:var(--amber);color:#fff;border-color:var(--amber)}
-#comment-mode-btn:hover{transform:translateY(-2px)}
+#header-note-btn{display:none;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;color:rgba(255,255,255,.7);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;font-family:var(--font)}
+#header-note-btn:hover{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.3)}
+#header-note-btn.active{background:var(--amber);border-color:var(--amber);color:#fff;box-shadow:0 3px 12px rgba(180,83,9,.35)}
 .comment-pin{position:fixed;width:26px;height:26px;border-radius:50%;background:var(--amber);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:900;box-shadow:0 3px 10px rgba(180,83,9,.4);transform:translate(-50%,-50%);transition:transform .15s;font-family:var(--font-display)}
 .comment-pin:hover{transform:translate(-50%,-50%) scale(1.15)}
 #comment-input-bubble{position:fixed;z-index:1100;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);padding:14px;width:260px;display:none}
 #comment-input-bubble textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;font-family:var(--font);resize:none;min-height:72px;outline:none;transition:border-color .15s}
 #comment-input-bubble textarea:focus{border-color:var(--acc)}
-#comment-sidebar{position:fixed;right:0;top:0;height:100vh;width:280px;background:#fff;border-left:1px solid var(--border);z-index:700;display:none;flex-direction:column;box-shadow:-8px 0 32px rgba(0,0,0,.08)}
+/* comment-sidebar removed — all feedback visible in Feedback Inbox view */
 
 /* EMPTY STATE */
 .empty-state{text-align:center;padding:60px 20px;color:var(--txt3)}
@@ -482,17 +481,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
   </div>
 </div>
 
-<!-- FEEDBACK FLOATING BUTTON (shown after login) -->
-<button id="feedback-fab" onclick="showView('feedback',document.querySelector('[data-view=feedback]'))">
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-  Feedback
-</button>
-
-<!-- ADMIN INLINE COMMENT BUTTON -->
-<button id="comment-mode-btn" onclick="toggleCommentMode()" title="Toggle comment mode — click anywhere to leave a note">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-  💬 Comment
-</button>
+<!-- floating buttons removed — feedback via sidebar, comments via header -->
 
 <!-- COMMENT INPUT BUBBLE -->
 <div id="comment-input-bubble">
@@ -504,14 +493,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
   </div>
 </div>
 
-<!-- COMMENT SIDEBAR -->
-<div id="comment-sidebar">
-  <div style="padding:16px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-    <div style="font-size:14px;font-weight:700;color:var(--txt);font-family:var(--font-display)">💬 Comments</div>
-    <button onclick="toggleCommentSidebar(false)" style="background:none;border:none;cursor:pointer;color:var(--txt3);font-size:18px">×</button>
-  </div>
-  <div id="comment-sidebar-list" style="flex:1;overflow-y:auto;padding:12px"></div>
-</div>
+<!-- comment-sidebar removed — see view-feedback for admin inbox -->
 
 <!-- APP -->
 <div id="app">
@@ -593,7 +575,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
     </div>
     <div class="nav-item" data-view="feedback" onclick="showView('feedback',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span>Feedback</span>
+      <span id="fb-nav-label">Feedback</span>
+      <span id="fb-nav-badge" style="display:none;margin-left:auto;background:var(--amber);color:#fff;font-size:10px;font-weight:800;border-radius:10px;padding:1px 6px;min-width:18px;text-align:center;font-family:var(--font-display)"></span>
     </div>
   </nav>
   <div class="sb-user">
@@ -624,6 +607,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
         <select class="period-select" id="period-val-1" onchange="onPeriodChange()" style="display:none"></select>
         <select class="period-select" id="period-val-2" onchange="onPeriodChange()" style="display:none"></select>
       </div>
+      <!-- Admin: inline note button (always visible in header when admin is logged in) -->
+      <button id="header-note-btn" onclick="toggleCommentMode()" title="Click to enter note mode, then click anywhere on the page to leave a note">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Add Note
+      </button>
       <button class="btn btn-primary btn-sm" id="add-btn" onclick="openNewSellerModal()" style="display:none">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         <span>Add Entry</span>
@@ -1060,40 +1048,59 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 
   <!-- FEEDBACK VIEW -->
   <div class="view" id="view-feedback">
-    <div class="sec-header">
-      <div><div class="sec-title">Share Feedback</div><div class="sec-sub">Help us improve the platform — your input shapes the next update</div></div>
-    </div>
-    <div style="max-width:600px">
-      <div class="table-card" style="padding:28px">
-        <div style="font-size:15px;font-weight:700;color:var(--txt);margin-bottom:4px">Tell us what you think</div>
-        <div style="font-size:13px;color:var(--txt2);margin-bottom:24px;line-height:1.6">Every piece of feedback is reviewed by the Everfield team. Use this to report issues, request features, or share ideas — no matter how small.</div>
-        <div class="fld">
-          <label>Category</label>
-          <div class="sel-wrap">
-            <select id="fb-category">
-              <option value="">Select a category…</option>
-              <option value="Bug report">🐛 Bug report — something isn't working</option>
-              <option value="Feature request">✨ Feature request — something I'd love to have</option>
-              <option value="UI improvement">🎨 UI improvement — easier to use or understand</option>
-              <option value="Data / accuracy">📊 Data / accuracy — numbers look wrong</option>
-              <option value="Other">💬 Other</option>
-            </select>
+    <!-- COMPANY USER: feedback submission form -->
+    <div id="fb-user-panel">
+      <div class="sec-header">
+        <div><div class="sec-title">Share Feedback</div><div class="sec-sub">Report a bug, request a feature, or share an idea — we read everything</div></div>
+      </div>
+      <div style="max-width:600px">
+        <div class="table-card" style="padding:28px">
+          <div class="fld">
+            <label>Category</label>
+            <div class="sel-wrap">
+              <select id="fb-category">
+                <option value="">Select a category…</option>
+                <option value="Bug report">🐛 Bug — something isn't working</option>
+                <option value="Feature request">✨ Feature — something I'd love to have</option>
+                <option value="UI improvement">🎨 UI — easier to use or understand</option>
+                <option value="Data / accuracy">📊 Data — numbers look wrong</option>
+                <option value="Other">💬 Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="fld">
+            <label>Your feedback</label>
+            <textarea id="fb-text" rows="5" placeholder="Describe the issue or idea…" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;resize:vertical;font-family:inherit;color:var(--txt);line-height:1.6"></textarea>
+          </div>
+          <div class="login-err" id="fb-err" style="text-align:left;margin-bottom:10px"></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button class="btn btn-primary" onclick="saveFeedback()">Submit Feedback</button>
+            <span id="fb-success" style="display:none;font-size:13px;color:var(--green);font-weight:600">✓ Sent! Thank you.</span>
+          </div>
+          <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
+            <div style="font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:12px">Your previous submissions</div>
+            <div id="fb-history"></div>
           </div>
         </div>
-        <div class="fld">
-          <label>Your feedback</label>
-          <textarea id="fb-text" rows="5" placeholder="Describe the issue, idea, or suggestion in as much detail as you like…" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;resize:vertical;font-family:inherit;color:var(--txt);line-height:1.6"></textarea>
-        </div>
-        <div class="login-err" id="fb-err" style="text-align:left;margin-bottom:10px"></div>
-        <div style="display:flex;gap:10px;align-items:center">
-          <button class="btn btn-primary" onclick="saveFeedback()">Submit Feedback</button>
-          <span id="fb-success" style="display:none;font-size:13px;color:var(--green);font-weight:600">✓ Thank you! Your feedback was sent.</span>
-        </div>
-        <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
-          <div id="fb-history-title" style="font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:12px">Your Previous Submissions</div>
-          <div id="fb-history"></div>
-        </div>
       </div>
+    </div>
+
+    <!-- ADMIN: feedback inbox -->
+    <div id="fb-admin-panel" style="display:none">
+      <div class="sec-header">
+        <div>
+          <div class="sec-title">Feedback Inbox</div>
+          <div class="sec-sub">All feedback from company users + inline notes you've left on the platform</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadFeedbackInbox()">↺ Refresh</button>
+      </div>
+      <!-- Filter tabs -->
+      <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px">
+        <button id="fbi-tab-all" onclick="setFbiTab('all')" style="padding:10px 18px;font-size:13px;font-weight:600;background:none;border:none;border-bottom:2px solid var(--acc);margin-bottom:-2px;cursor:pointer;color:var(--acc)">All</button>
+        <button id="fbi-tab-form" onclick="setFbiTab('form')" style="padding:10px 18px;font-size:13px;font-weight:600;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;color:var(--txt3)">Form submissions</button>
+        <button id="fbi-tab-notes" onclick="setFbiTab('notes')" style="padding:10px 18px;font-size:13px;font-weight:600;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;color:var(--txt3)">Inline notes</button>
+      </div>
+      <div id="fb-inbox-list"></div>
     </div>
   </div>
 
@@ -2366,10 +2373,11 @@ async function loginAs(co){
   } else {
     setTimeout(()=>maybeShowOnboarding(co), 900);
   }
-  // Show feedback FAB for all users
-  const fab = document.getElementById('feedback-fab');
-  if(fab) fab.style.display = 'flex';
-  if(isAdmin()) initCommentSystem();
+  // Post-login setup
+  if(isAdmin()){
+    initCommentSystem();
+    updateFeedbackBadge();
+  }
 }
 
 function doLogout(){
@@ -2714,7 +2722,7 @@ function renderCurrentView(){
   else if(currentView==='submissions') loadSubmissions();
   else if(currentView==='submit-docs') renderSubmitDocsView();
   else if(currentView==='changelog') renderChangelog();
-  else if(currentView==='feedback'){ renderChangelog(); loadFeedbackHistory(); }
+  else if(currentView==='feedback'){ renderFeedbackView(); }
   // getting-started is static HTML — no render function needed
 }
 
@@ -4407,6 +4415,136 @@ function adminClearDrill(){
 /* ═══════════════════════════════════════
    FEEDBACK FORM
 ═══════════════════════════════════════ */
+/* ═══════════════════════════════════════
+   FEEDBACK VIEW (user form / admin inbox)
+═══════════════════════════════════════ */
+let fbiTab = 'all'; // 'all' | 'form' | 'notes'
+
+function renderFeedbackView(){
+  const userPanel  = document.getElementById('fb-user-panel');
+  const adminPanel = document.getElementById('fb-admin-panel');
+  if(!userPanel || !adminPanel) return;
+  if(isAdmin()){
+    userPanel.style.display  = 'none';
+    adminPanel.style.display = '';
+    loadFeedbackInbox();
+  } else {
+    userPanel.style.display  = '';
+    adminPanel.style.display = 'none';
+    loadFeedbackHistory();
+  }
+}
+
+async function updateFeedbackBadge(){
+  if(!isAdmin()) return;
+  const badge = document.getElementById('fb-nav-badge');
+  const label = document.getElementById('fb-nav-label');
+  if(!badge) return;
+  const {data} = await db.from('quota_submissions')
+    .select('id', {count:'exact'})
+    .eq('status','pending');
+  const count = data?.length || 0;
+  if(count > 0){
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.display = 'inline-block';
+    if(label) label.textContent = 'Feedback';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function setFbiTab(tab){
+  fbiTab = tab;
+  ['all','form','notes'].forEach(t=>{
+    const el = document.getElementById(`fbi-tab-${t}`);
+    if(!el) return;
+    const active = t === tab;
+    el.style.borderBottomColor = active ? 'var(--acc)' : 'transparent';
+    el.style.color = active ? 'var(--acc)' : 'var(--txt3)';
+    el.style.fontWeight = active ? '700' : '600';
+  });
+  loadFeedbackInbox();
+}
+
+async function loadFeedbackInbox(){
+  const list = document.getElementById('fb-inbox-list');
+  if(!list) return;
+  list.innerHTML = '<div style="color:var(--txt3);font-size:13px;padding:20px">Loading…</div>';
+
+  let query = db.from('quota_submissions').select('*').order('created_at',{ascending:false});
+  if(fbiTab === 'notes') query = query.eq('submission_type','page_comment');
+  else if(fbiTab === 'form') query = query.neq('submission_type','page_comment');
+
+  const {data, error} = await query.limit(100);
+  // Also refresh badge
+  updateFeedbackBadge();
+
+  if(error || !data || !data.length){
+    list.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--txt3)">
+      <div style="font-size:36px;margin-bottom:10px">💬</div>
+      <div style="font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:4px">No feedback yet</div>
+      <div style="font-size:13px">Company users submit via the Feedback page in the sidebar.<br>You can leave inline notes using the <strong>Add Note</strong> button in the header.</div>
+    </div>`;
+    return;
+  }
+
+  const tagColor = {
+    'Bug report':'var(--red)', 'Feature request':'var(--acc)',
+    'UI improvement':'var(--blue)', 'Data / accuracy':'var(--amber)',
+    'page_comment':'var(--amber)', 'Other':'var(--txt3)'
+  };
+  const tagIcon = {
+    'Bug report':'🐛','Feature request':'✨','UI improvement':'🎨',
+    'Data / accuracy':'📊','page_comment':'📌','Other':'💬'
+  };
+
+  list.innerHTML = data.map(s=>{
+    const isNote = s.submission_type === 'page_comment';
+    let pos = {}; if(isNote){ try{pos=JSON.parse(s.file_ref||'{}')}catch(e){} }
+    const date = new Date(s.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const time = new Date(s.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    const icon = tagIcon[s.submission_type] || '💬';
+    const color = tagColor[s.submission_type] || 'var(--txt3)';
+    const typeLabel = isNote ? 'Inline note' : s.submission_type;
+    const context = isNote
+      ? `<span style="font-size:11px;background:var(--amber-bg);color:var(--amber);border-radius:5px;padding:2px 7px;font-weight:600">📌 Note · ${pos.view||'page'}</span>`
+      : `<span style="font-size:11px;padding:2px 7px;border-radius:5px;font-weight:600;background:var(--bg2);color:var(--txt2)">${icon} ${typeLabel}</span>`;
+    const statusBadge = !isNote
+      ? `<span class="badge badge-${s.status==='pending'?'amber':s.status==='approved'?'green':'red'}" style="font-size:10px">${s.status||'pending'}</span>`
+      : '';
+    const content = s.notes || s.description || '—';
+    return `<div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          ${context}
+          ${statusBadge}
+          <span style="font-size:11px;color:var(--txt3);font-weight:500">${s.company||'unknown'} · ${date} ${time}</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          ${!isNote && s.status==='pending' ? `<button onclick="markFeedbackDone('${s.id}')" style="font-size:11px;padding:4px 9px;background:var(--green-bg);color:var(--green);border:1px solid var(--green);border-radius:6px;cursor:pointer;font-weight:600">✓ Mark done</button>` : ''}
+          <button onclick="deleteFeedbackItem('${s.id}')" style="font-size:11px;padding:4px 9px;background:#fff;color:var(--txt3);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-weight:600">🗑</button>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--txt);line-height:1.6">${content}</div>
+    </div>`;
+  }).join('');
+}
+
+async function markFeedbackDone(id){
+  await db.from('quota_submissions').update({status:'approved'}).eq('id',id);
+  loadFeedbackInbox();
+  toast('Marked as done ✓');
+}
+
+async function deleteFeedbackItem(id){
+  if(!confirm('Delete this feedback item?')) return;
+  await db.from('quota_submissions').delete().eq('id',id);
+  inlineComments = inlineComments.filter(c=>c.id!==id);
+  renderCommentPins();
+  loadFeedbackInbox();
+  toast('Deleted');
+}
+
 async function saveFeedback(){
   const cat = document.getElementById('fb-category').value;
   const text = document.getElementById('fb-text').value.trim();
@@ -4538,7 +4676,7 @@ let commentCount = 0;
 
 function initCommentSystem(){
   if(!isAdmin()) return;
-  const btn = document.getElementById('comment-mode-btn');
+  const btn = document.getElementById('header-note-btn');
   if(btn) btn.style.display = 'flex';
   document.addEventListener('click', onPageClick, true);
   loadInlineComments();
@@ -4582,8 +4720,11 @@ async function saveInlineComment(){
   await db.from('quota_submissions').insert([payload]);
   document.getElementById('comment-input-bubble').style.display = 'none';
   cancelInlineComment();
+  // Exit note mode automatically after posting
+  if(commentMode) toggleCommentMode();
   await loadInlineComments();
-  toast('Comment saved','success');
+  updateFeedbackBadge();
+  toast('Note saved — view it in Feedback Inbox','success');
 }
 
 function cancelInlineComment(){
@@ -4618,46 +4759,28 @@ function renderCommentPins(){
 
 function toggleCommentMode(){
   commentMode = !commentMode;
-  const btn = document.getElementById('comment-mode-btn');
-  if(btn) btn.classList.toggle('active', commentMode);
+  const btn = document.getElementById('header-note-btn');
+  if(btn){
+    btn.classList.toggle('active', commentMode);
+    btn.innerHTML = commentMode
+      ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Cancel Note`
+      : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Add Note`;
+  }
   document.body.style.cursor = commentMode ? 'crosshair' : '';
-  if(commentMode) toast('Comment mode ON — click anywhere to leave a note','info');
+  if(commentMode) toast('Note mode ON — click anywhere on the page to leave a note','info');
   else { cancelInlineComment(); document.body.style.cursor=''; }
 }
 
 function toggleCommentSidebar(show, scrollTo){
-  const sb = document.getElementById('comment-sidebar');
-  if(!sb) return;
-  sb.style.display = show ? 'flex' : 'none';
-  if(show && scrollTo !== undefined){
-    setTimeout(()=>{
-      const el = sb.querySelector(`[data-ci="${scrollTo}"]`);
-      if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
-    }, 100);
-  }
+  // Replaced floating sidebar — show feedback inbox page instead
+  if(show) showView('feedback', document.querySelector('[data-view=feedback]'));
 }
 
 function renderCommentSidebar(){
-  const list = document.getElementById('comment-sidebar-list');
-  if(!list) return;
-  if(!inlineComments.length){
-    list.innerHTML = '<div style="text-align:center;padding:30px 16px;color:var(--txt3);font-size:13px">No comments yet.<br>Enable comment mode and click anywhere on the page to leave a note.</div>';
-    return;
-  }
-  list.innerHTML = inlineComments.map((c,i)=>{
-    let pos = {view:'all'}; try{ pos=JSON.parse(c.file_ref||'{}'); }catch(e){}
-    const date = new Date(c.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-    return `<div data-ci="${i}" style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:8px;border:1.5px solid var(--border)">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="width:22px;height:22px;border-radius:50%;background:var(--amber);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
-          <div style="font-size:10px;color:var(--txt3)">${pos.view||''} · ${date}</div>
-        </div>
-        <button onclick="deleteInlineComment('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--txt3);font-size:14px;padding:0;line-height:1">🗑</button>
-      </div>
-      <div style="font-size:13px;color:var(--txt);line-height:1.5">${c.notes}</div>
-    </div>`;
-  }).join('');
+  // Update the badge count on the Feedback nav item
+  updateFeedbackBadge();
+  // If the feedback inbox is currently showing, refresh it
+  if(currentView === 'feedback' && isAdmin()) loadFeedbackInbox();
 }
 
 async function deleteInlineComment(id){

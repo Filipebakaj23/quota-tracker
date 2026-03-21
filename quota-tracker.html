@@ -4571,13 +4571,13 @@ async function loadFeedbackInbox(){
 
   list.innerHTML = data.map(s=>{
     const isNote = s.submission_type === 'page_comment';
-    let pos = {}; if(isNote){ try{pos=JSON.parse(s.file_ref||'{}')}catch(e){} }
+    let pos = {}; if(isNote){ try{pos=JSON.parse(s.file_name||'{}')}catch(e){} }
     const date = new Date(s.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
     const time = new Date(s.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     const icon = tagIcon[s.submission_type] || '💬';
     const typeLabel = isNote ? 'Inline Note' : s.submission_type;
     const accentColor = isNote ? 'var(--amber)' : (tagColor[s.submission_type]||'var(--acc)');
-    const content = s.notes || s.description || '—';
+    const content = s.description || '—';
 
     // Action buttons
     const resolveBtn = s.status !== 'pending' ? '' :
@@ -4862,11 +4862,10 @@ async function saveInlineComment(){
   if(!text) return;
   const xPct = Math.round(pendingCommentX / window.innerWidth * 1000) / 10;
   const yPct = Math.round(pendingCommentY / window.innerHeight * 1000) / 10;
+  // Store position JSON in file_name (only real column available for this purpose)
   const payload = {
     company: 'admin',
-    seller_name: currentUser || 'admin',
-    file_ref: JSON.stringify({x:xPct, y:yPct, view:currentView}),
-    notes: text,
+    file_name: JSON.stringify({x:xPct, y:yPct, view:currentView}),
     description: text,
     submission_type: 'page_comment',
     period_covered: 'Inline Note',
@@ -4919,13 +4918,13 @@ function renderCommentPins(){
   document.querySelectorAll('.comment-pin').forEach(p=>p.remove());
   inlineComments.forEach((c,i)=>{
     let pos = {x:50,y:50,view:'all'};
-    try{ pos = JSON.parse(c.file_ref||'{}'); }catch(e){}
+    try{ pos = JSON.parse(c.file_name||'{}'); }catch(e){}
     if(pos.view && pos.view !== 'all' && pos.view !== currentView) return;
     const pin = document.createElement('div');
     pin.className = 'comment-pin';
     pin.dataset.noteId = c.id;
     pin.textContent = i+1;
-    pin.title = c.notes || c.description || '';
+    pin.title = c.description || '';
     pin.style.left = pos.x + 'vw';
     pin.style.top = pos.y + 'vh';
     pin.onclick = (e)=>{ e.stopPropagation(); toggleCommentSidebar(true, i); };

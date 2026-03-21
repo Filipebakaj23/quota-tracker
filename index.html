@@ -4468,6 +4468,7 @@ async function loadDashFeedbackWidget(){
     .select('id,submission_type,company,created_at,period_covered')
     .eq('status','pending')
     .or('period_covered.eq.Platform Feedback,submission_type.eq.page_comment')
+    .neq('status','deleted')
     .order('created_at',{ascending:false})
     .limit(3);
   const count = data?.length || 0;
@@ -4509,7 +4510,8 @@ async function updateFeedbackBadge(){
   const {data} = await db.from('quota_submissions')
     .select('id')
     .eq('status','pending')
-    .or('period_covered.eq.Platform Feedback,submission_type.eq.page_comment');
+    .or('period_covered.eq.Platform Feedback,submission_type.eq.page_comment')
+    .neq('status','deleted');
   const count = data?.length || 0;
   if(count > 0){
     badge.textContent = count > 99 ? '99+' : count;
@@ -4538,7 +4540,7 @@ async function loadFeedbackInbox(){
   if(!list) return;
   list.innerHTML = '<div style="color:var(--txt3);font-size:13px;padding:20px">Loading…</div>';
 
-  let query = db.from('quota_submissions').select('*').order('created_at',{ascending:false});
+  let query = db.from('quota_submissions').select('*').neq('status','deleted').order('created_at',{ascending:false});
   if(fbiTab === 'notes') query = query.eq('submission_type','page_comment');
   else if(fbiTab === 'form') query = query.eq('period_covered','Platform Feedback');
   else {
@@ -4690,10 +4692,12 @@ async function markFeedbackDone(id){
 
 async function deleteFeedbackItem(id){
   if(!confirm('Delete this feedback item?')) return;
-  await db.from('quota_submissions').delete().eq('id',id);
+  // Soft-delete: quota_submissions has no DELETE RLS policy, use status flag instead
+  await db.from('quota_submissions').update({status:'deleted'}).eq('id',id);
   inlineComments = inlineComments.filter(c=>c.id!==id);
   renderCommentPins();
   loadFeedbackInbox();
+  updateFeedbackBadge();
   toast('Deleted');
 }
 
@@ -4907,7 +4911,7 @@ function jumpToNoteView(viewName, noteId){
 
 async function loadInlineComments(){
   if(!dbTables.company_logins) return; // DB not set up yet
-  const {data} = await db.from('quota_submissions').select('*').eq('submission_type','page_comment').order('created_at',{ascending:true});
+  const {data} = await db.from('quota_submissions').select('*').eq('submission_type','page_comment').neq('status','deleted').order('created_at',{ascending:true});
   inlineComments = data || [];
   renderCommentPins();
   renderCommentSidebar();
@@ -5013,6 +5017,7 @@ async function loadSubmissions(){
   const {data, error} = await db.from('quota_submissions').select('*')
     .neq('submission_type','page_comment')
     .neq('period_covered','Platform Feedback')
+    .neq('status','deleted')
     .order('created_at',{ascending:false});
   if(error){ container.innerHTML = `<div style="color:var(--red);font-size:13px;padding:20px">Error: ${error.message}</div>`; return; }
   if(!data || !data.length){

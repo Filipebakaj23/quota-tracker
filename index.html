@@ -351,9 +351,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 .bulk-fmt-hint{font-size:10px;color:var(--txt3);text-align:right;margin-top:2px;font-family:var(--font-display)}
 
 /* INLINE COMMENT SYSTEM */
-#header-note-btn{display:none;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;color:rgba(255,255,255,.7);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;font-family:var(--font)}
-#header-note-btn:hover{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.3)}
+#header-note-btn{display:none;align-items:center;gap:5px;padding:6px 12px;background:var(--amber-bg);border:1.5px solid var(--amber);border-radius:8px;color:var(--amber);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;font-family:var(--font)}
+#header-note-btn:hover{background:var(--amber);color:#fff;border-color:var(--amber)}
 #header-note-btn.active{background:var(--amber);border-color:var(--amber);color:#fff;box-shadow:0 3px 12px rgba(180,83,9,.35)}
+#comment-mode-banner{display:none;background:var(--amber);color:#fff;font-size:12px;font-weight:600;padding:8px 20px;text-align:center;letter-spacing:.01em;position:relative;z-index:950}
+#comment-mode-banner.on{display:block}
+/* FEEDBACK FAB */
+#feedback-fab{display:none;position:fixed;bottom:28px;right:28px;width:52px;height:52px;border-radius:50%;background:var(--acc);color:#fff;border:none;cursor:pointer;box-shadow:0 6px 20px rgba(124,58,237,.42);z-index:800;font-size:22px;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s}
+#feedback-fab:hover{transform:scale(1.1);box-shadow:0 10px 28px rgba(124,58,237,.55)}
 .comment-pin{position:fixed;width:26px;height:26px;border-radius:50%;background:var(--amber);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:900;box-shadow:0 3px 10px rgba(180,83,9,.4);transform:translate(-50%,-50%);transition:transform .15s;font-family:var(--font-display)}
 .comment-pin:hover{transform:translate(-50%,-50%) scale(1.15)}
 #comment-input-bubble{position:fixed;z-index:1100;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);padding:14px;width:260px;display:none}
@@ -481,7 +486,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
   </div>
 </div>
 
-<!-- floating buttons removed — feedback via sidebar, comments via header -->
+<!-- COMMENT MODE BANNER -->
+<div id="comment-mode-banner">📌 Note mode ON — click anywhere on the page to pin a note. Press <strong>Cancel Note</strong> to exit.</div>
+
+<!-- COMPANY FEEDBACK FAB -->
+<button id="feedback-fab" onclick="showView('feedback',document.querySelector('[data-view=feedback]'))" title="Share Feedback">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+</button>
 
 <!-- COMMENT INPUT BUBBLE -->
 <div id="comment-input-bubble">
@@ -639,6 +650,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
     <div id="dash-admin-area" style="display:none">
       <!-- Drill header (visible when drilled into a company) -->
       <div id="dash-drill-header" style="display:none"></div>
+      <!-- Feedback pending widget (non-drill view only) -->
+      <div id="dash-feedback-widget" style="display:none"></div>
       <!-- Region filter tabs -->
       <div class="region-filter" id="dash-region-filter"></div>
       <!-- Company cards grid -->
@@ -2377,6 +2390,10 @@ async function loginAs(co){
   if(isAdmin()){
     initCommentSystem();
     updateFeedbackBadge();
+  } else {
+    // Show floating feedback button for company users
+    const fab = document.getElementById('feedback-fab');
+    if(fab) fab.style.display = 'flex';
   }
 }
 
@@ -3280,18 +3297,12 @@ function renderSellerProfile(){
   // Render quota plan
   renderSmPlan();
 
-  // Filter entries for "Entry History" table to match selected period type + year
-  const year = String(smYear);
-  const filteredEntries = sellerEntries.filter(r => {
-    const parts = r.period.split('|');
-    if(smPType==='Monthly')   return parts[0]==='Monthly'   && parts[2]===year;
-    if(smPType==='Quarterly') return parts[0]==='Quarterly' && parts[2]===year;
-    return parts[0]==='Yearly' && parts[1]===year;
-  });
+  // Show ALL entries across all period types, sorted chronologically (newest first)
+  const filteredEntries = [...sellerEntries].sort((a,b)=>periodToSortKey(b.period).localeCompare(periodToSortKey(a.period)));
 
   // Update filter label
   const filterLabel = document.getElementById('sm-entry-filter-label');
-  if(filterLabel) filterLabel.textContent = `Showing ${smPType} · ${year}  (${filteredEntries.length} of ${sellerEntries.length} total)`;
+  if(filterLabel) filterLabel.textContent = `All periods · ${filteredEntries.length} ${filteredEntries.length===1?'entry':'entries'}`;
 
   const rows = filteredEntries.map(r => {
     const p = attPct(r.achieved, r.quota);
@@ -3314,9 +3325,7 @@ function renderSellerProfile(){
     </tr>`;
   }).join('');
 
-  const emptyMsg = filteredEntries.length===0 && sellerEntries.length>0
-    ? `<tr class="empty-row"><td colspan="6">No ${smPType.toLowerCase()} entries for ${year} — use <strong>Manage Quotas</strong> to add them</td></tr>`
-    : `<tr class="empty-row"><td colspan="6">No entries yet — click <strong>Manage Quotas</strong> to start</td></tr>`;
+  const emptyMsg = `<tr class="empty-row"><td colspan="6">No entries yet — click <strong>Manage Quotas</strong> to start</td></tr>`;
 
   document.getElementById('sm-table').innerHTML = `
     <thead><tr><th>Period</th><th>Type</th><th style="text-align:right">Quota</th><th style="text-align:right">Achieved</th><th style="text-align:right">Att%</th><th>Status</th><th></th></tr></thead>
@@ -4254,6 +4263,8 @@ function renderAdminDashboard(){
     document.getElementById('dash-drill-header').style.display = '';
     document.getElementById('dash-region-filter').style.display = 'none';
     document.getElementById('dash-company-cards').style.display = 'none';
+    const fwDrill = document.getElementById('dash-feedback-widget');
+    if(fwDrill) fwDrill.style.display = 'none';
     document.getElementById('dash-drill-header').innerHTML = `
       <button class="admin-drill-back" onclick="adminClearDrill()">← All Companies</button>
       <div style="font-size:18px;font-weight:800;color:var(--txt);font-family:var(--font-display)">${co}</div>
@@ -4347,6 +4358,10 @@ function renderAdminDashboard(){
       <div class="stat-delta" style="color:var(--txt3)">${cosWithData}/${allCos.length} companies · ${newNameCount} NN / ${b2bCount} B2B sellers</div>
     </div>`;
 
+  // Feedback widget (async)
+  const fwEl = document.getElementById('dash-feedback-widget');
+  if(fwEl){ fwEl.style.display=''; loadDashFeedbackWidget(); }
+
   // Region filter tabs
   const regions = ['all','CEE & PL','DACH','France','UK&I','Spain','Other'];
   const regionLabels = {'all':'All Companies'};
@@ -4435,14 +4450,55 @@ function renderFeedbackView(){
   }
 }
 
+async function loadDashFeedbackWidget(){
+  const el = document.getElementById('dash-feedback-widget');
+  if(!el) return;
+  const {data} = await db.from('quota_submissions')
+    .select('id,submission_type,company,created_at,period_covered')
+    .eq('status','pending')
+    .or('period_covered.eq.Platform Feedback,submission_type.eq.page_comment')
+    .order('created_at',{ascending:false})
+    .limit(3);
+  const count = data?.length || 0;
+  if(count === 0){
+    el.innerHTML = '';
+    el.style.display = 'none';
+    return;
+  }
+  const recent = (data||[]).map(f=>{
+    const isNote = f.submission_type==='page_comment';
+    const label = isNote ? '📌 Inline note' : `💬 ${f.submission_type||'Feedback'}`;
+    const co = f.company||'unknown';
+    const when = new Date(f.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+    return `<div style="font-size:12px;color:var(--txt2);padding:4px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+      <span style="flex:1">${label} · <strong>${co}</strong></span>
+      <span style="color:var(--txt3)">${when}</span>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div style="background:var(--amber-light);border:1.5px solid var(--amber-bg);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:flex-start;gap:14px">
+    <div style="font-size:24px;line-height:1">💬</div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <span style="font-size:13px;font-weight:700;color:var(--txt)">Unread Feedback</span>
+          <span style="margin-left:8px;background:var(--amber);color:#fff;font-size:11px;font-weight:800;border-radius:10px;padding:1px 8px;font-family:var(--font-display)">${count > 3 ? count+'+' : count} pending</span>
+        </div>
+        <button onclick="showView('feedback',document.querySelector('[data-view=feedback]'))" style="font-size:12px;padding:5px 12px;background:var(--amber);color:#fff;border:none;border-radius:7px;cursor:pointer;font-weight:600">View all →</button>
+      </div>
+      ${recent}
+    </div>
+  </div>`;
+}
+
 async function updateFeedbackBadge(){
   if(!isAdmin()) return;
   const badge = document.getElementById('fb-nav-badge');
   const label = document.getElementById('fb-nav-label');
   if(!badge) return;
   const {data} = await db.from('quota_submissions')
-    .select('id', {count:'exact'})
-    .eq('status','pending');
+    .select('id')
+    .eq('status','pending')
+    .or('period_covered.eq.Platform Feedback,submission_type.eq.page_comment');
   const count = data?.length || 0;
   if(count > 0){
     badge.textContent = count > 99 ? '99+' : count;
@@ -4473,7 +4529,11 @@ async function loadFeedbackInbox(){
 
   let query = db.from('quota_submissions').select('*').order('created_at',{ascending:false});
   if(fbiTab === 'notes') query = query.eq('submission_type','page_comment');
-  else if(fbiTab === 'form') query = query.neq('submission_type','page_comment');
+  else if(fbiTab === 'form') query = query.eq('period_covered','Platform Feedback');
+  else {
+    // 'all' tab: show platform feedback + inline notes only (exclude quota doc submissions)
+    query = query.or('period_covered.eq.Platform Feedback,submission_type.eq.page_comment');
+  }
 
   const {data, error} = await query.limit(100);
   // Also refresh badge
@@ -4766,9 +4826,10 @@ function toggleCommentMode(){
       ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Cancel Note`
       : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Add Note`;
   }
+  const banner = document.getElementById('comment-mode-banner');
+  if(banner) banner.classList.toggle('on', commentMode);
   document.body.style.cursor = commentMode ? 'crosshair' : '';
-  if(commentMode) toast('Note mode ON — click anywhere on the page to leave a note','info');
-  else { cancelInlineComment(); document.body.style.cursor=''; }
+  if(!commentMode){ cancelInlineComment(); document.body.style.cursor=''; }
 }
 
 function toggleCommentSidebar(show, scrollTo){
@@ -4829,7 +4890,11 @@ async function loadSubmissions(){
   const container = document.getElementById('submissions-list');
   if(!container) return;
   container.innerHTML = '<div style="color:var(--txt3);font-size:13px;padding:20px">Loading submissions…</div>';
-  const {data, error} = await db.from('quota_submissions').select('*').order('created_at',{ascending:false});
+  // Exclude platform feedback form submissions and inline notes — show only quota document submissions
+  const {data, error} = await db.from('quota_submissions').select('*')
+    .neq('submission_type','page_comment')
+    .neq('period_covered','Platform Feedback')
+    .order('created_at',{ascending:false});
   if(error){ container.innerHTML = `<div style="color:var(--red);font-size:13px;padding:20px">Error: ${error.message}</div>`; return; }
   if(!data || !data.length){
     container.innerHTML = `
@@ -4841,26 +4906,32 @@ async function loadSubmissions(){
   }
   const statusColors = {pending:'var(--amber)',approved:'var(--green)',rejected:'var(--red)'};
   const statusBg = {pending:'var(--amber-bg)',approved:'var(--green-bg)',rejected:'var(--red-bg)'};
-  container.innerHTML = data.map(s=>`
-    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px" id="sub-row-${s.id}">
-      <div style="width:38px;height:38px;border-radius:9px;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${subTypeIcon(s.submission_type)}</div>
+  container.innerHTML = data.map(s=>{
+    const fileHtml = s.file_name
+      ? (s.file_name.startsWith('http')
+          ? `<div style="margin-top:8px"><a href="${escHtml(s.file_name)}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:var(--blue-bg);color:var(--blue);border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid rgba(29,78,216,.2)">🔗 View submitted file →</a></div>`
+          : `<div style="margin-top:8px;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:var(--bg2);color:var(--txt2);border-radius:7px;font-size:12px;font-weight:500;border:1px solid var(--border)">📎 ${escHtml(s.file_name)}</div>`)
+      : '';
+    return `<div style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px" id="sub-row-${s.id}">
+      <div style="width:40px;height:40px;border-radius:9px;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">${subTypeIcon(s.submission_type)}</div>
       <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-weight:700;font-size:13px;color:var(--txt)">${escHtml(s.company)}</span>
-          <span style="padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;background:${statusBg[s.status]||'var(--bg)'};color:${statusColors[s.status]||'var(--txt3)'}">${s.status}</span>
-          <span style="font-size:11px;color:var(--txt3)">${new Date(s.created_at).toLocaleDateString()}</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+          <span style="font-weight:700;font-size:14px;color:var(--txt)">${escHtml(s.company)}</span>
+          <span style="padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:${statusBg[s.status]||'var(--bg)'};color:${statusColors[s.status]||'var(--txt3)'}">${s.status}</span>
+          <span style="font-size:11px;color:var(--txt3)">${new Date(s.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span>
         </div>
-        <div style="font-size:13px;color:var(--txt2);margin-top:3px">${escHtml(s.submission_type)}${s.period_covered?' · '+escHtml(s.period_covered):''}</div>
-        <div style="font-size:12px;color:var(--txt3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:400px">${escHtml(s.description)}</div>
-        ${s.file_name?(s.file_name.startsWith('http')?`<div style="font-size:11px;margin-top:2px"><a href="${escHtml(s.file_name)}" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none">🔗 View file →</a></div>`:`<div style="font-size:11px;color:var(--blue);margin-top:2px">📎 ${escHtml(s.file_name)}</div>`):''}
-        ${s.admin_note?`<div style="font-size:11px;color:var(--txt2);margin-top:4px;background:var(--bg);padding:4px 8px;border-radius:6px">Admin note: ${escHtml(s.admin_note)}</div>`:''}
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:6px">${escHtml(s.submission_type)||'Document'}${s.period_covered?' · <span style="font-weight:600">'+escHtml(s.period_covered)+'</span>':''}</div>
+        ${s.description?`<div style="font-size:13px;color:var(--txt);line-height:1.6;background:var(--bg);padding:8px 12px;border-radius:8px;border-left:3px solid var(--border2);white-space:pre-wrap;word-break:break-word">${escHtml(s.description)}</div>`:''}
+        ${fileHtml}
+        ${s.admin_note?`<div style="font-size:11px;color:var(--txt2);margin-top:6px;background:var(--amber-bg);padding:5px 9px;border-radius:6px;border:1px solid var(--amber-bg)">📝 Admin note: ${escHtml(s.admin_note)}</div>`:''}
       </div>
       ${s.status==='pending'?`
       <div style="display:flex;gap:6px;flex-shrink:0">
         <button class="btn btn-success btn-sm" onclick="reviewSubmission('${s.id}','approved')">✓ Approve</button>
         <button class="btn btn-danger btn-sm" onclick="reviewSubmission('${s.id}','rejected')">✗ Reject</button>
       </div>`:''}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function subTypeIcon(type){

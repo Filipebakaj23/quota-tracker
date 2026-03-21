@@ -4,36 +4,68 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Everfield · Quota Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --sb: #13111c;
-  --sb2: #1e1b2e;
+  /* Sidebar — deep ink with subtle purple shift */
+  --sb: #0c0a14;
+  --sb2: #17132a;
+  --sb-border: rgba(255,255,255,.06);
+
+  /* Brand accent — electric violet */
   --acc: #7c3aed;
   --acc2: #6d28d9;
+  --acc3: #5b21b6;
   --acc-light: #ede9fe;
-  --bg: #f1f5f9;
+  --acc-glow: rgba(124,58,237,.22);
+
+  /* Background — warm off-white, not flat gray */
+  --bg: #f5f4f7;
+  --bg2: #eeedf2;
+
+  /* Cards */
   --card: #ffffff;
-  --border: #e2e8f0;
-  --border2: #cbd5e1;
-  --txt: #0f172a;
-  --txt2: #475569;
-  --txt3: #94a3b8;
+  --border: #e4e2ea;
+  --border2: #d0cdd8;
+
+  /* Text — rich near-black with personality */
+  --txt: #0e0c1a;
+  --txt2: #4a4560;
+  --txt3: #9590a8;
+
+  /* Status colors — vivid, not muted */
   --green: #059669; --green-bg: #d1fae5; --green-light: #ecfdf5;
-  --amber: #d97706; --amber-bg: #fef3c7; --amber-light: #fffbeb;
-  --orange: #ea580c; --orange-bg: #fff7ed;
+  --amber: #b45309; --amber-bg: #fef3c7; --amber-light: #fffbeb;
+  --orange: #c2410c; --orange-bg: #fff7ed;
   --red: #dc2626; --red-bg: #fee2e2; --red-light: #fef2f2;
-  --blue: #2563eb; --blue-bg: #dbeafe;
+  --blue: #1d4ed8; --blue-bg: #dbeafe;
   --purple: #7c3aed; --purple-bg: #ede9fe;
-  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.05);
-  --shadow-lg: 0 10px 25px rgba(0,0,0,.12);
+
+  /* Shadows — richer depth */
+  --shadow: 0 1px 3px rgba(14,12,26,.07), 0 1px 2px rgba(14,12,26,.04);
+  --shadow-md: 0 4px 12px rgba(14,12,26,.09), 0 2px 4px rgba(14,12,26,.05);
+  --shadow-lg: 0 12px 32px rgba(14,12,26,.14), 0 4px 8px rgba(14,12,26,.06);
+  --shadow-acc: 0 8px 24px rgba(124,58,237,.28);
+
   --r: 10px; --r-lg: 16px;
-  --sb-w: 220px;
+  --sb-w: 228px;
+
+  /* Typography */
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
 }
+
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;min-height:100vh}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14px;min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+
+/* ONBOARDING DOTS */
+.ob-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s ease}
+.ob-dot-active{background:var(--acc);width:22px;border-radius:4px}
+@keyframes obIn{from{opacity:0;transform:scale(.93) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
 
 /* LOADING */
 #loading-bar{position:fixed;top:0;left:0;height:3px;background:var(--acc);width:0;z-index:9999;transition:width .3s ease,opacity .4s ease}
@@ -56,30 +88,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .orb2{width:400px;height:400px;background:#2563eb;bottom:-100px;right:-100px;animation-delay:3s}
 .orb3{width:300px;height:300px;background:#db2777;top:40%;left:55%;animation-delay:1.5s}
 @keyframes pulse{0%{transform:scale(1) translate(0,0)}100%{transform:scale(1.15) translate(20px,-20px)}}
-.login-card{background:rgba(255,255,255,.97);backdrop-filter:blur(20px);border-radius:20px;padding:44px 40px;width:100%;max-width:430px;box-shadow:0 25px 60px rgba(0,0,0,.4);animation:fadeUp .4s ease;position:relative;z-index:2}
-.login-brand{display:flex;align-items:center;gap:14px;margin-bottom:32px}
-.login-brand-icon{width:48px;height:48px;background:var(--acc);border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(124,58,237,.4)}
+.login-card{background:rgba(255,255,255,.98);backdrop-filter:blur(24px);border-radius:24px;padding:48px 44px;width:100%;max-width:430px;box-shadow:0 30px 80px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.12);animation:fadeUp .4s ease;position:relative;z-index:2}
+.login-brand{display:flex;align-items:center;gap:14px;margin-bottom:36px}
+.login-brand-icon{width:50px;height:50px;background:linear-gradient(135deg,var(--acc),var(--acc3));border-radius:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(124,58,237,.45)}
 .login-brand-icon svg{width:26px;height:26px;fill:#fff}
-.login-brand-name{font-size:20px;font-weight:800;color:var(--txt);letter-spacing:-.5px}
-.login-brand-sub{font-size:12px;color:var(--txt3);font-weight:500}
-.login-h{font-size:24px;font-weight:700;color:var(--txt);margin-bottom:6px}
-.login-p{font-size:13px;color:var(--txt2);margin-bottom:28px}
+.login-brand-name{font-size:21px;font-weight:800;color:var(--txt);letter-spacing:-.5px;font-family:var(--font-display)}
+.login-brand-sub{font-size:12px;color:var(--txt3);font-weight:500;letter-spacing:.02em}
+.login-h{font-size:26px;font-weight:800;color:var(--txt);margin-bottom:6px;font-family:var(--font-display);letter-spacing:-.5px}
+.login-p{font-size:13px;color:var(--txt2);margin-bottom:30px;line-height:1.5}
 .fld{margin-bottom:18px}
 .fld label{display:block;font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em}
 .fld select,.fld input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;color:var(--txt);background:#fff;transition:border-color .15s,box-shadow .15s;appearance:none}
 .fld select:focus,.fld input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
 .sel-wrap{position:relative}.sel-wrap::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--txt3);pointer-events:none;font-size:12px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;line-height:1}
-.btn-primary{background:var(--acc);color:#fff;width:100%;padding:13px}
-.btn-primary:hover{background:var(--acc2);transform:translateY(-1px);box-shadow:0 4px 14px rgba(124,58,237,.35)}
-.btn-sm{padding:7px 12px;font-size:12px}
-.btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--border)}
-.btn-ghost:hover{background:var(--bg);color:var(--txt)}
-.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid #fca5a5}
-.btn-danger:hover{background:var(--red);color:#fff}
-.btn-success{background:var(--green-bg);color:var(--green)}
-.btn-success:hover{background:var(--green);color:#fff}
-.btn-icon{width:32px;height:32px;padding:0;border-radius:7px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:all .17s cubic-bezier(.4,0,.2,1);line-height:1;letter-spacing:.01em;font-family:var(--font)}
+.btn-primary{background:linear-gradient(135deg,var(--acc),var(--acc3));color:#fff;width:100%;padding:13px;box-shadow:0 2px 8px var(--acc-glow)}
+.btn-primary:hover{background:linear-gradient(135deg,var(--acc2),var(--acc3));transform:translateY(-1px);box-shadow:var(--shadow-acc)}
+.btn-sm{padding:7px 13px;font-size:12px}
+.btn-ghost{background:transparent;color:var(--txt2);border:1.5px solid var(--border)}
+.btn-ghost:hover{background:var(--bg2);color:var(--txt);border-color:var(--border2)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1.5px solid #fca5a5}
+.btn-danger:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-success{background:var(--green-bg);color:var(--green);border:1.5px solid #a7f3d0}
+.btn-success:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-icon{width:32px;height:32px;padding:0;border-radius:8px}
 .login-err{color:var(--red);font-size:12px;margin-top:10px;text-align:center;min-height:18px}
 
 /* APP SHELL */
@@ -87,54 +119,54 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .shell{display:flex;min-height:100vh}
 
 /* SIDEBAR */
-#sidebar{width:var(--sb-w);background:var(--sb);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
-.sb-brand{padding:22px 20px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.06)}
-.sb-icon{width:36px;height:36px;background:var(--acc);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#sidebar{width:var(--sb-w);background:linear-gradient(180deg,#0c0a14 0%,#12102a 60%,#0e0c1e 100%);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;border-right:1px solid rgba(255,255,255,.04)}
+.sb-brand{padding:20px 18px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--acc),var(--acc3));border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(124,58,237,.4)}
 .sb-icon svg{width:20px;height:20px;fill:#fff}
-.sb-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.3px}
-.sb-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:1px}
-.sb-nav{flex:1;padding:12px 10px}
-.nav-section{font-size:10px;font-weight:700;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.1em;padding:16px 10px 6px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:rgba(255,255,255,.55);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none;user-select:none;margin-bottom:2px}
-.nav-item svg{width:17px;height:17px;flex-shrink:0;opacity:.7}
-.nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85)}
-.nav-item.active{background:rgba(124,58,237,.25);color:#c4b5fd}
-.nav-item.active svg{opacity:1}
-.sb-user{padding:14px 16px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px}
-.sb-avatar{width:34px;height:34px;background:var(--acc);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
-.sb-uname{font-size:13px;font-weight:600;color:#fff}
-.sb-logout{font-size:11px;color:rgba(255,255,255,.4);cursor:pointer;transition:color .15s;background:none;border:none;padding:0;text-align:left}
+.sb-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.3px;font-family:var(--font-display)}
+.sb-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:1px;font-weight:500;letter-spacing:.03em}
+.sb-nav{flex:1;padding:10px 10px}
+.nav-section{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.12em;padding:16px 10px 5px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:rgba(255,255,255,.5);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none;user-select:none;margin-bottom:1px}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.65}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9)}
+.nav-item.active{background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(109,40,217,.15));color:#d4bbff;border:1px solid rgba(196,181,253,.12)}
+.nav-item.active svg{opacity:1;filter:drop-shadow(0 0 6px rgba(196,181,253,.5))}
+.sb-user{padding:14px 16px;border-top:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:10px}
+.sb-avatar{width:34px;height:34px;background:linear-gradient(135deg,var(--acc),var(--acc3));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;letter-spacing:.02em}
+.sb-uname{font-size:13px;font-weight:600;color:rgba(255,255,255,.9)}
+.sb-logout{font-size:11px;color:rgba(255,255,255,.35);cursor:pointer;transition:color .15s;background:none;border:none;padding:0;text-align:left}
 .sb-logout:hover{color:#f87171}
 
 /* CONTENT */
 #content{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
-.c-header{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0;position:sticky;top:0;z-index:50}
-.c-title{font-size:17px;font-weight:700;color:var(--txt)}
+.c-header{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0;position:sticky;top:0;z-index:50;box-shadow:0 1px 0 var(--border)}
+.c-title{font-size:18px;font-weight:700;color:var(--txt);font-family:var(--font-display);letter-spacing:-.3px}
 .c-controls{display:flex;align-items:center;gap:10px}
 .period-wrap{display:flex;align-items:center;gap:6px}
-.period-seg{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.period-seg button{padding:6px 11px;background:none;border:none;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;transition:all .15s}
-.period-seg button.active{background:var(--acc);color:#fff}
-.period-seg button:hover:not(.active){background:var(--bg)}
-.period-select{padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;font-weight:500;color:var(--txt);background:#fff;cursor:pointer}
+.period-seg{display:flex;border:1.5px solid var(--border);border-radius:9px;overflow:hidden;background:#fff}
+.period-seg button{padding:6px 13px;background:none;border:none;font-size:12px;font-weight:700;color:var(--txt2);cursor:pointer;transition:all .15s;font-family:var(--font)}
+.period-seg button.active{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.period-seg button:hover:not(.active){background:var(--bg2);color:var(--txt)}
+.period-select{padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--txt);background:#fff;cursor:pointer;font-family:var(--font)}
 .period-select:focus{outline:none;border-color:var(--acc)}
-.load-btn{padding:6px 13px;background:var(--acc);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
-.load-btn:hover{background:var(--acc2)}
+.load-btn{padding:6px 13px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;font-family:var(--font)}
+.load-btn:hover{box-shadow:var(--shadow-acc)}
 
 /* VIEWS */
-.view{display:none;padding:24px;animation:fadeUp .2s ease}
+.view{display:none;padding:28px;animation:fadeUp .2s ease}
 .view.active{display:block}
 
 /* STAT CARDS */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-.stat-card{background:var(--card);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;overflow:hidden;transition:box-shadow .15s}
-.stat-card:hover{box-shadow:var(--shadow-md)}
-.stat-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent-color,var(--acc))}
-.stat-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;background:var(--icon-bg,var(--acc-light))}
+.stat-card{background:var(--card);border-radius:var(--r-lg);padding:22px 20px 18px;box-shadow:var(--shadow-md);border:1px solid var(--border);position:relative;overflow:hidden;transition:box-shadow .2s,transform .2s}
+.stat-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent-color,var(--acc)),transparent)}
+.stat-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;background:var(--icon-bg,var(--acc-light));box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .stat-icon svg{width:20px;height:20px}
-.stat-val{font-size:26px;font-weight:800;color:var(--txt);letter-spacing:-.5px;line-height:1}
-.stat-lbl{font-size:12px;color:var(--txt3);margin-top:4px;font-weight:500}
-.stat-delta{font-size:11px;margin-top:8px;font-weight:600;display:flex;align-items:center;gap:3px}
+.stat-val{font-size:28px;font-weight:800;color:var(--txt);letter-spacing:-.8px;line-height:1;font-family:var(--font-display)}
+.stat-lbl{font-size:12px;color:var(--txt3);margin-top:5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.stat-delta{font-size:11px;margin-top:10px;font-weight:600;display:flex;align-items:center;gap:3px}
 
 /* GAUGE + CHART SECTION */
 .vis-row{display:grid;grid-template-columns:200px 1fr;gap:16px;margin-bottom:24px}
@@ -145,17 +177,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .chart-wrap{position:relative}
 
 /* TABLE */
-.table-card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden}
-.table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
-.table-header-title{font-size:14px;font-weight:700;color:var(--txt)}
+.table-card{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-md);border:1px solid var(--border);overflow:hidden}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border)}
+.table-header-title{font-size:14px;font-weight:700;color:var(--txt);font-family:var(--font-display)}
 .tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;background:#fafafa;border-bottom:1px solid var(--border)}
-.tbl td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl th{padding:10px 18px;text-align:left;font-size:10.5px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;background:var(--bg);border-bottom:1px solid var(--border)}
+.tbl td{padding:12px 18px;border-bottom:1px solid var(--border);vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}
-.tbl tr:hover td{background:#fafbff}
-.tbl .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.tbl tr:hover td{background:#f8f7fb}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-family:var(--font-display)}
 .tbl .mono{font-family:ui-monospace,monospace;font-size:12px}
-.empty-row td{text-align:center;padding:48px;color:var(--txt3)}
+.empty-row td{text-align:center;padding:56px;color:var(--txt3)}
 
 /* BADGES */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
@@ -181,20 +213,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .toggle input:checked+.tog-sl::before{transform:translateX(18px)}
 
 /* PORTFOLIO GRID */
-.portfolio-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.co-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .15s,transform .15s;cursor:pointer}
-.co-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
-.co-card-top{padding:18px 18px 14px;border-left:4px solid var(--card-att-color,#e2e8f0)}
-.co-card-name{font-size:15px;font-weight:700;color:var(--txt)}
-.co-card-region{font-size:11px;color:var(--txt3);margin-top:2px}
-.co-card-stats{display:flex;gap:16px;margin-top:12px}
+.portfolio-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px}
+.co-card{background:var(--card);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow-md);overflow:hidden;transition:box-shadow .2s,transform .2s;cursor:pointer}
+.co-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}
+.co-card-top{padding:20px 20px 16px;border-left:4px solid var(--card-att-color,var(--border))}
+.co-card-name{font-size:16px;font-weight:700;color:var(--txt);font-family:var(--font-display);letter-spacing:-.2px}
+.co-card-region{font-size:11px;color:var(--txt3);margin-top:2px;font-weight:500}
+.co-card-stats{display:flex;gap:16px;margin-top:14px}
 .co-stat{flex:1}
-.co-stat-val{font-size:17px;font-weight:700;color:var(--txt)}
-.co-stat-lbl{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em}
-.co-card-bottom{padding:10px 18px;background:#fafafa;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.co-card-meta{font-size:11px;color:var(--txt3)}
-.co-att-bar{height:4px;border-radius:2px;background:#e2e8f0;overflow:hidden;margin-top:8px}
-.co-att-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.co-stat-val{font-size:18px;font-weight:800;color:var(--txt);font-family:var(--font-display);letter-spacing:-.3px}
+.co-stat-lbl{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-top:1px}
+.co-card-bottom{padding:10px 20px;background:var(--bg);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.co-card-meta{font-size:11px;color:var(--txt3);font-weight:500}
+.co-att-bar{height:5px;border-radius:3px;background:var(--border);overflow:hidden;margin-top:9px}
+.co-att-fill{height:100%;border-radius:3px;transition:width .5s ease}
 
 /* CRM SETTINGS TABLE */
 .crm-table{width:100%;border-collapse:collapse;font-size:13px}
@@ -221,19 +253,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .export-meta{font-size:11px;color:var(--txt3);margin-top:6px}
 
 /* MODAL */
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(10,8,20,.55);backdrop-filter:blur(3px);z-index:1000;align-items:center;justify-content:center;padding:20px}
 .modal-backdrop.open{display:flex}
-.modal{background:#fff;border-radius:var(--r-lg);width:100%;max-width:500px;box-shadow:var(--shadow-lg);animation:fadeUp .2s ease}
+.modal{background:#fff;border-radius:18px;width:100%;max-width:500px;box-shadow:0 24px 60px rgba(0,0,0,.2),0 4px 12px rgba(0,0,0,.08);animation:modalIn .25s cubic-bezier(.34,1.4,.64,1)}
 .modal-lg{max-width:680px}
-.modal-head{padding:22px 24px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.modal-head h2{font-size:16px;font-weight:700;color:var(--txt)}
-.modal-close{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:20px;line-height:1;padding:4px;border-radius:6px;transition:color .15s}
-.modal-close:hover{color:var(--txt)}
-.modal-body{padding:22px 24px}
-.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.modal-head{padding:22px 26px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-head h2{font-size:16px;font-weight:700;color:var(--txt);font-family:var(--font-display);letter-spacing:-.2px}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:20px;line-height:1;padding:6px;border-radius:8px;transition:all .15s;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:var(--bg);color:var(--txt)}
+.modal-body{padding:22px 26px}
+.modal-foot{padding:16px 26px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;background:#fafaf9;border-radius:0 0 18px 18px}
 .fld-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .fld-full{grid-column:1/-1}
 .field-hint{font-size:11px;color:var(--txt3);margin-top:4px}
+@keyframes modalIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 
 /* CRM DECISION MODAL */
 .crm-dec-card{padding:24px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all .2s;margin-bottom:12px;display:flex;gap:16px;align-items:flex-start}
@@ -258,6 +291,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .sm-stat-val{font-size:20px;font-weight:800;color:var(--txt);line-height:1}
 .sm-stat-lbl{font-size:11px;color:var(--txt3);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
 
+/* SELLER MODAL — Quota Plan */
+.sm-seg-btn{padding:5px 13px;font-size:12px;font-weight:600;background:none;border:none;cursor:pointer;color:var(--txt2);transition:all .15s}
+.sm-seg-btn.active{background:var(--acc);color:#fff}
+.sm-seg-btn:not(.active):hover{background:var(--border);color:var(--txt)}
+.sm-plan-row{display:grid;grid-template-columns:90px 1fr 90px 90px 64px;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.sm-plan-row:last-child{border-bottom:none}
+.sm-plan-period{font-size:12px;font-weight:700;color:var(--txt)}
+.sm-plan-bar-wrap{background:var(--bg2);border-radius:4px;height:6px;overflow:hidden;min-width:60px}
+.sm-plan-bar{height:6px;border-radius:4px;transition:width .3s ease}
+.sm-plan-num{font-size:12px;font-weight:700;text-align:right;color:var(--txt);font-family:var(--font-display);font-variant-numeric:tabular-nums}
+.sm-plan-pct{font-size:11px;font-weight:700;text-align:right;font-family:var(--font-display)}
+.sm-plan-empty{color:var(--txt3);font-style:italic;font-size:11px}
+.sm-plan-spread{font-size:10px;color:var(--txt3);margin-left:4px}
+
 /* EMPTY STATE */
 .empty-state{text-align:center;padding:60px 20px;color:var(--txt3)}
 .empty-state svg{width:56px;height:56px;margin:0 auto 16px;opacity:.3}
@@ -265,9 +312,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .empty-state p{font-size:13px;line-height:1.6}
 
 /* SECTION HEADER */
-.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.sec-title{font-size:15px;font-weight:700;color:var(--txt)}
-.sec-sub{font-size:12px;color:var(--txt3);margin-top:2px}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.sec-title{font-size:16px;font-weight:700;color:var(--txt);font-family:var(--font-display);letter-spacing:-.2px}
+.sec-sub{font-size:12px;color:var(--txt3);margin-top:3px;font-weight:500}
 
 /* MISC */
 .row-actions{display:flex;gap:6px;justify-content:flex-end}
@@ -291,6 +338,46 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   .sb-brand{justify-content:center;padding:16px 10px}
   .sb-user{justify-content:center}
 }
+
+/* ── DESIGN REFRESH ── (now redundant — merged into base CSS) */
+
+/* Logo containers */
+.logo-svg-light,.logo-svg-dark{display:block}
+
+/* Stat cards — per-accent gradient */
+.stat-card{overflow:visible}
+.stat-card.card-purple{background:linear-gradient(135deg,#f5f3ff 0%,#fff 60%)}
+.stat-card.card-blue{background:linear-gradient(135deg,#eff6ff 0%,#fff 60%)}
+.stat-card.card-green{background:linear-gradient(135deg,#f0fdf4 0%,#fff 60%)}
+.stat-card.card-red{background:linear-gradient(135deg,#fef2f2 0%,#fff 60%)}
+.stat-card.card-amber{background:linear-gradient(135deg,#fffbeb 0%,#fff 60%)}
+
+/* Table attainment row accents */
+.tbl tbody tr.row-excellent>td:first-child{border-left:3px solid var(--green)}
+.tbl tbody tr.row-good>td:first-child{border-left:3px solid var(--amber)}
+.tbl tbody tr.row-ok>td:first-child{border-left:3px solid var(--orange)}
+.tbl tbody tr.row-poor>td:first-child{border-left:3px solid var(--red)}
+
+/* Spread indicator badge */
+.badge-spread{background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;font-size:10px;padding:1px 6px;border-radius:20px;font-weight:600;margin-left:4px}
+
+/* Portfolio bar */
+.co-att-bar{height:7px;border-radius:4px;background:#e2e8f0;overflow:visible;margin-top:8px}
+.co-att-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1);box-shadow:0 0 8px var(--fill-glow,rgba(0,0,0,.2))}
+.co-card.not-submitted .co-card-top{background:linear-gradient(135deg,#fffbeb,#fffcf0)}
+
+/* Modal spring */
+.modal{animation:modalSpring .28s cubic-bezier(.34,1.56,.64,1)}
+@keyframes modalSpring{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Empty state */
+.empty-state-full{text-align:center;padding:64px 24px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty-state-full .es-icon{width:64px;height:64px;background:var(--bg);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.empty-state-full h3{font-size:16px;font-weight:700;color:var(--txt);margin:0}
+.empty-state-full p{font-size:13px;color:var(--txt2);line-height:1.6;max-width:320px;margin:0}
+
+/* Count-up numbers */
+.stat-val[data-countup]{transition:none}
 </style>
 </head>
 <body>
@@ -303,9 +390,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="login-screen">
   <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
   <div class="login-card">
-    <div class="login-brand">
-      <div class="login-brand-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
-      <div><div class="login-brand-name">Everfield</div><div class="login-brand-sub">Quota Intelligence Platform</div></div>
+    <div class="login-brand" style="margin-bottom:28px">
+      <!-- Everfield logo — dark version -->
+      <svg class="logo-svg-dark" viewBox="0 0 224 34" xmlns="http://www.w3.org/2000/svg" style="height:32px;width:auto">
+        <text y="25" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="22" font-weight="700" fill="#0c2340" letter-spacing="-0.4">everfield</text>
+        <circle cx="163" cy="6"  r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="174" cy="6"  r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="157" cy="15" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="168" cy="15" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="179" cy="15" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="190" cy="15" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="157" cy="24" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="168" cy="24" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="179" cy="24" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="190" cy="24" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="168" cy="33" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="179" cy="33" r="3.2" fill="rgba(12,35,64,.45)"/>
+        <circle cx="190" cy="33" r="3.2" fill="rgba(12,35,64,.45)"/>
+      </svg>
+      <div style="margin-top:10px;font-size:12px;color:var(--txt3);font-weight:500;letter-spacing:.04em;text-transform:uppercase">Quota Intelligence Platform</div>
     </div>
     <div class="login-h">Welcome back</div>
     <div class="login-p">Select your company and sign in to continue</div>
@@ -328,9 +431,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <!-- SIDEBAR -->
 <aside id="sidebar">
-  <div class="sb-brand">
-    <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
-    <div><div class="sb-name">Everfield</div><div class="sb-sub">Quota Platform</div></div>
+  <div class="sb-brand" style="padding:16px 18px 14px">
+    <!-- Everfield logo — light version -->
+    <svg class="logo-svg-light" viewBox="0 0 192 30" xmlns="http://www.w3.org/2000/svg" style="height:28px;width:auto;max-width:180px">
+      <text y="22" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="19" font-weight="700" fill="#ffffff" letter-spacing="-0.4">everfield</text>
+      <circle cx="141" cy="5"  r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="151" cy="5"  r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="136" cy="13" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="146" cy="13" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="156" cy="13" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="166" cy="13" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="136" cy="21" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="146" cy="21" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="156" cy="21" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="166" cy="21" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="146" cy="29" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="156" cy="29" r="2.8" fill="rgba(255,255,255,.55)"/>
+      <circle cx="166" cy="29" r="2.8" fill="rgba(255,255,255,.55)"/>
+    </svg>
   </div>
   <nav class="sb-nav">
     <div class="nav-section">Company</div>
@@ -341,6 +459,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="nav-item" data-view="sellers" onclick="showView('sellers',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span>Sellers</span>
+    </div>
+    <div class="nav-item company-only" data-view="submit-docs" onclick="showView('submit-docs',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Submit Docs</span>
+    </div>
+    <div class="nav-item company-only" data-view="getting-started" onclick="showView('getting-started',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>Getting Started</span>
     </div>
     <div class="nav-section admin-only" id="sb-admin-label">Admin</div>
     <div class="nav-item admin-only" data-view="portfolio" onclick="showView('portfolio',this)">
@@ -366,6 +492,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="nav-item admin-only" data-view="export" onclick="showView('export',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       <span>Export</span>
+    </div>
+    <div class="nav-item admin-only" data-view="submissions" onclick="showView('submissions',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><polyline points="12 11 12 17"/><polyline points="9 14 12 17 15 14"/></svg>
+      <span>Submissions</span>
     </div>
   </nav>
   <div class="sb-user">
@@ -394,6 +524,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <span>Add Entry</span>
       </button>
     </div>
+  </div>
+
+  <!-- DB SETUP BANNER -->
+  <div id="db-setup-banner" style="display:none;align-items:center;gap:14px;background:linear-gradient(135deg,#fffbeb,#fef3c7);border-bottom:2px solid #f59e0b;padding:12px 24px;position:sticky;top:60px;z-index:40;flex-shrink:0">
+    <div style="width:36px;height:36px;background:#d97706;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">⚙️</div>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:700;color:#92400e">Database Setup Required</div>
+      <div style="font-size:12px;color:#b45309;margin-top:1px">Some tables or columns are missing. Run the one-time setup SQL in Supabase to unlock all features (access log, CRM settings, custom companies).</div>
+    </div>
+    <button class="btn btn-sm" style="background:#d97706;color:#fff;border:none;flex-shrink:0" onclick="showSetupSQL()">⚙ Setup Database</button>
+    <button class="btn btn-ghost btn-sm" onclick="showDbSetupBanner(false)" style="color:#92400e;flex-shrink:0;border-color:#f59e0b">Dismiss</button>
   </div>
 
   <!-- DASHBOARD VIEW -->
@@ -427,13 +568,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="view" id="view-sellers">
     <div class="table-card">
       <div class="table-header">
-        <div class="table-header-title" id="sellers-title">My Entries</div>
+        <div>
+          <div class="table-header-title" id="sellers-title">My Team</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:2px">Click a seller name to view their full profile · Use "Periods" to configure quotas in bulk</div>
+        </div>
         <div style="display:flex;gap:8px;align-items:center">
           <input type="text" placeholder="Search sellers…" id="seller-search" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;width:160px" oninput="renderSellers()">
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--txt2);cursor:pointer;white-space:nowrap">
             <input type="checkbox" id="seller-inactive-cb" onchange="renderSellers()"> Show inactive
           </label>
-          <button class="btn btn-primary btn-sm" onclick="openEntryModal(null)" id="sellers-add-btn">+ Add Entry</button>
+          <button class="btn btn-primary btn-sm" onclick="openEntryModal(null)" id="sellers-add-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Seller
+          </button>
         </div>
       </div>
       <table class="tbl" id="sellers-table"></table>
@@ -534,6 +681,265 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 
+  <!-- GETTING STARTED VIEW (company) -->
+  <div class="view" id="view-getting-started">
+    <div class="sec-header">
+      <div><div class="sec-title">Getting Started</div><div class="sec-sub">Your step-by-step guide to the Everfield platform</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="sessionStorage.removeItem('onboarding_seen_'+currentUser);obCurrentStep=1;obRenderStep();document.getElementById('onboarding-modal').style.display='flex'">▶ Replay tour</button>
+    </div>
+    <div style="max-width:720px;display:flex;flex-direction:column;gap:16px;padding-bottom:40px">
+
+      <!-- Overview card -->
+      <div style="background:linear-gradient(135deg,#1a1535,#2d1b69);border-radius:16px;padding:28px;color:#fff;display:flex;align-items:flex-start;gap:20px">
+        <div style="width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:26px">🎯</div>
+        <div>
+          <div style="font-size:18px;font-weight:800;margin-bottom:6px;letter-spacing:-.3px">Everfield Quota Platform</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.65">Track your team's sales targets and performance in one place. Enter quotas in any format (monthly, quarterly, or yearly) and the platform converts automatically. Three things to do to get started:</div>
+          <div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">
+            <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600">① Add sellers</div>
+            <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600">② Set their quotas</div>
+            <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600">③ Log actuals regularly</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1: Add Entry -->
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)">
+        <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
+          <div style="width:36px;height:36px;background:var(--acc);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:16px;font-weight:800">1</div>
+          <div><div style="font-size:15px;font-weight:700;color:var(--txt)">Add your sellers & quotas</div><div style="font-size:12px;color:var(--txt3);margin-top:1px">Create one entry per seller per period</div></div>
+        </div>
+        <div style="padding:18px 22px;display:flex;gap:20px;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            <div style="font-size:13px;color:var(--txt2);line-height:1.65;margin-bottom:14px">Click <strong style="color:var(--acc)">"Add Entry"</strong> in the top-right corner of any screen. A form will appear where you fill in:</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:6px;height:6px;border-radius:50%;background:var(--acc);flex-shrink:0"></div>
+                <div style="font-size:13px;color:var(--txt)"><strong>Seller name</strong> — the person's full name</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:6px;height:6px;border-radius:50%;background:var(--acc);flex-shrink:0"></div>
+                <div style="font-size:13px;color:var(--txt)"><strong>Role</strong> — e.g. Account Executive, BDR</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:6px;height:6px;border-radius:50%;background:var(--acc);flex-shrink:0"></div>
+                <div style="font-size:13px;color:var(--txt)"><strong>Period</strong> — Monthly, Quarterly, or Yearly</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:6px;height:6px;border-radius:50%;background:var(--acc);flex-shrink:0"></div>
+                <div style="font-size:13px;color:var(--txt)"><strong>Quota</strong> — the target amount in your currency</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:6px;height:6px;border-radius:50%;background:var(--acc);flex-shrink:0"></div>
+                <div style="font-size:13px;color:var(--txt)"><strong>Achieved</strong> — what they actually sold (update later)</div>
+              </div>
+            </div>
+            <div style="margin-top:14px;padding:10px 12px;background:var(--green-light);border:1px solid #a7f3d0;border-radius:8px;font-size:12px;color:var(--green);line-height:1.5">
+              💡 <strong>Tip:</strong> Use the <strong>"Periods"</strong> button on a seller card to fill in all 12 months at once instead of one by one.
+            </div>
+          </div>
+          <!-- Mockup: entry form -->
+          <div style="width:200px;flex-shrink:0">
+            <div style="background:#f8f9fc;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:11px">
+              <div style="font-weight:700;color:var(--txt);margin-bottom:10px;font-size:12px">Add Seller Entry</div>
+              <div style="margin-bottom:8px">
+                <div style="color:var(--txt3);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Seller Name</div>
+                <div style="border:1.5px solid var(--acc);border-radius:5px;padding:5px 8px;color:var(--txt);background:#fff">Maria Silva</div>
+              </div>
+              <div style="margin-bottom:8px">
+                <div style="color:var(--txt3);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Period Type</div>
+                <div style="border:1px solid var(--border);border-radius:5px;padding:5px 8px;color:var(--txt2);background:#fff;display:flex;justify-content:space-between">Monthly <span>▾</span></div>
+              </div>
+              <div style="display:flex;gap:6px;margin-bottom:8px">
+                <div style="flex:1">
+                  <div style="color:var(--txt3);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Quota</div>
+                  <div style="border:1px solid var(--border);border-radius:5px;padding:5px 8px;color:var(--txt);background:#fff;text-align:right">10,000</div>
+                </div>
+                <div style="flex:1">
+                  <div style="color:var(--txt3);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Achieved</div>
+                  <div style="border:1px solid var(--border);border-radius:5px;padding:5px 8px;color:var(--txt);background:#fff;text-align:right">9,400</div>
+                </div>
+              </div>
+              <div style="background:var(--acc);color:#fff;text-align:center;padding:6px;border-radius:6px;font-size:11px;font-weight:700">Save Entry</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Period switching -->
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)">
+        <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
+          <div style="width:36px;height:36px;background:#2563eb;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:16px;font-weight:800">2</div>
+          <div><div style="font-size:15px;font-weight:700;color:var(--txt)">Switch between Monthly, Quarterly, Yearly</div><div style="font-size:12px;color:var(--txt3);margin-top:1px">Enter once — view in any format automatically</div></div>
+        </div>
+        <div style="padding:18px 22px;display:flex;gap:20px;flex-wrap:wrap">
+          <div style="flex:1;min-width:240px">
+            <div style="font-size:13px;color:var(--txt2);line-height:1.65;margin-bottom:14px">Use the <strong>period selector</strong> at the top of the screen to switch views. You don't need to enter data in every format — the platform converts automatically:</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="padding:10px 12px;background:var(--green-light);border-radius:8px;font-size:12px;color:var(--txt)">If you enter a <strong>yearly quota of €120,000</strong>, you'll see <strong>€10,000/month</strong> and <strong>€30,000/quarter</strong> automatically</div>
+              <div style="padding:10px 12px;background:var(--blue-bg);border-radius:8px;font-size:12px;color:var(--txt)">If you enter monthly entries, the platform sums them up when you switch to Quarterly or Yearly view</div>
+            </div>
+          </div>
+          <!-- Mockup: period switcher -->
+          <div style="width:200px;flex-shrink:0">
+            <div style="background:#f8f9fc;border:1.5px solid var(--border);border-radius:10px;padding:12px">
+              <div style="margin-bottom:10px;font-size:11px;color:var(--txt2)">Period selector:</div>
+              <div style="display:flex;border:1.5px solid var(--acc);border-radius:7px;overflow:hidden;margin-bottom:10px">
+                <div style="flex:1;padding:6px;text-align:center;font-size:10px;font-weight:700;background:var(--acc);color:#fff">Monthly</div>
+                <div style="flex:1;padding:6px;text-align:center;font-size:10px;color:var(--txt2)">Quarterly</div>
+                <div style="flex:1;padding:6px;text-align:center;font-size:10px;color:var(--txt2)">Yearly</div>
+              </div>
+              <div style="display:flex;gap:4px">
+                <div style="flex:1;border:1px solid var(--border);border-radius:5px;padding:5px 7px;font-size:10px;color:var(--txt);background:#fff;display:flex;justify-content:space-between">March <span>▾</span></div>
+                <div style="flex:1;border:1px solid var(--border);border-radius:5px;padding:5px 7px;font-size:10px;color:var(--txt);background:#fff;display:flex;justify-content:space-between">2026 <span>▾</span></div>
+              </div>
+              <div style="margin-top:10px;padding:8px;background:#fff;border:1px solid var(--border);border-radius:6px">
+                <div style="font-size:9px;color:var(--txt3);margin-bottom:4px">Auto-converted from yearly:</div>
+                <div style="font-size:14px;font-weight:800;color:var(--green)">€10,000</div>
+                <div style="font-size:9px;color:var(--txt3)">÷12 months</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Sellers view -->
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)">
+        <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
+          <div style="width:36px;height:36px;background:#059669;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:16px;font-weight:800">3</div>
+          <div><div style="font-size:15px;font-weight:700;color:var(--txt)">Track performance in Sellers view</div><div style="font-size:12px;color:var(--txt3);margin-top:1px">See each seller's attainment and manage their data</div></div>
+        </div>
+        <div style="padding:18px 22px;display:flex;gap:20px;flex-wrap:wrap">
+          <div style="flex:1;min-width:240px">
+            <div style="font-size:13px;color:var(--txt2);line-height:1.65;margin-bottom:14px">The <strong>Sellers</strong> tab shows every team member with their current attainment. Click on any seller to see their full profile:</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+                <div style="font-size:13px;color:var(--txt)"><strong>Profile</strong> — see all entries, edit or delete them</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+                <div style="font-size:13px;color:var(--txt)"><strong>Periods</strong> — bulk-fill all months or quarters at once</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+                <div style="font-size:13px;color:var(--txt)">Attainment bar turns <span style="color:var(--green);font-weight:600">green</span> ≥95%, <span style="color:var(--amber);font-weight:600">amber</span> ≥80%, <span style="color:var(--orange);font-weight:600">orange</span> ≥60%, <span style="color:var(--red);font-weight:600">red</span> below</div>
+              </div>
+            </div>
+          </div>
+          <!-- Mockup: sellers table row -->
+          <div style="width:200px;flex-shrink:0">
+            <div style="background:#f8f9fc;border:1.5px solid var(--border);border-radius:10px;padding:10px;font-size:11px">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="background:#fff;border:1px solid var(--border);border-left:3px solid var(--green);border-radius:7px;padding:8px 10px">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+                    <div style="font-weight:700;color:var(--txt)">Maria Silva</div>
+                    <div style="font-size:10px;font-weight:700;color:var(--green)">94%</div>
+                  </div>
+                  <div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:94%;height:100%;background:var(--green);border-radius:3px"></div></div>
+                  <div style="display:flex;gap:4px;margin-top:6px">
+                    <div style="flex:1;background:var(--bg);border-radius:4px;padding:3px 5px;font-size:9px;text-align:center;color:var(--txt2)">Profile</div>
+                    <div style="flex:1;background:var(--acc);border-radius:4px;padding:3px 5px;font-size:9px;text-align:center;color:#fff">Periods</div>
+                  </div>
+                </div>
+                <div style="background:#fff;border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:7px;padding:8px 10px">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+                    <div style="font-weight:700;color:var(--txt)">João Pereira</div>
+                    <div style="font-size:10px;font-weight:700;color:var(--amber)">72%</div>
+                  </div>
+                  <div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:72%;height:100%;background:var(--amber);border-radius:3px"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Submit Docs -->
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)">
+        <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
+          <div style="width:36px;height:36px;background:#db2777;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:16px;font-weight:800">4</div>
+          <div><div style="font-size:15px;font-weight:700;color:var(--txt)">Already tracking quotas elsewhere?</div><div style="font-size:12px;color:var(--txt3);margin-top:1px">Submit your existing Excel, Word, or PDF files</div></div>
+        </div>
+        <div style="padding:18px 22px">
+          <div style="font-size:13px;color:var(--txt2);line-height:1.65;margin-bottom:14px">If your team already tracks quotas in spreadsheets, Word documents, or email — you can submit those to Everfield. Use the <strong>"Submit Docs"</strong> section in the sidebar:</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div style="width:22px;height:22px;border-radius:6px;background:#db2777;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">a</div>
+              <div style="font-size:13px;color:var(--txt)">Paste a <strong>link</strong> to your file (Google Drive, SharePoint, Dropbox, OneDrive) — or type the file name</div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div style="width:22px;height:22px;border-radius:6px;background:#db2777;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">b</div>
+              <div style="font-size:13px;color:var(--txt)">Add a short description of what's in the document and which periods it covers</div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div style="width:22px;height:22px;border-radius:6px;background:#db2777;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">c</div>
+              <div style="font-size:13px;color:var(--txt)">The Everfield team will review it and follow up with you</div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="showView('submit-docs',document.querySelector('[data-view=submit-docs]'))" style="margin-top:16px">Go to Submit Docs →</button>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px 22px;box-shadow:var(--shadow)">
+        <div style="font-size:14px;font-weight:700;color:var(--txt);margin-bottom:14px">Frequently asked questions</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:3px">Can other companies see my data?</div>
+            <div style="font-size:13px;color:var(--txt2);line-height:1.55">No. Your data is completely private and visible only to your company and the Everfield admin team.</div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:12px">
+            <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:3px">What if I entered the wrong quota?</div>
+            <div style="font-size:13px;color:var(--txt2);line-height:1.55">Click on a seller, go to their Profile, and use the edit (pencil) icon on any entry to update it.</div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:12px">
+            <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:3px">Do I need to enter data every month?</div>
+            <div style="font-size:13px;color:var(--txt2);line-height:1.55">Not necessarily. You can enter a yearly or quarterly quota and the platform spreads it automatically. Just update "Achieved" when you have actuals.</div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:12px">
+            <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:3px">Which currency should I use?</div>
+            <div style="font-size:13px;color:var(--txt2);line-height:1.55">Your default currency is pre-set by Everfield. You can change it per entry using the currency selector in the entry form.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SUBMISSIONS VIEW (admin) -->
+  <div class="view" id="view-submissions">
+    <div class="sec-header">
+      <div><div class="sec-title">Doc Submissions</div><div class="sec-sub">Review quota documentation submitted by companies</div></div>
+    </div>
+    <div class="table-card" style="padding:0;overflow:hidden">
+      <div id="submissions-list"></div>
+    </div>
+  </div>
+
+  <!-- SUBMIT DOCS VIEW (company) -->
+  <div class="view" id="view-submit-docs">
+    <div class="sec-header">
+      <div><div class="sec-title">Submit Documents</div><div class="sec-sub">Share your existing quota tracking documents with the Everfield team</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openSubmitDocsModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Submission
+      </button>
+    </div>
+    <div class="table-card" style="padding:0;margin-bottom:20px;overflow:hidden">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--acc-light),#f0f9ff)">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="font-size:24px">📤</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--acc2)">How this works</div>
+            <div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-top:2px">Already tracking quotas in Excel, Word, or email? Submit your existing documents here and the Everfield team will review them, help migrate your data, and get you set up on the platform.</div>
+          </div>
+        </div>
+      </div>
+      <div id="my-submissions-list"></div>
+    </div>
+  </div>
+
 </div><!-- /content -->
 </div><!-- /shell -->
 </div><!-- /app -->
@@ -543,7 +949,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="modal">
     <div class="modal-head">
       <h2 id="em-title">Add Seller Entry</h2>
-      <button class="modal-close" onclick="closeModal('entry-modal')">×</button>
+      <button class="modal-close" onclick="closeEntryModal()">×</button>
     </div>
     <div class="modal-body">
       <div id="em-crm-notice" style="display:none" class="success-box"></div>
@@ -627,7 +1033,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="login-err" id="em-err" style="text-align:left;margin-top:10px"></div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('entry-modal')">Cancel</button>
+      <button class="btn btn-ghost" onclick="closeEntryModal()">Cancel</button>
       <button class="btn btn-primary" id="em-save-btn" onclick="saveEntry()">Save Entry</button>
     </div>
   </div>
@@ -660,6 +1066,296 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </div>
 
+<!-- ONBOARDING MODAL -->
+<div class="modal-backdrop" id="onboarding-modal" style="display:none;align-items:center;justify-content:center;background:rgba(13,11,24,.78);backdrop-filter:blur(6px);z-index:2000">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:560px;box-shadow:0 32px 80px rgba(0,0,0,.38);overflow:hidden;animation:obIn .35s cubic-bezier(.34,1.56,.64,1)">
+    <!-- Top bar: progress + skip -->
+    <div style="display:flex;align-items:center;gap:0;padding:0;background:#fafafa;border-bottom:1px solid var(--border)">
+      <div style="flex:1;height:5px;background:var(--border)"><div id="ob-progress" style="height:5px;background:linear-gradient(90deg,var(--acc),#6d28d9);width:25%;transition:width .4s ease"></div></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 0">
+      <div style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em" id="ob-step-label">Step 1 of 4</div>
+      <button onclick="obSkip()" style="font-size:12px;color:var(--txt3);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;font-weight:500" onmouseover="this.style.color='var(--txt)';this.style.background='var(--bg)'" onmouseout="this.style.color='var(--txt3)';this.style.background='none'">Skip tour ×</button>
+    </div>
+    <!-- Steps container -->
+    <div id="ob-steps" style="padding:20px 28px 8px;min-height:360px">
+
+      <!-- Step 1: Welcome + Navigation overview -->
+      <div id="ob-step-1">
+        <div style="font-size:26px;font-weight:800;color:var(--txt);letter-spacing:-.5px;margin-bottom:6px">Welcome to Everfield 👋</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:18px">Your quota tracking platform. Track team targets, log performance, and report results — in one place. This quick tour takes 60 seconds.</div>
+        <!-- UI Mockup: Sidebar navigation -->
+        <div style="background:#f8f9fc;border:1.5px solid var(--border);border-radius:12px;overflow:hidden;display:flex;gap:0">
+          <div style="width:130px;background:#13111c;padding:12px 8px;flex-shrink:0">
+            <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;padding:0 6px 6px">Company</div>
+            <div style="display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;background:rgba(124,58,237,.25);margin-bottom:3px">
+              <div style="width:14px;height:14px;border:1.5px solid #c4b5fd;border-radius:3px;flex-shrink:0"></div>
+              <div style="font-size:11px;color:#c4b5fd;font-weight:600">Dashboard</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;margin-bottom:3px">
+              <div style="width:14px;height:14px;border:1.5px solid rgba(255,255,255,.3);border-radius:3px;flex-shrink:0"></div>
+              <div style="font-size:11px;color:rgba(255,255,255,.5)">Sellers</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px">
+              <div style="width:14px;height:14px;border:1.5px solid rgba(255,255,255,.3);border-radius:3px;flex-shrink:0"></div>
+              <div style="font-size:11px;color:rgba(255,255,255,.5)">Submit Docs</div>
+            </div>
+          </div>
+          <div style="flex:1;padding:12px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+                <div style="font-size:9px;color:var(--txt3);margin-bottom:4px">Active Sellers</div>
+                <div style="font-size:18px;font-weight:800;color:var(--acc)">12</div>
+              </div>
+              <div style="flex:1;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+                <div style="font-size:9px;color:var(--txt3);margin-bottom:4px">Attainment</div>
+                <div style="font-size:18px;font-weight:800;color:var(--green)">87%</div>
+              </div>
+              <div style="flex:1;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+                <div style="font-size:9px;color:var(--txt3);margin-bottom:4px">Total Quota</div>
+                <div style="font-size:18px;font-weight:800;color:var(--blue)">€240k</div>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+              <div style="font-size:9px;color:var(--txt3);margin-bottom:6px">Performance this period</div>
+              <div style="height:28px;background:var(--bg);border-radius:4px;overflow:hidden;position:relative">
+                <div style="height:100%;width:87%;background:linear-gradient(90deg,#059669,#10b981);border-radius:4px"></div>
+                <div style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--txt2);font-weight:600">87% attained</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--txt3);display:flex;align-items:center;gap:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Your data is private — only visible to your company and Everfield admins.
+        </div>
+      </div>
+
+      <!-- Step 2: Add Entry (with UI mockup of the button + form) -->
+      <div id="ob-step-2" style="display:none">
+        <div style="font-size:26px;font-weight:800;color:var(--txt);letter-spacing:-.5px;margin-bottom:6px">Step 1 — Add your sellers</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:18px">Click <strong>"Add Entry"</strong> in the top-right corner to add a seller and their quota for a period. Do this for every person on your sales team.</div>
+        <!-- UI Mockup: header bar with Add Entry button highlighted -->
+        <div style="background:#f8f9fc;border:1.5px solid var(--border);border-radius:12px;overflow:hidden">
+          <div style="padding:10px 14px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:13px;font-weight:700;color:var(--txt)">Sellers</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden">
+                <div style="padding:5px 10px;font-size:10px;font-weight:600;background:var(--acc);color:#fff">Monthly</div>
+                <div style="padding:5px 10px;font-size:10px;color:var(--txt2)">Quarterly</div>
+                <div style="padding:5px 10px;font-size:10px;color:var(--txt2)">Yearly</div>
+              </div>
+              <div style="position:relative">
+                <div style="background:var(--acc);color:#fff;padding:6px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 0 0 3px rgba(124,58,237,.3),0 4px 12px rgba(124,58,237,.4)">+ Add Entry</div>
+                <div style="position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--acc);font-weight:700;white-space:nowrap">← Click here</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#fff;border:1px solid var(--border);border-radius:8px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:7px;height:7px;border-radius:50%;background:var(--green)"></div>
+                <div style="font-size:11px;font-weight:600;color:var(--txt)">Maria Silva</div>
+                <div style="font-size:10px;color:var(--txt3)">Account Executive</div>
+              </div>
+              <div style="font-size:11px;font-weight:700;color:var(--green)">94%</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#fff;border:1px solid var(--border);border-radius:8px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:7px;height:7px;border-radius:50%;background:var(--green)"></div>
+                <div style="font-size:11px;font-weight:600;color:var(--txt)">João Pereira</div>
+                <div style="font-size:10px;color:var(--txt3)">BDR</div>
+              </div>
+              <div style="font-size:11px;font-weight:700;color:var(--amber)">72%</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:22px;height:22px;border-radius:6px;background:var(--acc);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</div>
+            <div style="font-size:13px;color:var(--txt)">Enter the seller's <strong>name</strong>, <strong>role</strong>, quota amount, and period (Monthly / Quarterly / Yearly)</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:22px;height:22px;border-radius:6px;background:var(--acc);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</div>
+            <div style="font-size:13px;color:var(--txt)">Click a seller's <strong>"Periods"</strong> button to bulk-fill multiple months or quarters at once</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Period switching -->
+      <div id="ob-step-3" style="display:none">
+        <div style="font-size:26px;font-weight:800;color:var(--txt);letter-spacing:-.5px;margin-bottom:6px">Step 2 — View any format</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:18px">Switch between <strong>Monthly, Quarterly, and Yearly</strong> views using the toggle at the top. Enter a quota in any format — the platform converts automatically.</div>
+        <!-- UI Mockup: period switcher + conversion example -->
+        <div style="background:#f8f9fc;border:1.5px solid var(--border);border-radius:12px;overflow:hidden">
+          <div style="padding:12px 14px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+            <div style="font-size:11px;color:var(--txt2);font-weight:600">Viewing:</div>
+            <div style="display:flex;border:1.5px solid var(--acc);border-radius:7px;overflow:hidden">
+              <div style="padding:6px 12px;font-size:11px;font-weight:700;background:var(--acc);color:#fff">Monthly</div>
+              <div style="padding:6px 12px;font-size:11px;color:var(--txt2)">Quarterly</div>
+              <div style="padding:6px 12px;font-size:11px;color:var(--txt2)">Yearly</div>
+            </div>
+            <div style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:11px;color:var(--txt)">March</div>
+            <div style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:11px;color:var(--txt)">2026</div>
+          </div>
+          <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+            <div style="background:#fff;border:1.5px solid var(--green-bg);border-radius:8px;padding:10px 12px">
+              <div style="font-size:10px;color:var(--txt3);margin-bottom:4px">Yearly quota entered: <strong style="color:var(--txt)">€120,000</strong></div>
+              <div style="display:flex;gap:6px;align-items:center">
+                <div style="flex:1;background:var(--green-light);border-radius:6px;padding:6px 8px;text-align:center">
+                  <div style="font-size:9px;color:var(--txt3)">Monthly</div>
+                  <div style="font-size:12px;font-weight:700;color:var(--green)">€10,000</div>
+                  <div style="font-size:9px;color:var(--txt3)">÷12</div>
+                </div>
+                <div style="color:var(--txt3);font-size:12px">→</div>
+                <div style="flex:1;background:var(--amber-light);border-radius:6px;padding:6px 8px;text-align:center">
+                  <div style="font-size:9px;color:var(--txt3)">Quarterly</div>
+                  <div style="font-size:12px;font-weight:700;color:var(--amber)">€30,000</div>
+                  <div style="font-size:9px;color:var(--txt3)">÷4</div>
+                </div>
+                <div style="color:var(--txt3);font-size:12px">→</div>
+                <div style="flex:1;background:var(--purple-bg);border-radius:6px;padding:6px 8px;text-align:center">
+                  <div style="font-size:9px;color:var(--txt3)">Yearly</div>
+                  <div style="font-size:12px;font-weight:700;color:var(--acc)">€120,000</div>
+                  <div style="font-size:9px;color:var(--txt3)">original</div>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--txt3);text-align:center">The platform converts automatically — you only enter it once</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Done + guide CTA -->
+      <div id="ob-step-4" style="display:none">
+        <div style="font-size:26px;font-weight:800;color:var(--txt);letter-spacing:-.5px;margin-bottom:6px">Step 3 — Track performance</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:18px">Your <strong>Dashboard</strong> shows live attainment, top performers, and quota vs. achieved. Update actuals regularly to keep your data accurate.</div>
+        <!-- UI Mockup: dashboard with attainment bar -->
+        <div style="background:#f8f9fc;border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px">
+          <div style="padding:10px 14px;background:#fff;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--txt)">Dashboard · March 2026</div>
+          <div style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:11px;font-weight:600;color:var(--txt)">Maria Silva</div>
+              <div style="display:flex;align-items:center;gap:8px;flex:1;margin:0 12px">
+                <div style="flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="width:94%;height:100%;background:var(--green);border-radius:4px"></div></div>
+              </div>
+              <div style="font-size:11px;font-weight:700;color:var(--green)">94%</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:11px;font-weight:600;color:var(--txt)">João Pereira</div>
+              <div style="display:flex;align-items:center;gap:8px;flex:1;margin:0 12px">
+                <div style="flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="width:72%;height:100%;background:var(--amber);border-radius:4px"></div></div>
+              </div>
+              <div style="font-size:11px;font-weight:700;color:var(--amber)">72%</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:11px;font-weight:600;color:var(--txt)">Ana Costa</div>
+              <div style="display:flex;align-items:center;gap:8px;flex:1;margin:0 12px">
+                <div style="flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="width:58%;height:100%;background:var(--orange);border-radius:4px"></div></div>
+              </div>
+              <div style="font-size:11px;font-weight:700;color:var(--orange)">58%</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;padding:14px;background:linear-gradient(135deg,var(--acc-light),#f0f9ff);border:1.5px solid #c4b5fd;border-radius:12px;align-items:flex-start">
+          <div style="font-size:20px;flex-shrink:0">📖</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--acc2);margin-bottom:2px">Need help later?</div>
+            <div style="font-size:12px;color:var(--txt2);line-height:1.5">Open <strong>Getting Started</strong> in the sidebar anytime to re-read this guide with step-by-step instructions.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer navigation -->
+    <div style="padding:16px 28px 22px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;gap:7px" id="ob-dots">
+        <div class="ob-dot ob-dot-active"></div>
+        <div class="ob-dot"></div>
+        <div class="ob-dot"></div>
+        <div class="ob-dot"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn btn-ghost btn-sm" id="ob-back-btn" onclick="obBack()" style="display:none">← Back</button>
+        <button class="btn btn-primary btn-sm" id="ob-next-btn" onclick="obNext()" style="min-width:110px">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMIT DOCS MODAL -->
+<div class="modal-backdrop" id="submit-docs-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <h2>📤 Submit Quota Documents</h2>
+      <button class="modal-close" onclick="closeModal('submit-docs-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:18px">Share your existing quota tracking documents with Everfield. We'll review them and help migrate your data to the platform.</p>
+      <div class="fld">
+        <label>Document Type</label>
+        <div class="sel-wrap">
+          <select id="sdm-type">
+            <option value="">Select type…</option>
+            <option value="Excel spreadsheet">Excel spreadsheet (.xlsx)</option>
+            <option value="Word document">Word document (.docx)</option>
+            <option value="PDF report">PDF report (.pdf)</option>
+            <option value="Email chain">Email chain / screenshot</option>
+            <option value="Google Sheets">Google Sheets</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="fld">
+        <label>Period Covered <span style="font-weight:400;color:var(--txt3)">(optional)</span></label>
+        <input type="text" id="sdm-period" placeholder="e.g. Q1 2026, Full Year 2025, January–March 2026…">
+      </div>
+      <div class="fld">
+        <label>Description</label>
+        <textarea id="sdm-description" rows="3" placeholder="Briefly describe what's in this document and what you need help with…" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;resize:vertical;font-family:inherit;color:var(--txt)"></textarea>
+      </div>
+      <!-- File attachment options -->
+      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:4px">
+        <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em">Attach your file (choose one)</div>
+        <div style="display:flex;border-bottom:1px solid var(--border)">
+          <button id="sdm-tab-upload" onclick="sdmTabSwitch('upload')" style="flex:1;padding:9px;font-size:12px;font-weight:600;background:#fff;border:none;cursor:pointer;border-bottom:2px solid var(--acc);color:var(--acc)">📎 Upload file</button>
+          <button id="sdm-tab-link" onclick="sdmTabSwitch('link')" style="flex:1;padding:9px;font-size:12px;font-weight:600;background:var(--bg);border:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--txt2)">🔗 Paste a link</button>
+          <button id="sdm-tab-name" onclick="sdmTabSwitch('name')" style="flex:1;padding:9px;font-size:12px;font-weight:600;background:var(--bg);border:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--txt2)">📄 File name</button>
+        </div>
+        <!-- Upload panel (default) -->
+        <div id="sdm-panel-upload" style="padding:14px">
+          <label id="sdm-drop-zone" for="sdm-file" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed var(--border);border-radius:8px;padding:24px 16px;cursor:pointer;transition:border-color .2s,background .2s" onmouseover="this.style.borderColor='var(--acc)';this.style.background='var(--acc-light)'" onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
+            <div style="font-size:28px">📄</div>
+            <div style="font-size:13px;font-weight:600;color:var(--txt)">Click to browse or drag &amp; drop</div>
+            <div style="font-size:11px;color:var(--txt3)">Accepts .xlsx, .xls, .docx, .doc, .pdf, .csv, .pptx, .png, .jpg — max 25 MB</div>
+            <input type="file" id="sdm-file" accept=".xlsx,.xls,.docx,.doc,.pdf,.csv,.pptx,.png,.jpg,.jpeg" style="display:none" onchange="sdmFileChosen(this)">
+          </label>
+          <div id="sdm-file-chosen" style="display:none;margin-top:10px;padding:8px 12px;background:var(--acc-light);border-radius:7px;font-size:12px;color:var(--acc);font-weight:600;display:flex;align-items:center;gap:8px">
+            <span>📎</span><span id="sdm-file-name-display"></span>
+            <button onclick="sdmClearFile()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--txt2);font-size:14px" title="Remove">×</button>
+          </div>
+        </div>
+        <!-- Link panel -->
+        <div id="sdm-panel-link" style="display:none;padding:12px 14px">
+          <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;line-height:1.5">Paste a shareable link from Google Drive, SharePoint, Dropbox, OneDrive, or any cloud storage:</div>
+          <input type="url" id="sdm-fileurl" placeholder="https://drive.google.com/file/… or https://…" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--txt)">
+          <div style="margin-top:8px;font-size:11px;color:var(--txt3)">Make sure the link is set to "Anyone with the link can view"</div>
+        </div>
+        <!-- File name panel -->
+        <div id="sdm-panel-name" style="display:none;padding:12px 14px">
+          <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;line-height:1.5">Type the file name for reference — the Everfield team will contact you to collect the file:</div>
+          <input type="text" id="sdm-filename" placeholder="e.g. Q1_quotas_2026.xlsx, Annual_Targets.pdf…" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--txt)">
+        </div>
+      </div>
+      <div class="login-err" id="sdm-err" style="text-align:left;margin-top:10px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('submit-docs-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDocSubmission()">Submit to Everfield</button>
+    </div>
+  </div>
+</div>
+
 <!-- PASSWORD MODAL -->
 <div class="modal-backdrop" id="pw-modal">
   <div class="modal" style="max-width:400px">
@@ -687,7 +1383,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <!-- SELLER PROFILE MODAL -->
 <div class="modal-backdrop" id="seller-modal">
-  <div class="modal modal-lg" style="max-width:720px">
+  <div class="modal modal-lg" style="max-width:760px">
     <div class="modal-head">
       <div>
         <h2 id="sm-title">Seller Profile</h2>
@@ -698,15 +1394,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="modal-body" style="padding:0">
       <!-- Summary stats bar -->
       <div id="sm-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--border)"></div>
-      <!-- History table -->
-      <div style="padding:16px 24px 8px;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:13px;font-weight:700;color:var(--txt)">Quota History</div>
-        <button class="btn btn-primary btn-sm" id="sm-add-btn" onclick="addEntryForCurrentSeller()">+ Add Period</button>
+
+      <!-- Quota Plan section -->
+      <div style="padding:16px 24px 12px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+          <div style="font-size:13px;font-weight:700;color:var(--txt)">Quota Plan</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <!-- Year selector -->
+            <div style="display:flex;align-items:center;gap:6px">
+              <button onclick="setSmYear(smYear-1)" style="width:24px;height:24px;border:1px solid var(--border);background:#fff;border-radius:5px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">‹</button>
+              <span id="sm-year-display" style="font-size:13px;font-weight:700;color:var(--txt);min-width:38px;text-align:center">2026</span>
+              <button onclick="setSmYear(smYear+1)" style="width:24px;height:24px;border:1px solid var(--border);background:#fff;border-radius:5px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">›</button>
+            </div>
+            <!-- Period type segmented control -->
+            <div id="sm-period-seg" style="display:flex;gap:0;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;overflow:hidden">
+              <button onclick="setSmPType('Monthly')"   class="sm-seg-btn active" data-pt="Monthly">Monthly</button>
+              <button onclick="setSmPType('Quarterly')" class="sm-seg-btn"        data-pt="Quarterly">Quarterly</button>
+              <button onclick="setSmPType('Yearly')"    class="sm-seg-btn"        data-pt="Yearly">Yearly</button>
+            </div>
+          </div>
+        </div>
+        <div id="sm-plan-content"></div>
+      </div>
+
+      <!-- All entries / history -->
+      <div style="padding:14px 24px 8px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;font-weight:700;color:var(--txt)">All Entries</div>
+        <button class="btn btn-ghost btn-sm" id="sm-add-btn" onclick="addEntryForCurrentSeller()">+ Add Entry</button>
       </div>
       <table class="tbl" id="sm-table" style="margin-bottom:0"></table>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('seller-modal')">Close</button>
+      <button class="btn btn-primary" id="sm-set-quotas-btn" onclick="setQuotasFromProfile()">📊 Set Quotas</button>
     </div>
   </div>
 </div>
@@ -746,6 +1466,96 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('add-co-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveNewCompany()">Add Company</button>
+    </div>
+  </div>
+</div>
+
+<!-- BULK PERIOD ENTRY MODAL -->
+<div class="modal-backdrop" id="bulk-modal">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-head">
+      <div>
+        <h2 id="bulk-title">Set Quotas by Period</h2>
+        <div id="bulk-meta" style="font-size:12px;color:var(--txt3);margin-top:2px"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('bulk-modal')">×</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+
+      <!-- Controls row -->
+      <div style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fafafa">
+        <div class="period-seg" id="bulk-period-seg">
+          <button type="button" onclick="setBulkPeriodType('Monthly')" class="active">Monthly</button>
+          <button type="button" onclick="setBulkPeriodType('Quarterly')">Quarterly</button>
+          <button type="button" onclick="setBulkPeriodType('Yearly')">Yearly</button>
+        </div>
+        <select id="bulk-year" class="period-select" onchange="renderBulkTable()">
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+          <option value="2027">2027</option>
+        </select>
+        <select id="bulk-currency" class="period-select" onchange="renderBulkTable()">
+          <option value="EUR">EUR (€)</option>
+          <option value="GBP">GBP (£)</option>
+          <option value="PLN">PLN (zł)</option>
+          <option value="DKK">DKK (kr)</option>
+        </select>
+      </div>
+
+      <!-- Quick Fill panel -->
+      <div style="padding:14px 20px;background:linear-gradient(135deg,var(--acc-light),#f0f9ff);border-bottom:2px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Quick Fill — apply to all periods at once</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <!-- Mode selector -->
+          <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;flex-shrink:0">
+            <button id="qf-mode-same" type="button" onclick="setQfMode('same')"
+              style="padding:7px 14px;font-size:12px;font-weight:600;background:var(--acc);color:#fff;border:none;cursor:pointer">
+              Same each period
+            </button>
+            <button id="qf-mode-spread" type="button" onclick="setQfMode('spread')"
+              style="padding:7px 14px;font-size:12px;font-weight:600;background:transparent;color:var(--txt2);border:none;cursor:pointer">
+              Spread from total
+            </button>
+          </div>
+          <!-- Amount input -->
+          <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:160px">
+            <span id="qf-sym" style="font-size:13px;color:var(--txt2);font-weight:600;flex-shrink:0">€</span>
+            <input type="number" id="qf-amount" min="0" placeholder="e.g. 10,000"
+              style="flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;color:var(--txt)">
+          </div>
+          <!-- Helper label -->
+          <div id="qf-hint" style="font-size:11px;color:var(--txt3);min-width:140px;line-height:1.45">Same quota target<br>applied to every period</div>
+          <!-- Apply button -->
+          <button type="button" onclick="bulkQuickFill()"
+            style="padding:8px 16px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
+            Apply to all →
+          </button>
+          <!-- Clear button -->
+          <button type="button" onclick="bulkClearAll()"
+            style="padding:8px 12px;background:#fff;color:var(--txt3);border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">
+            Clear all
+          </button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div style="max-height:340px;overflow-y:auto">
+        <table class="tbl" id="bulk-table" style="margin-bottom:0"></table>
+      </div>
+
+      <!-- Live summary bar -->
+      <div id="bulk-summary" style="padding:10px 20px;background:#fafafa;border-top:1px solid var(--border);display:flex;gap:20px;font-size:12px;color:var(--txt2)"></div>
+    </div>
+
+    <div class="modal-foot" style="justify-content:space-between">
+      <div id="bulk-err" style="color:var(--red);font-size:12px;align-self:center"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="closeModal('bulk-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveBulkEntries()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Save All Periods
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -846,7 +1656,7 @@ alter table quota_entries add column if not exists is_active boolean default tru
    COMPANY DATA
 ═══════════════════════════════════════ */
 const COMPANIES = [
-  {name:'BBT',region:'CEE & PL',sub:'Vistula',currency:'PLN'},
+  {name:'BBT',region:'CEE & PL',sub:'Vistula',currency:'EUR'},
   {name:'GO',region:'CEE & PL',sub:'Vistula',currency:'PLN'},
   {name:'Atmoterm',region:'CEE & PL',sub:'Vistula',currency:'PLN'},
   {name:'AGroup',region:'CEE & PL',sub:'Vistula',currency:'EUR'},
@@ -895,7 +1705,8 @@ let settings = {};     // {company: {crm_enabled, crm_auto_pull}}
 let passwords = {};    // {company: customPassword}
 let loginLogs = [];
 let customCompanies = []; // admin-created companies from DB
-let dbCols = {crm_pull:true, currency:true, role:true, quota_type:true, is_active:true}; // assume present until proven otherwise
+let dbCols = {crm_pull:true, currency:true, role:true, quota_type:true, is_active:true};
+let dbTables = {company_logins:true, company_settings:true, custom_companies:true, company_passwords:true};
 let pType = 'Monthly';
 let pMonth = new Date().toLocaleString('en-US',{month:'long'});
 let pQuarter = 'Q' + Math.ceil((new Date().getMonth()+1)/3);
@@ -952,6 +1763,21 @@ function toast(msg,type='success'){
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 function openModal(id){ document.getElementById(id).classList.add('open'); }
+
+/* ═══════════════════════════════════════
+   COUNT-UP ANIMATION
+═══════════════════════════════════════ */
+function animateCount(el, toVal, duration=650, formatter=v=>v){
+  const start=Date.now();
+  const update=()=>{
+    const t=Math.min((Date.now()-start)/duration,1);
+    const eased=1-Math.pow(1-t,3); // ease-out cubic
+    el.textContent=formatter(Math.round(toVal*eased));
+    if(t<1) requestAnimationFrame(update);
+    else el.textContent=formatter(toVal); // ensure exact final value
+  };
+  requestAnimationFrame(update);
+}
 
 /* ═══════════════════════════════════════
    SVG GAUGE
@@ -1026,19 +1852,31 @@ async function init(){
 }
 
 async function probeDbCols(){
-  // Check if new columns exist; degrade gracefully if not
-  const {error} = await db.from('quota_entries').select('crm_pull,currency,role,quota_type,is_active').limit(0);
-  if(error?.code==='PGRST204'){
-    dbCols={crm_pull:false,currency:false,role:false,quota_type:false,is_active:false};
-    console.warn('DB migration needed — some columns missing. Run Setup SQL.');
+  // Probe each column independently so one missing column doesn't mark all as false
+  const cols = ['crm_pull','currency','role','quota_type','is_active'];
+  for(const col of cols){
+    const {error} = await db.from('quota_entries').select(col).limit(0);
+    dbCols[col] = !error || error.code !== 'PGRST204';
   }
+  // Probe supporting tables
+  const tbls = ['company_logins','company_settings','custom_companies'];
+  for(const t of tbls){
+    const {error} = await db.from(t).select('*').limit(0);
+    dbTables[t] = !error || error.code !== 'PGRST205';
+  }
+  // Banner is only shown to admin — evaluated in loginAs after currentUser is set
 }
 
 async function loadCustomCompanies(){
-  try{
-    const {data,error}=await db.from('custom_companies').select('*').order('name');
-    if(!error && data) customCompanies=data.map(r=>({name:r.name,region:r.region,sub:r.sub_region,currency:r.currency||'EUR',custom:true}));
-  }catch(e){}
+  if(!dbTables.custom_companies) return;
+  const {data,error}=await db.from('custom_companies').select('*').order('name');
+  if(!error && data) customCompanies=data.map(r=>({name:r.name,region:r.region,sub:r.sub_region,currency:r.currency||'EUR',custom:true}));
+}
+
+function showDbSetupBanner(show){
+  const el = document.getElementById('db-setup-banner');
+  // Only show to admin — company users should never see infrastructure messages
+  if(el) el.style.display = (show && isAdmin()) ? 'flex' : 'none';
 }
 
 function buildLoginDropdown(){
@@ -1065,16 +1903,21 @@ async function loginAs(co){
   currentUser=co;
   sessionStorage.setItem('qtu',co);
   // Log access (non-admin)
-  if(co!=='__admin__'){
-    try {
-      await db.from('company_logins').insert([{company:co,logged_at:new Date().toISOString()}]);
-    } catch(e){ console.warn('Login log failed:',e); }
+  if(co!=='__admin__' && dbTables.company_logins){
+    const {error:logErr} = await db.from('company_logins').insert([{company:co,logged_at:new Date().toISOString()}]);
+    if(logErr){ dbTables.company_logins=false; console.warn('Login log failed:',logErr.message); }
   }
   // Setup UI
   const isAd=isAdmin();
+  // Show DB setup banner to admin only when tables/columns are missing
+  if(isAd){
+    const needsSetup = Object.values(dbTables).some(v=>!v) || Object.values(dbCols).some(v=>!v);
+    showDbSetupBanner(needsSetup);
+  }
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=isAd?'':'none');
+  document.querySelectorAll('.company-only').forEach(el=>el.style.display=isAd?'none':'');
   document.getElementById('sb-admin-label').style.display=isAd?'':'none';
   document.getElementById('add-btn').style.display='';
   document.getElementById('sellers-add-btn').style.display='';
@@ -1090,6 +1933,10 @@ async function loginAs(co){
   if(!isAd && hasCRM(co) && !crmDecided(co)){
     setTimeout(()=>openModal('crm-modal'),600);
   }
+  // Show onboarding for new company users
+  if(!isAd){
+    setTimeout(()=>maybeShowOnboarding(co), 900);
+  }
 }
 
 function doLogout(){
@@ -1102,6 +1949,122 @@ function doLogout(){
 }
 
 /* ═══════════════════════════════════════
+   SMART QUOTA SPREADING (bi-directional)
+
+   RULES:
+   ┌──────────────┬─────────────────────────────────────────────────────────┐
+   │ Quota        │ Spreads in both directions — quota is a target/estimate  │
+   │              │ so dividing or extrapolating is legitimate               │
+   ├──────────────┼─────────────────────────────────────────────────────────┤
+   │ Achieved     │ NEVER extrapolated or multiplied.                        │
+   │              │ Upward   → sum only (what was actually sold)             │
+   │              │ Downward → 0 (we don't know the sub-period breakdown)    │
+   └──────────────┴─────────────────────────────────────────────────────────┘
+
+   Viewing Monthly   → prefer Monthly, fallback Q÷3 (achieved=0), Y÷12 (achieved=0)
+   Viewing Quarterly → prefer Quarterly, fallback sum months (achieved=sum), Y÷4 (achieved=0)
+   Viewing Yearly    → prefer Yearly, fallback sum quarters (achieved=sum), sum months (achieved=sum)
+═══════════════════════════════════════ */
+function getEffectiveEntries(sourceEntries, targetPeriodStr){
+  // Group entries by (company + seller_name) to avoid double-counting
+  const groups = {};
+  sourceEntries.forEach(e=>{
+    const k = `${e.company}||${e.seller_name}`;
+    if(!groups[k]) groups[k] = [];
+    groups[k].push(e);
+  });
+
+  // Aggregate sub-period entries upward into a larger period.
+  // quota: extrapolated if some sub-periods missing (×factor)
+  // achieved: sum only — never multiplied (actuals are facts, not estimates)
+  function aggregateUp(presentEntries, totalSlots){
+    if(!presentEntries.length) return null;
+    const factor = totalSlots / presentEntries.length;
+    return {
+      quota:    Math.round(presentEntries.reduce((s,e)=>s+Number(e.quota),   0) * factor),
+      achieved: Math.round(presentEntries.reduce((s,e)=>s+Number(e.achieved),0)),  // NO factor
+      est: presentEntries.length < totalSlots  // flag: quota was extrapolated
+    };
+  }
+
+  // Which months belong to a quarter?
+  function monthsInQuarter(q){ return MONTHS.slice((parseInt(q[1])-1)*3, (parseInt(q[1])-1)*3+3); }
+
+  const result = [];
+  for(const sellerEntries of Object.values(groups)){
+    // 1. Direct match — always preferred
+    const direct = sellerEntries.find(e=>e.period===targetPeriodStr);
+    if(direct){ result.push(direct); continue; }
+
+    const parts = targetPeriodStr.split('|');
+    const year  = parts[parts.length-1];
+
+    if(parts[0]==='Monthly'){
+      // ── Downward only (sub-period of a larger parent) ──────────────────
+      // Achieved is unknown at this granularity → set to 0
+      const monthIdx = MONTHS.indexOf(parts[1]);
+      const quarter  = 'Q'+Math.ceil((monthIdx+1)/3);
+
+      const qEntry = sellerEntries.find(e=>e.period===`Quarterly|${quarter}|${year}`);
+      if(qEntry){
+        result.push({...qEntry, quota:Math.round(qEntry.quota/3), achieved:0,
+          period:targetPeriodStr, _spread:`quota from ${quarter} ÷3`});
+        continue;
+      }
+      const yEntry = sellerEntries.find(e=>e.period===`Yearly|${year}`);
+      if(yEntry){
+        result.push({...yEntry, quota:Math.round(yEntry.quota/12), achieved:0,
+          period:targetPeriodStr, _spread:`quota from ${year} ÷12`});
+        continue;
+      }
+
+    } else if(parts[0]==='Quarterly'){
+      const quarter = parts[1];
+
+      // ── Upward: aggregate monthly actuals & extrapolate quota ───────────
+      const months     = monthsInQuarter(quarter);
+      const mEntries   = months.map(m=>sellerEntries.find(e=>e.period===`Monthly|${m}|${year}`)).filter(Boolean);
+      const agg        = aggregateUp(mEntries, 3);
+      if(agg){
+        const base = mEntries[0];
+        result.push({...base, quota:agg.quota, achieved:agg.achieved, period:targetPeriodStr,
+          _spread:`quota from months${agg.est?' (est.)':''}`});
+        continue;
+      }
+
+      // ── Downward: Yearly parent, achieved unknown ──────────────────────
+      const yEntry = sellerEntries.find(e=>e.period===`Yearly|${year}`);
+      if(yEntry){
+        result.push({...yEntry, quota:Math.round(yEntry.quota/4), achieved:0,
+          period:targetPeriodStr, _spread:`quota from ${year} ÷4`});
+        continue;
+      }
+
+    } else if(parts[0]==='Yearly'){
+      // ── Upward: aggregate quarterly entries ────────────────────────────
+      const qEntries = QUARTERS.map(q=>sellerEntries.find(e=>e.period===`Quarterly|${q}|${year}`)).filter(Boolean);
+      const qAgg     = aggregateUp(qEntries, 4);
+      if(qAgg){
+        result.push({...qEntries[0], quota:qAgg.quota, achieved:qAgg.achieved, period:targetPeriodStr,
+          _spread:`quota from quarters${qAgg.est?' (est.)':''}`});
+        continue;
+      }
+
+      // ── Upward: aggregate monthly entries ─────────────────────────────
+      const mEntries = MONTHS.map(m=>sellerEntries.find(e=>e.period===`Monthly|${m}|${year}`)).filter(Boolean);
+      const mAgg     = aggregateUp(mEntries, 12);
+      if(mAgg){
+        result.push({...mEntries[0], quota:mAgg.quota, achieved:mAgg.achieved, period:targetPeriodStr,
+          _spread:`quota from months${mAgg.est?' (est.)':''}`});
+        continue;
+      }
+    }
+    // No entry or spread found for this seller in this period — skip
+  }
+  return result;
+}
+
+/* ═══════════════════════════════════════
    DATA LOADING
 ═══════════════════════════════════════ */
 async function loadData(){
@@ -1110,12 +2073,12 @@ async function loadData(){
     if(isAdmin()){
       const {data}=await db.from('quota_entries').select('*').order('created_at',{ascending:false});
       allEntries=data||[];
-      entries=allEntries.filter(e=>e.period===periodStr());
+      entries=getEffectiveEntries(allEntries, periodStr());
     } else {
       const {data}=await db.from('quota_entries').select('*')
         .eq('company',currentUser).order('created_at',{ascending:false});
       allEntries=data||[];
-      entries=allEntries.filter(e=>e.period===periodStr());
+      entries=getEffectiveEntries(allEntries, periodStr());
     }
     setBar(80);
     renderCurrentView();
@@ -1134,19 +2097,30 @@ async function loadPasswords(){
 }
 
 async function loadSettings(){
-  try{
-    const {data}=await db.from('company_settings').select('*');
-    if(data) data.forEach(r=>{settings[r.company]={crm_enabled:r.crm_enabled,crm_auto_pull:r.crm_auto_pull};});
-  } catch(e){}
+  if(!dbTables.company_settings){ return; }
+  const {data, error}=await db.from('company_settings').select('*');
+  if(error){
+    if(error.code==='PGRST205') dbTables.company_settings=false;
+    return;
+  }
+  if(data) data.forEach(r=>{settings[r.company]={crm_enabled:r.crm_enabled,crm_auto_pull:r.crm_auto_pull};});
 }
 
 async function loadAccessLog(){
+  const logEl = document.getElementById('log-list');
+  if(!dbTables.company_logins){
+    if(logEl) logEl.innerHTML='<div style="padding:48px 24px;text-align:center;color:var(--txt3)"><div style="font-size:32px;margin-bottom:12px">⚙️</div><div style="font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:6px">Database Setup Required</div><div style="font-size:12px;margin-bottom:16px">The access log table has not been created yet.</div><button class="btn btn-primary btn-sm" onclick="showSetupSQL()">Run Setup SQL</button></div>';
+    return;
+  }
   spin(true);
-  try{
-    const {data}=await db.from('company_logins').select('*').order('logged_at',{ascending:false}).limit(200);
-    loginLogs=data||[];
-    renderAccessLog();
-  } catch(e){ toast('Error loading access log','error'); }
+  const {data, error}=await db.from('company_logins').select('*').order('logged_at',{ascending:false}).limit(200);
+  if(error){
+    if(error.code==='PGRST205') dbTables.company_logins=false;
+    if(logEl) logEl.innerHTML='<div style="padding:40px;text-align:center;color:var(--txt3)">Error loading access log: '+error.message+'</div>';
+    spin(false); return;
+  }
+  loginLogs=data||[];
+  renderAccessLog();
   spin(false);
 }
 
@@ -1154,7 +2128,7 @@ async function loadAccessLog(){
    SAVE / DELETE
 ═══════════════════════════════════════ */
 async function saveEntry(){
-  const co = isAdmin() ? (drillCompany || document.getElementById('em-co').value) : currentUser;
+  const co = _modalForceCo || (isAdmin() ? (drillCompany || document.getElementById('em-co').value) : currentUser);
   const seller = document.getElementById('em-seller').value.trim();
   const quota = parseFloat(document.getElementById('em-quota').value);
   const crmCb = document.getElementById('em-crm-cb').checked;
@@ -1207,10 +2181,38 @@ async function saveEntry(){
     toast('Save failed — '+error.message,'error');
     spin(false); return;
   }
-  toast(editEntry?'Entry updated ✓':'Entry added ✓');
-  closeModal('entry-modal'); editEntry=null;
+  const wasNew = !editEntry;
+  const savedSeller = document.getElementById('em-seller').value.trim();
+  const savedCo = _modalForceCo || (isAdmin() ? (drillCompany || document.getElementById('em-co').value) : currentUser);
+  toast(wasNew?'Entry added ✓':'Entry updated ✓');
+  closeEntryModal(); editEntry=null;
   await loadData();
   spin(false);
+  // After adding a NEW entry, prompt to set quotas for other periods
+  if(wasNew && savedSeller && savedCo){
+    setTimeout(()=>showBulkPromptToast(savedSeller, savedCo), 400);
+  }
+}
+
+function showBulkPromptToast(seller, company){
+  const id = 'bulk-prompt-'+Date.now();
+  const el = document.createElement('div');
+  el.id = id;
+  el.className = 'toast-item info';
+  el.style.cssText = 'display:flex;align-items:center;gap:12px;max-width:360px;padding:14px 16px';
+  el.innerHTML = `
+    <div style="flex:1">
+      <div style="font-weight:700;margin-bottom:2px">Set quotas for other periods?</div>
+      <div style="font-size:12px;opacity:.85">${seller} — fill in all months or quarters at once</div>
+    </div>
+    <button onclick="document.getElementById('${id}').remove();openBulkEntry('${seller.replace(/'/g,"\\'")}','${company.replace(/'/g,"\\'")}');"
+      style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
+      Set Quotas →
+    </button>
+    <button onclick="document.getElementById('${id}').remove()"
+      style="background:none;border:none;color:rgba(255,255,255,.6);font-size:18px;cursor:pointer;padding:0;line-height:1">×</button>`;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 10000);
 }
 
 async function deleteEntry(id){
@@ -1256,7 +2258,7 @@ function showView(view, el){
   if(el) el.classList.add('active');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
-  const titles={dashboard:'Dashboard',sellers:'Sellers',portfolio:'Portfolio Overview','crm-settings':'CRM Settings','access-log':'Access Log',companies:'Companies',passwords:'Passwords',export:'Export Data'};
+  const titles={dashboard:'Dashboard',sellers:'Sellers',portfolio:'Portfolio Overview','crm-settings':'CRM Settings','access-log':'Access Log',companies:'Companies',passwords:'Passwords',export:'Export Data',submissions:'Doc Submissions','submit-docs':'Submit Documents','getting-started':'Getting Started'};
   document.getElementById('c-title').textContent=titles[view]||view;
   renderCurrentView();
 }
@@ -1270,6 +2272,40 @@ function renderCurrentView(){
   else if(currentView==='companies') renderCompanies();
   else if(currentView==='passwords') renderPasswords();
   else if(currentView==='export') renderExport();
+  else if(currentView==='submissions') loadSubmissions();
+  else if(currentView==='submit-docs') renderSubmitDocsView();
+  // getting-started is static HTML — no render function needed
+}
+
+function renderSubmitDocsView(){
+  const co = currentUser;
+  // render company submissions list
+  const container = document.getElementById('my-submissions-list');
+  if(!container) return;
+  container.innerHTML = '<div style="color:var(--txt3);font-size:13px;padding:20px">Loading…</div>';
+  db.from('quota_submissions').select('*').eq('company',co).order('created_at',{ascending:false}).then(({data,error})=>{
+    if(error||!data||!data.length){
+      container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--txt3)"><div style="font-size:32px;margin-bottom:10px">📤</div><div style="font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:4px">No submissions yet</div><div style="font-size:13px">Use the button above to submit your quota documents.</div></div>`;
+      return;
+    }
+    const statusColors={pending:'var(--amber)',approved:'var(--green)',rejected:'var(--red)'};
+    const statusBg={pending:'var(--amber-bg)',approved:'var(--green-bg)',rejected:'var(--red-bg)'};
+    container.innerHTML = data.map(s=>`
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px">
+        <div style="font-size:22px;flex-shrink:0;margin-top:1px">${subTypeIcon(s.submission_type)}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-weight:600;font-size:13px;color:var(--txt)">${escHtml(s.submission_type)}</span>
+            <span style="padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;background:${statusBg[s.status]||'var(--bg)'};color:${statusColors[s.status]||'var(--txt3)'}">${s.status}</span>
+            <span style="font-size:11px;color:var(--txt3)">${new Date(s.created_at).toLocaleDateString()}</span>
+          </div>
+          ${s.period_covered?`<div style="font-size:12px;color:var(--txt3)">Period: ${escHtml(s.period_covered)}</div>`:''}
+          <div style="font-size:12px;color:var(--txt2);margin-top:2px">${escHtml(s.description)}</div>
+          ${s.file_name?(s.file_name.startsWith('http')?`<div style="font-size:11px;margin-top:2px"><a href="${escHtml(s.file_name)}" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none">🔗 Linked file →</a></div>`:`<div style="font-size:11px;color:var(--blue)">📎 ${escHtml(s.file_name)}</div>`):''}
+          ${s.admin_note?`<div style="font-size:11px;color:var(--txt2);margin-top:4px;background:var(--bg);padding:4px 8px;border-radius:6px">💬 Everfield: ${escHtml(s.admin_note)}</div>`:''}
+        </div>
+      </div>`).join('');
+  });
 }
 
 /* ═══════════════════════════════════════
@@ -1295,28 +2331,36 @@ function renderDashboard(){
 
   // Stats grid
   const dispCurr = co ? coCurrency(co) : 'EUR';
+  const attCardClass = att>=95?'card-green':att>=80?'card-amber':att>=60?'card-amber':'card-red';
   const sg=document.getElementById('stats-grid');
   sg.innerHTML=`
-    <div class="stat-card" style="--accent-color:var(--acc);--icon-bg:var(--acc-light)">
+    <div class="stat-card card-purple" style="--accent-color:var(--acc);--icon-bg:var(--acc-light)">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <div class="stat-val">${sellers}</div><div class="stat-lbl">Active Sellers</div>
+      <div class="stat-val" id="sv-sellers">—</div><div class="stat-lbl">Active Sellers</div>
       <div class="stat-delta" style="color:var(--txt3)">${data.length} entries this period</div>
     </div>
-    <div class="stat-card" style="--accent-color:var(--blue);--icon-bg:var(--blue-bg)">
+    <div class="stat-card card-blue" style="--accent-color:var(--blue);--icon-bg:var(--blue-bg)">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-      <div class="stat-val">${fmtCurr(totalQ,dispCurr)}</div><div class="stat-lbl">Total Quota</div>
+      <div class="stat-val" id="sv-quota">—</div><div class="stat-lbl">Total Quota</div>
       <div class="stat-delta" style="color:var(--txt3)">${displayPeriod(periodStr())}</div>
     </div>
-    <div class="stat-card" style="--accent-color:var(--green);--icon-bg:var(--green-bg)">
+    <div class="stat-card card-green" style="--accent-color:var(--green);--icon-bg:var(--green-bg)">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="stat-val">${fmtCurr(totalA,dispCurr)}</div><div class="stat-lbl">Total Achieved</div>
+      <div class="stat-val" id="sv-ach">—</div><div class="stat-lbl">Total Achieved</div>
       <div class="stat-delta" style="color:${attColor(att)}">${att}% of target</div>
     </div>
-    <div class="stat-card" style="--accent-color:${attColor(att)};--icon-bg:${att>=95?'var(--green-bg)':att>=80?'var(--amber-bg)':att>=60?'var(--orange-bg)':'var(--red-bg)'}">
+    <div class="stat-card ${attCardClass}" style="--accent-color:${attColor(att)};--icon-bg:${att>=95?'var(--green-bg)':att>=80?'var(--amber-bg)':att>=60?'var(--orange-bg)':'var(--red-bg)'}">
       <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="${attColor(att)}" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-      <div class="stat-val" style="color:${attColor(att)}">${att}%</div><div class="stat-lbl">Attainment</div>
+      <div class="stat-val" id="sv-att" style="color:${attColor(att)}">—</div><div class="stat-lbl">Attainment</div>
       <div class="stat-delta att-bar"><div class="att-fill" style="width:${Math.min(att,100)}%;background:${attColor(att)}"></div></div>
     </div>`;
+  // Animate stat numbers in
+  setTimeout(()=>{
+    animateCount(document.getElementById('sv-sellers'), sellers);
+    animateCount(document.getElementById('sv-quota'), totalQ, 750, v=>fmtCurr(v,dispCurr));
+    animateCount(document.getElementById('sv-ach'), totalA, 750, v=>fmtCurr(v,dispCurr));
+    animateCount(document.getElementById('sv-att'), att, 600, v=>v+'%');
+  }, 50);
 
   // Gauge
   document.getElementById('gauge-wrap').innerHTML = totalQ > 0 ? svgGauge(att) : svgGauge(0);
@@ -1324,16 +2368,18 @@ function renderDashboard(){
   // Chart
   renderChart(data);
 
-  // Table
+  // Table — with left attainment border and spread indicators
   const tbody = data.map(r=>{
     const p=attPct(r.achieved,r.quota);
     const rc=r.currency||coCurrency(r.company);
+    const rowClass=p>=95?'row-excellent':p>=80?'row-good':p>=60?'row-ok':'row-poor';
     const achCell = r.crm_pull
       ? `<td class="num"><span class="badge badge-crm">🔗 CRM</span></td>`
       : `<td class="num">${fmtCurr(r.achieved,rc)}</td>`;
     const dispCo = co || r.company;
-    return `<tr>
-      <td><span style="font-weight:600;cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px" onclick="openSellerProfile('${r.seller_name.replace(/'/g,"\\'")}','${dispCo.replace(/'/g,"\\'")}') ">${r.seller_name}</span></td>
+    const spreadTag = r._spread ? `<span class="badge-spread" title="Spread ${r._spread}">${r._spread}</span>` : '';
+    return `<tr class="${rowClass}">
+      <td><span style="font-weight:600;cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px" onclick="openSellerProfile('${r.seller_name.replace(/'/g,"\\'")}','${dispCo.replace(/'/g,"\\'")}') ">${r.seller_name}</span>${spreadTag}</td>
       <td><span class="badge badge-gray">${r.sub_region}</span></td>
       <td class="num">${fmtCurr(r.quota,rc)}</td>
       ${achCell}
@@ -1378,50 +2424,113 @@ function renderChart(data){
 }
 
 /* ═══════════════════════════════════════
-   SELLERS VIEW
+   SELLERS VIEW  (seller-centric — one row per unique seller)
 ═══════════════════════════════════════ */
 function renderSellers(){
   const q=(document.getElementById('seller-search')?.value||'').toLowerCase();
+  const showInactive=document.getElementById('seller-inactive-cb')?.checked;
   const co=myCompany();
+  // Source: all entries scoped to current company (if any)
   let data = co ? allEntries.filter(e=>e.company===co) : allEntries;
-  if(q) data=data.filter(e=>e.seller_name.toLowerCase().includes(q)||e.company.toLowerCase().includes(q));
-  data.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
 
-  const title = drillCompany ? `${drillCompany} — All Entries` : (isAdmin() ? 'All Entries' : 'My Entries');
+  const title = drillCompany ? `${drillCompany} — Sellers` : (isAdmin() ? 'All Sellers' : 'My Team');
   document.getElementById('sellers-title').textContent=title;
 
-  // Active filter
-  const showInactive = document.getElementById('seller-inactive-cb')?.checked;
-  if(!showInactive) data=data.filter(r=>r.is_active!==false);
+  // Group by (company + seller_name) → one row per unique seller
+  const sellerMap={};
+  data.forEach(r=>{
+    const key=`${r.company}||${r.seller_name}`;
+    if(!sellerMap[key]) sellerMap[key]={seller_name:r.seller_name,company:r.company,entries:[]};
+    sellerMap[key].entries.push(r);
+  });
 
-  const rows=data.map(r=>{
-    const p=attPct(r.achieved,r.quota);
-    const rc=r.currency||coCurrency(r.company);
-    const achCell=r.crm_pull?`<td class="num"><span class="badge badge-crm">🔗 CRM</span></td>`:`<td class="num">${fmtCurr(r.achieved,rc)}</td>`;
-    const coCell=isAdmin()?`<td><strong>${r.company}</strong></td>`:'';
-    const activeBadge=r.is_active===false?`<span class="badge badge-red" style="font-size:10px">Inactive</span>`:'';
-    const roleCell=r.role?`<td style="color:var(--txt2);font-size:12px">${r.role}</td>`:`<td></td>`;
-    const qtCell=r.quota_type?`<td><span class="badge badge-${r.quota_type==='New Name'?'blue':'purple'}" style="font-size:10px">${r.quota_type}</span></td>`:`<td></td>`;
-    const actions=`<td><div class="row-actions">
-      <button class="btn btn-ghost btn-sm btn-icon" onclick='openEntryModal(${JSON.stringify(r)})' title="Edit">✏️</button>
-      <button class="btn btn-danger btn-sm btn-icon" onclick="deleteEntry('${r.id}')" title="Delete">🗑</button>
-    </div></td>`;
-    return `<tr style="${r.is_active===false?'opacity:.6':''}">
+  // Build enriched seller objects
+  let sellers=Object.values(sellerMap).map(s=>{
+    s.entries.sort((a,b)=>b.period.localeCompare(a.period));
+    const latest=s.entries[0];
+    const role=latest?.role||'';
+    const quota_type=latest?.quota_type||'';
+    const is_active=latest?.is_active!==false;
+    const curEntry=s.entries.find(e=>e.period===periodStr());
+    const curP=curEntry?attPct(curEntry.achieved,curEntry.quota):null;
+    const totalQ=s.entries.reduce((sum,e)=>sum+Number(e.quota),0);
+    const avgAtt=s.entries.length?Math.round(s.entries.reduce((sum,e)=>sum+attPct(e.achieved,e.quota),0)/s.entries.length):0;
+    const rc=latest?.currency||coCurrency(s.company);
+    return{...s,role,quota_type,is_active,curEntry,curP,totalQ,avgAtt,rc,periods:s.entries.length};
+  });
+
+  // Apply filters
+  if(!showInactive) sellers=sellers.filter(s=>s.is_active!==false);
+  if(q) sellers=sellers.filter(s=>
+    s.seller_name.toLowerCase().includes(q)||
+    s.company.toLowerCase().includes(q)||
+    (s.role||'').toLowerCase().includes(q)
+  );
+  sellers.sort((a,b)=>a.company.localeCompare(b.company)||a.seller_name.localeCompare(b.seller_name));
+
+  const coHead=isAdmin()?'<th>Company</th>':'';
+  const colCount=isAdmin()?7:6;
+
+  const rows=sellers.map(s=>{
+    const coCell=isAdmin()?`<td><strong>${s.company}</strong><div style="font-size:10px;color:var(--txt3)">${coData(s.company).region}</div></td>`:'';
+    const statusDot=s.is_active
+      ?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0" title="Active"></span>`
+      :`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0" title="Inactive"></span>`;
+    const curPCell=s.curP!==null
+      ?`<div style="display:flex;align-items:center;gap:6px"><span class="badge badge-${attClass(s.curP)}">${s.curP}%</span><div style="flex:1;height:4px;background:#e2e8f0;border-radius:2px;min-width:40px"><div style="height:100%;border-radius:2px;width:${Math.min(s.curP,100)}%;background:${attColor(s.curP)}"></div></div></div>`
+      :`<span class="badge badge-gray" style="font-size:10px">Not submitted</span>`;
+    const qtCell=s.quota_type?`<span class="badge badge-${s.quota_type==='New Name'?'blue':'purple'}" style="font-size:10px">${s.quota_type}</span>`:`<span style="color:var(--txt3);font-size:12px">—</span>`;
+    const crmBadge=hasCRM(s.company)?`<span class="badge badge-crm" style="font-size:10px">🔗</span>`:'';
+    return `<tr style="${s.is_active===false?'opacity:.55':''}">
       ${coCell}
-      <td><span style="font-weight:600;cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px" onclick="openSellerProfile('${r.seller_name.replace(/'/g,"\\'")}','${r.company.replace(/'/g,"\\'")}') ">${r.seller_name}</span> ${activeBadge}</td>
-      ${roleCell}${qtCell}
-      <td><span class="badge badge-gray">${r.sub_region}</span></td>
-      <td><span class="badge badge-blue">${displayPeriod(r.period)}</span></td>
-      <td class="num">${fmtCurr(r.quota,rc)}</td>
-      ${achCell}
-      <td class="num"><span class="badge badge-${attClass(p)}">${p}%</span></td>
-      ${actions}
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${statusDot}
+          <div>
+            <div style="font-weight:700;font-size:13px;cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px" onclick="openSellerProfile('${s.seller_name.replace(/'/g,"\\'")}','${s.company.replace(/'/g,"\\'")}')">
+              ${s.seller_name}
+            </div>
+            ${s.role?`<div style="font-size:11px;color:var(--txt3);margin-top:1px">${s.role}</div>`:''}
+          </div>
+          ${crmBadge}
+        </div>
+      </td>
+      <td>${qtCell}</td>
+      <td style="text-align:right">
+        <span style="font-size:13px;font-weight:600">${s.periods}</span>
+        <div style="font-size:10px;color:var(--txt3)">period${s.periods!==1?'s':''}</div>
+      </td>
+      <td style="min-width:140px">${curPCell}</td>
+      <td style="text-align:right">
+        <span style="font-size:12px;font-weight:600;color:${attColor(s.avgAtt)}">${s.avgAtt}%</span>
+        <div style="font-size:10px;color:var(--txt3)">avg</div>
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openSellerProfile('${s.seller_name.replace(/'/g,"\\'")}','${s.company.replace(/'/g,"\\'")}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Profile
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openBulkEntry('${s.seller_name.replace(/'/g,"\\'")}','${s.company.replace(/'/g,"\\'")}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Set Quotas
+          </button>
+        </div>
+      </td>
     </tr>`;
   }).join('');
-  const coHead=isAdmin()?'<th>Company</th>':'';
+
+  const emptySellerState = `<tr><td colspan="${colCount}" style="padding:0">
+    <div class="empty-state-full">
+      <div class="es-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <h3>${q ? 'No sellers match your search' : 'No sellers yet'}</h3>
+      <p>${q ? 'Try a different name, company, or role.' : 'Start by adding your first seller. Their quotas and performance will appear here.'}</p>
+      ${!q?`<button class="btn btn-primary btn-sm" onclick="openEntryModal(null)" style="margin-top:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add First Seller</button>`:''}
+    </div>
+  </td></tr>`;
   document.getElementById('sellers-table').innerHTML=`
-    <thead><tr>${coHead}<th>Seller</th><th>Role</th><th>Type</th><th>Sub-region</th><th>Period</th><th style="text-align:right">Quota</th><th style="text-align:right">Achieved</th><th style="text-align:right">Att%</th><th></th></tr></thead>
-    <tbody>${rows||`<tr class="empty-row"><td colspan="10">No entries found</td></tr>`}</tbody>`;
+    <thead><tr>${coHead}<th>Seller</th><th>Quota Type</th><th style="text-align:right">Periods</th><th>Current Period</th><th style="text-align:right">Avg Att%</th><th></th></tr></thead>
+    <tbody>${rows||emptySellerState}</tbody>`;
 }
 
 /* ═══════════════════════════════════════
@@ -1444,7 +2553,8 @@ function renderPortfolio(){
     const crm=hasCRM(c.name);
     const ap=hasAutoPull(c.name);
     const clr=q>0?attColor(p):'#94a3b8';
-    return `<div class="co-card" onclick="drillInto('${c.name}')">
+    const notSubmitted = cEntries.length === 0;
+    return `<div class="co-card${notSubmitted?' not-submitted':''}" onclick="drillInto('${c.name}')">
       <div class="co-card-top" style="--card-att-color:${clr}">
         <div style="display:flex;align-items:flex-start;justify-content:space-between">
           <div>
@@ -1458,10 +2568,10 @@ function renderPortfolio(){
           <div class="co-stat"><div class="co-stat-val">${[...new Set(cEntries.map(e=>e.seller_name))].length||'—'}</div><div class="co-stat-lbl">Sellers</div></div>
           <div class="co-stat"><div class="co-stat-val" style="font-size:12px">${q>0?fmtCurr(q,c.currency):'—'}</div><div class="co-stat-lbl">Quota</div></div>
         </div>
-        ${q>0?`<div class="co-att-bar"><div class="co-att-fill" style="width:${Math.min(p,100)}%;background:${clr}"></div></div>`:''}
+        ${q>0?`<div class="co-att-bar"><div class="co-att-fill" style="width:${Math.min(p,100)}%;background:${clr};--fill-glow:${clr}40"></div></div>`:'<div class="co-att-bar"><div class="co-att-fill" style="width:0%"></div></div>'}
       </div>
       <div class="co-card-bottom">
-        <div class="co-card-meta">${cEntries.length>0?`Submitted for ${displayPeriod(period)}`:`<span style="color:var(--amber)">Not submitted</span>`}</div>
+        <div class="co-card-meta">${cEntries.length>0?`Submitted for ${displayPeriod(period)}`:`<span style="color:var(--amber);font-weight:600">⚠ Not submitted</span>`}</div>
         <div class="co-card-meta">${allCo.length} total entries</div>
       </div>
     </div>`;
@@ -1595,20 +2705,41 @@ function renderAccessLog(){
 ═══════════════════════════════════════ */
 let sellerModalName = null;
 let sellerModalCompany = null;
+let _modalForceCo = null; // company override when entry modal opens from seller profile (avoids polluting drillCompany)
+let smPType = 'Monthly';
+let smYear  = new Date().getFullYear();
 
 function openSellerProfile(sellerName, company){
   sellerModalName = sellerName;
   sellerModalCompany = company;
+  smPType = 'Monthly';
+  smYear  = parseInt(pYear) || new Date().getFullYear();
+  // reset segment button styles
+  document.querySelectorAll('.sm-seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.pt==='Monthly'));
+  document.getElementById('sm-year-display').textContent = smYear;
+  // Show/hide Set Quotas button (company users or admin)
+  const sqBtn = document.getElementById('sm-set-quotas-btn');
+  if(sqBtn) sqBtn.style.display = (isAdmin() || currentUser===company) ? '' : 'none';
   renderSellerProfile();
   openModal('seller-modal');
+}
+
+function setSmPType(t){
+  smPType = t;
+  document.querySelectorAll('.sm-seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.pt===t));
+  renderSmPlan();
+}
+
+function setSmYear(y){
+  smYear = y;
+  document.getElementById('sm-year-display').textContent = y;
+  renderSmPlan();
 }
 
 function renderSellerProfile(){
   const name = sellerModalName;
   const co = sellerModalCompany;
-  // All entries for this seller, all time, sorted by period descending
-  const source = isAdmin() ? allEntries : allEntries;
-  const sellerEntries = source
+  const sellerEntries = allEntries
     .filter(e => e.seller_name === name && e.company === co)
     .sort((a,b) => b.period.localeCompare(a.period));
 
@@ -1624,22 +2755,28 @@ function renderSellerProfile(){
     `<strong>${co}</strong>${role?' · '+role:''}${quotaType?' · <span class="badge badge-'+(quotaType==='New Name'?'blue':'purple')+'" style="font-size:10px">'+quotaType+'</span>':''}` +
     (isActive ? '' : ' <span class="badge badge-red" style="font-size:10px">Inactive</span>');
 
-  // Stat bar
+  // Stat bar — use only direct (non-spread) entries for accurate summary
   const totalQ = sellerEntries.reduce((s,r)=>s+Number(r.quota),0);
   const totalA = sellerEntries.reduce((s,r)=>s+Number(r.achieved),0);
   const avgAtt = sellerEntries.length ? Math.round(sellerEntries.reduce((s,r)=>s+attPct(r.achieved,r.quota),0)/sellerEntries.length) : 0;
   const best = sellerEntries.reduce((b,r)=>{ const p=attPct(r.achieved,r.quota); return p>b?p:b; }, 0);
   document.getElementById('sm-stats').innerHTML = `
-    <div class="sm-stat"><div class="sm-stat-val">${sellerEntries.length}</div><div class="sm-stat-lbl">Periods Tracked</div></div>
+    <div class="sm-stat"><div class="sm-stat-val">${sellerEntries.length}</div><div class="sm-stat-lbl">Entries</div></div>
     <div class="sm-stat"><div class="sm-stat-val">${fmtCurr(totalQ,rc)}</div><div class="sm-stat-lbl">Total Quota</div></div>
     <div class="sm-stat"><div class="sm-stat-val" style="color:${attColor(avgAtt)}">${avgAtt}%</div><div class="sm-stat-lbl">Avg Attainment</div></div>
     <div class="sm-stat"><div class="sm-stat-val" style="color:${attColor(best)}">${best}%</div><div class="sm-stat-lbl">Best Period</div></div>`;
 
-  // Show/hide add button for non-admin when it's their company
+  // Show/hide add + set quotas buttons
+  const canEdit = isAdmin() || currentUser===co;
   const addBtn = document.getElementById('sm-add-btn');
-  if(addBtn) addBtn.style.display = (isAdmin() || currentUser===co) ? '' : 'none';
+  const sqBtn  = document.getElementById('sm-set-quotas-btn');
+  if(addBtn) addBtn.style.display = canEdit ? '' : 'none';
+  if(sqBtn)  sqBtn.style.display  = canEdit ? '' : 'none';
 
-  // History table
+  // Render quota plan
+  renderSmPlan();
+
+  // All-entries history table
   const rows = sellerEntries.map(r => {
     const p = attPct(r.achieved, r.quota);
     const achCell = r.crm_pull
@@ -1664,21 +2801,82 @@ function renderSellerProfile(){
 
   document.getElementById('sm-table').innerHTML = `
     <thead><tr><th>Period</th><th>Type</th><th style="text-align:right">Quota</th><th style="text-align:right">Achieved</th><th style="text-align:right">Att%</th><th>Status</th><th></th></tr></thead>
-    <tbody>${rows || '<tr class="empty-row"><td colspan="7">No entries yet — click "+ Add Period" to start</td></tr>'}</tbody>`;
+    <tbody>${rows || '<tr class="empty-row"><td colspan="7">No entries yet — click "+ Add Entry" or "Set Quotas" to start</td></tr>'}</tbody>`;
+}
+
+function renderSmPlan(){
+  const name = sellerModalName;
+  const co   = sellerModalCompany;
+  const rc   = (allEntries.find(e=>e.seller_name===name&&e.company===co)?.currency) || coCurrency(co);
+  const year = String(smYear);
+
+  // Build period keys for current view
+  let periodKeys = [];
+  if(smPType==='Monthly')   periodKeys = MONTHS.map(m=>`Monthly|${m}|${year}`);
+  else if(smPType==='Quarterly') periodKeys = QUARTERS.map(q=>`Quarterly|${q}|${year}`);
+  else                      periodKeys = [`Yearly|${year}`];
+
+  // Use spreading to get effective quota for each period
+  const sellerRaw = allEntries.filter(e=>e.seller_name===name && e.company===co);
+
+  // Build rows
+  const planRows = periodKeys.map(pk => {
+    const effective = getEffectiveEntries(sellerRaw, pk);
+    const e = effective[0];
+    const label = smPType==='Monthly'   ? pk.split('|')[1]
+                : smPType==='Quarterly' ? pk.split('|')[1] + ' ' + year
+                :                        year;
+    if(!e || (!e.quota && !e.achieved)){
+      return `<div class="sm-plan-row">
+        <div class="sm-plan-period">${label}</div>
+        <div class="sm-plan-bar-wrap"><div class="sm-plan-bar" style="width:0%;background:var(--border)"></div></div>
+        <div class="sm-plan-num sm-plan-empty">— no quota</div>
+        <div class="sm-plan-num sm-plan-empty">—</div>
+        <div class="sm-plan-pct" style="color:var(--txt3)">—</div>
+      </div>`;
+    }
+    const pct = attPct(e.achieved, e.quota);
+    const barW = Math.min(pct, 100);
+    const barColor = pct>=100?'var(--green)':pct>=70?'var(--amber)':pct>=40?'var(--orange)':'var(--red)';
+    const spreadNote = e._spread ? `<span class="sm-plan-spread" title="${e._spread}">↗ est.</span>` : '';
+    const isReal = !e._spread;
+    return `<div class="sm-plan-row" style="${isReal?'':'opacity:.75'}">
+      <div class="sm-plan-period">${label}${spreadNote}</div>
+      <div class="sm-plan-bar-wrap"><div class="sm-plan-bar" style="width:${barW}%;background:${barColor}"></div></div>
+      <div class="sm-plan-num">${fmtCurr(e.quota,rc)}</div>
+      <div class="sm-plan-num" style="color:var(--txt2)">${e.achieved>0?fmtCurr(e.achieved,rc):'—'}</div>
+      <div class="sm-plan-pct" style="color:${attColor(pct)}">${pct}%</div>
+    </div>`;
+  }).join('');
+
+  const header = `<div class="sm-plan-row" style="border-bottom:2px solid var(--border);padding-bottom:6px;margin-bottom:2px">
+    <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em">Period</div>
+    <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em">Attainment</div>
+    <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;text-align:right">Quota</div>
+    <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;text-align:right">Achieved</div>
+    <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;text-align:right">Att%</div>
+  </div>`;
+
+  document.getElementById('sm-plan-content').innerHTML = header + planRows;
+}
+
+function setQuotasFromProfile(){
+  closeModal('seller-modal');
+  openBulkEntry(sellerModalName, sellerModalCompany);
 }
 
 function addEntryForCurrentSeller(){
   closeModal('seller-modal');
-  // Pre-fill seller name in the entry modal
-  const entry = { seller_name: sellerModalName, company: sellerModalCompany };
-  if(isAdmin()) drillCompany = sellerModalCompany;
+  // Use _modalForceCo so drillCompany is not polluted — the main UI stays unfiltered
+  _modalForceCo = sellerModalCompany;
   openEntryModal(null);
   setTimeout(()=>{ document.getElementById('em-seller').value = sellerModalName; }, 50);
 }
 
 async function editFromProfile(entry){
   closeModal('seller-modal');
-  if(isAdmin()) drillCompany = entry.company;
+  // Use _modalForceCo so drillCompany is not polluted
+  _modalForceCo = entry.company;
   openEntryModal(entry);
 }
 
@@ -1839,6 +3037,12 @@ function exportPeriod(){ downloadCSV(toCSV(entries),`everfield-quota-${displayPe
 /* ═══════════════════════════════════════
    ENTRY MODAL
 ═══════════════════════════════════════ */
+function closeEntryModal(){
+  // Always clear the temporary company override when entry modal closes
+  _modalForceCo = null;
+  closeModal('entry-modal');
+}
+
 function openEntryModal(entry){
   editEntry=entry;
   const co=entry?entry.company:(drillCompany||myCompany());
@@ -1982,6 +3186,445 @@ function updateEmCurrencyLabels(co){
   const sym=CURR_SYMBOLS[curr]||curr;
   document.getElementById('em-quota-lbl').textContent=`Quota (${sym})`;
   document.getElementById('em-ach-lbl').textContent=`Achieved (${sym})`;
+}
+
+/* ═══════════════════════════════════════
+   BULK PERIOD ENTRY MODAL
+═══════════════════════════════════════ */
+let bulkSellerName = null;
+let bulkSellerCompany = null;
+let bulkPType = 'Monthly';
+let qfMode = 'same'; // 'same' | 'spread'
+
+function openBulkEntry(sellerName, company){
+  bulkSellerName = sellerName;
+  bulkSellerCompany = company;
+  bulkPType = 'Monthly';
+  qfMode = 'same';
+  document.getElementById('bulk-title').textContent = sellerName;
+  document.getElementById('bulk-meta').textContent = company + ' · Set a different quota for each period, or use Quick Fill to apply one value to all';
+  document.getElementById('bulk-year').value = pYear;
+  document.getElementById('bulk-currency').value = coCurrency(company);
+  document.getElementById('bulk-err').textContent = '';
+  document.getElementById('qf-amount').value = '';
+  document.querySelectorAll('#bulk-period-seg button').forEach(b=>b.classList.toggle('active',b.textContent==='Monthly'));
+  setQfMode('same');
+  renderBulkTable();
+  openModal('bulk-modal');
+}
+
+function setBulkPeriodType(t){
+  bulkPType = t;
+  document.querySelectorAll('#bulk-period-seg button').forEach(b=>b.classList.toggle('active',b.textContent===t));
+  updateQfHint();
+  renderBulkTable();
+}
+
+function setQfMode(mode){
+  qfMode = mode;
+  const isSame = mode==='same';
+  const btnSame = document.getElementById('qf-mode-same');
+  const btnSpread = document.getElementById('qf-mode-spread');
+  if(btnSame){
+    btnSame.style.background = isSame ? 'var(--acc)' : 'transparent';
+    btnSame.style.color = isSame ? '#fff' : 'var(--txt2)';
+  }
+  if(btnSpread){
+    btnSpread.style.background = isSame ? 'transparent' : 'var(--acc)';
+    btnSpread.style.color = isSame ? 'var(--txt2)' : '#fff';
+  }
+  updateQfHint();
+}
+
+function updateQfHint(){
+  const hint = document.getElementById('qf-hint');
+  if(!hint) return;
+  const slotCount = bulkPType==='Monthly' ? 12 : bulkPType==='Quarterly' ? 4 : 1;
+  if(qfMode==='same'){
+    hint.innerHTML = `Same quota target<br>applied to every period`;
+  } else {
+    hint.innerHTML = `Annual total ÷ ${slotCount}<br>distributed evenly`;
+  }
+  // Update sym
+  const curr = document.getElementById('bulk-currency')?.value || 'EUR';
+  const sym = document.getElementById('qf-sym');
+  if(sym) sym.textContent = CURR_SYMBOLS[curr] || curr;
+}
+
+function bulkQuickFill(){
+  const raw = parseFloat(document.getElementById('qf-amount').value);
+  if(isNaN(raw) || raw <= 0){ toast('Enter a quota amount first','error'); return; }
+  const slotCount = bulkPType==='Monthly' ? 12 : bulkPType==='Quarterly' ? 4 : 1;
+  const perPeriod = qfMode==='spread' ? Math.round(raw / slotCount) : raw;
+  document.querySelectorAll('.bulk-quota-inp').forEach(inp=>{ inp.value = perPeriod; });
+  updateBulkSummary();
+  toast(`Applied ${CURR_SYMBOLS[document.getElementById('bulk-currency').value]||''}${perPeriod.toLocaleString()} to all periods`);
+}
+
+function bulkClearAll(){
+  document.querySelectorAll('.bulk-quota-inp').forEach(inp=>{ inp.value = ''; });
+  document.querySelectorAll('.bulk-ach-inp').forEach(inp=>{ inp.value = ''; });
+  updateBulkSummary();
+}
+
+function updateBulkSummary(){
+  const curr = document.getElementById('bulk-currency')?.value || 'EUR';
+  const sym = CURR_SYMBOLS[curr] || curr;
+  const inputs = [...document.querySelectorAll('.bulk-quota-inp')];
+  const filled = inputs.filter(i=>i.value!=='');
+  const total = filled.reduce((s,i)=>s+parseFloat(i.value||0),0);
+  const avg = filled.length ? Math.round(total/filled.length) : 0;
+  const summaryEl = document.getElementById('bulk-summary');
+  if(!summaryEl) return;
+  if(!filled.length){
+    summaryEl.innerHTML = `<span style="color:var(--txt3)">Fill in quota values above — blank rows are skipped on save.</span>`;
+    return;
+  }
+  summaryEl.innerHTML = `
+    <span><strong>${filled.length}</strong> of ${inputs.length} periods filled</span>
+    <span style="color:var(--border)">|</span>
+    <span>Total: <strong style="color:var(--acc)">${sym}${Math.round(total).toLocaleString()}</strong></span>
+    <span style="color:var(--border)">|</span>
+    <span>Average: <strong>${sym}${avg.toLocaleString()}</strong>/period</span>`;
+}
+
+function renderBulkTable(){
+  const year = document.getElementById('bulk-year')?.value || '2026';
+  const curr = document.getElementById('bulk-currency')?.value || 'EUR';
+  const sym = CURR_SYMBOLS[curr] || curr;
+  const autopull = hasAutoPull(bulkSellerCompany);
+  const existing = allEntries.filter(e=>e.seller_name===bulkSellerName && e.company===bulkSellerCompany);
+
+  let periods = [];
+  if(bulkPType === 'Monthly'){
+    periods = MONTHS.map(m=>({label:`${m} ${year}`, key:`Monthly|${m}|${year}`}));
+  } else if(bulkPType === 'Quarterly'){
+    periods = QUARTERS.map(q=>({label:`${q} ${year}`, key:`Quarterly|${q}|${year}`}));
+  } else {
+    periods = [{label:`Full Year ${year}`, key:`Yearly|${year}`}];
+  }
+
+  const rows = periods.map((p,i)=>{
+    const ex = existing.find(e=>e.period===p.key);
+    const quota = ex?.quota ?? '';
+    const achieved = ex?.achieved ?? '';
+    const saved = !!ex;
+    const isSpread = !saved && getEffectiveEntries(allEntries, p.key).find(e=>e.seller_name===bulkSellerName && e._spread);
+    const rowBg = saved ? 'background:#f0fdf4' : '';
+    const statusBadge = saved
+      ? `<span class="badge badge-green" style="font-size:10px">✓ Saved</span>`
+      : `<span class="badge badge-gray" style="font-size:10px;opacity:.6">Not set</span>`;
+    const achCol = autopull
+      ? `<td style="text-align:center"><span class="badge badge-crm" style="font-size:10px">🔗 CRM</span></td>`
+      : `<td><input type="number" class="bulk-ach-inp" data-period="${p.key}" min="0" placeholder="0" value="${achieved}"
+           oninput="updateBulkSummary()"
+           style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right"></td>`;
+    return `<tr style="${rowBg}">
+      <td style="font-weight:600;white-space:nowrap;font-size:12px;color:var(--txt)">
+        ${saved?`<span style="color:var(--green);font-size:10px">●</span>`:`<span style="color:var(--border);font-size:10px">○</span>`}
+        <span style="margin-left:4px">${p.label}</span>
+      </td>
+      <td style="width:140px">
+        <input type="number" class="bulk-quota-inp" data-period="${p.key}" min="0" placeholder="—" value="${quota}"
+          oninput="updateBulkSummary()"
+          style="width:100%;padding:5px 8px;border:1.5px solid ${saved?'var(--green)':'var(--border)'};border-radius:6px;font-size:12px;text-align:right;font-weight:${saved?'700':'400'}">
+      </td>
+      ${achCol}
+      <td style="text-align:center;white-space:nowrap">${statusBadge}</td>
+      <td style="width:24px;padding:4px">
+        <button type="button" onclick="this.closest('tr').querySelector('.bulk-quota-inp').value='';this.closest('tr').querySelector('.bulk-ach-inp')&&(this.closest('tr').querySelector('.bulk-ach-inp').value='');updateBulkSummary()"
+          style="width:20px;height:20px;border:none;background:none;color:var(--txt3);cursor:pointer;font-size:14px;padding:0;line-height:1;border-radius:4px"
+          title="Clear this row">×</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const achHead = autopull
+    ? `<th style="text-align:center">Achieved</th>`
+    : `<th style="text-align:right">Achieved (${sym})</th>`;
+  document.getElementById('bulk-table').innerHTML = `
+    <thead><tr>
+      <th>Period</th>
+      <th style="text-align:right">Quota (${sym})</th>
+      ${achHead}
+      <th style="text-align:center">Status</th>
+      <th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>`;
+
+  updateQfHint();
+  updateBulkSummary();
+}
+
+async function saveBulkEntries(){
+  const curr = document.getElementById('bulk-currency')?.value || 'EUR';
+  const autopull = hasAutoPull(bulkSellerCompany);
+  const co = bulkSellerCompany;
+  const cd = coData(co);
+  const errEl = document.getElementById('bulk-err');
+  errEl.textContent = '';
+
+  // Collect rows that have a quota value
+  const quotaInputs = document.querySelectorAll('.bulk-quota-inp');
+  const toSave = [];
+  for(const inp of quotaInputs){
+    const quota = parseFloat(inp.value);
+    if(isNaN(quota) || inp.value === '') continue; // skip blank rows
+    if(quota < 0){ errEl.textContent = 'Quota values cannot be negative.'; return; }
+    const period = inp.dataset.period;
+    const achInp = document.querySelector(`.bulk-ach-inp[data-period="${period}"]`);
+    const achieved = autopull ? 0 : parseFloat(achInp?.value || '0');
+    const existing = allEntries.find(e=>e.seller_name===bulkSellerName && e.company===co && e.period===period);
+    const base = {
+      seller_name:bulkSellerName, company:co, period,
+      region:cd.region, sub_region:cd.sub,
+      quota, achieved:isNaN(achieved)?0:achieved
+    };
+    const full = {...base};
+    if(dbCols.crm_pull) full.crm_pull = autopull;
+    if(dbCols.currency) full.currency = curr;
+    toSave.push({base, full, existingId: existing?.id});
+  }
+
+  if(!toSave.length){ errEl.textContent = 'Enter at least one quota value to save.'; return; }
+
+  spin(true);
+  let errorCount = 0;
+  for(const item of toSave){
+    let {error} = item.existingId
+      ? await db.from('quota_entries').update(item.full).eq('id', item.existingId)
+      : await db.from('quota_entries').insert([item.full]);
+    if(error?.code==='PGRST204'){
+      const retry = item.existingId
+        ? await db.from('quota_entries').update(item.base).eq('id', item.existingId)
+        : await db.from('quota_entries').insert([item.base]);
+      error = retry.error;
+    }
+    if(error) errorCount++;
+  }
+
+  if(errorCount){
+    errEl.textContent = `${errorCount} period(s) failed to save. Please try again.`;
+    spin(false); return;
+  }
+  toast(`${toSave.length} period${toSave.length>1?'s':''} saved ✓`);
+  closeModal('bulk-modal');
+  await loadData();
+  spin(false);
+}
+
+/* ═══════════════════════════════════════
+   ONBOARDING FLOW
+═══════════════════════════════════════ */
+let obCurrentStep = 1;
+const OB_TOTAL = 4;
+
+function maybeShowOnboarding(co){
+  if(isAdmin()) return; // admin doesn't need onboarding
+  const key = `onboarding_seen_${co}`;
+  if(!sessionStorage.getItem(key)){
+    obCurrentStep = 1;
+    obRenderStep();
+    document.getElementById('onboarding-modal').style.display = 'flex';
+  }
+}
+
+function obRenderStep(){
+  for(let i=1;i<=OB_TOTAL;i++){
+    const el = document.getElementById(`ob-step-${i}`);
+    if(el) el.style.display = (i===obCurrentStep) ? '' : 'none';
+  }
+  // progress bar
+  document.getElementById('ob-progress').style.width = `${(obCurrentStep/OB_TOTAL)*100}%`;
+  // step label
+  const lbl = document.getElementById('ob-step-label');
+  if(lbl) lbl.textContent = `Step ${obCurrentStep} of ${OB_TOTAL}`;
+  // dots
+  document.querySelectorAll('.ob-dot').forEach((d,i)=>{
+    d.classList.toggle('ob-dot-active', i===obCurrentStep-1);
+  });
+  // buttons
+  document.getElementById('ob-back-btn').style.display = obCurrentStep>1 ? '' : 'none';
+  const nextBtn = document.getElementById('ob-next-btn');
+  nextBtn.textContent = obCurrentStep===OB_TOTAL ? "Start tracking 🚀" : 'Next →';
+}
+
+function obNext(){
+  if(obCurrentStep<OB_TOTAL){
+    obCurrentStep++;
+    obRenderStep();
+  } else {
+    obDismiss();
+  }
+}
+
+function obBack(){
+  if(obCurrentStep>1){
+    obCurrentStep--;
+    obRenderStep();
+  }
+}
+
+function obSkip(){
+  obDismiss();
+}
+
+function obDismiss(){
+  sessionStorage.setItem(`onboarding_seen_${currentUser}`, '1');
+  document.getElementById('onboarding-modal').style.display = 'none';
+}
+
+/* ═══════════════════════════════════════
+   DOCUMENTATION SUBMISSION FLOW
+═══════════════════════════════════════ */
+async function loadSubmissions(){
+  const container = document.getElementById('submissions-list');
+  if(!container) return;
+  container.innerHTML = '<div style="color:var(--txt3);font-size:13px;padding:20px">Loading submissions…</div>';
+  const {data, error} = await db.from('quota_submissions').select('*').order('created_at',{ascending:false});
+  if(error){ container.innerHTML = `<div style="color:var(--red);font-size:13px;padding:20px">Error: ${error.message}</div>`; return; }
+  if(!data || !data.length){
+    container.innerHTML = `
+      <div style="text-align:center;padding:48px 24px;color:var(--txt3)">
+        <div style="font-size:40px;margin-bottom:12px">📭</div>
+        <div style="font-size:15px;font-weight:600;color:var(--txt2);margin-bottom:6px">No submissions yet</div>
+        <div style="font-size:13px">Company submissions will appear here for your review.</div>
+      </div>`; return;
+  }
+  const statusColors = {pending:'var(--amber)',approved:'var(--green)',rejected:'var(--red)'};
+  const statusBg = {pending:'var(--amber-bg)',approved:'var(--green-bg)',rejected:'var(--red-bg)'};
+  container.innerHTML = data.map(s=>`
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px" id="sub-row-${s.id}">
+      <div style="width:38px;height:38px;border-radius:9px;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${subTypeIcon(s.submission_type)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-weight:700;font-size:13px;color:var(--txt)">${escHtml(s.company)}</span>
+          <span style="padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;background:${statusBg[s.status]||'var(--bg)'};color:${statusColors[s.status]||'var(--txt3)'}">${s.status}</span>
+          <span style="font-size:11px;color:var(--txt3)">${new Date(s.created_at).toLocaleDateString()}</span>
+        </div>
+        <div style="font-size:13px;color:var(--txt2);margin-top:3px">${escHtml(s.submission_type)}${s.period_covered?' · '+escHtml(s.period_covered):''}</div>
+        <div style="font-size:12px;color:var(--txt3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:400px">${escHtml(s.description)}</div>
+        ${s.file_name?(s.file_name.startsWith('http')?`<div style="font-size:11px;margin-top:2px"><a href="${escHtml(s.file_name)}" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none">🔗 View file →</a></div>`:`<div style="font-size:11px;color:var(--blue);margin-top:2px">📎 ${escHtml(s.file_name)}</div>`):''}
+        ${s.admin_note?`<div style="font-size:11px;color:var(--txt2);margin-top:4px;background:var(--bg);padding:4px 8px;border-radius:6px">Admin note: ${escHtml(s.admin_note)}</div>`:''}
+      </div>
+      ${s.status==='pending'?`
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-success btn-sm" onclick="reviewSubmission('${s.id}','approved')">✓ Approve</button>
+        <button class="btn btn-danger btn-sm" onclick="reviewSubmission('${s.id}','rejected')">✗ Reject</button>
+      </div>`:''}
+    </div>`).join('');
+}
+
+function subTypeIcon(type){
+  if(!type) return '📄';
+  const t = type.toLowerCase();
+  if(t.includes('excel')||t.includes('spreadsheet')) return '📊';
+  if(t.includes('word')||t.includes('doc')) return '📝';
+  if(t.includes('pdf')) return '📕';
+  if(t.includes('email')) return '📧';
+  return '📄';
+}
+
+function escHtml(str){
+  if(!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function reviewSubmission(id, status){
+  const note = status==='rejected' ? prompt('Optional: leave a note for the company (or press Enter to skip)') : null;
+  const payload = {status, reviewed_at: new Date().toISOString()};
+  if(note !== null && note.trim()) payload.admin_note = note.trim();
+  const {error} = await db.from('quota_submissions').update(payload).eq('id', id);
+  if(error){ toast('Failed to update submission', 'error'); return; }
+  toast(`Submission ${status} ✓`);
+  loadSubmissions();
+}
+
+function sdmTabSwitch(tab){
+  const tabs = ['upload','link','name'];
+  tabs.forEach(t => {
+    const panel = document.getElementById('sdm-panel-'+t);
+    const btn   = document.getElementById('sdm-tab-'+t);
+    if(!panel || !btn) return;
+    const active = t === tab;
+    panel.style.display = active ? '' : 'none';
+    btn.style.background    = active ? '#fff' : 'var(--bg)';
+    btn.style.color         = active ? 'var(--acc)' : 'var(--txt2)';
+    btn.style.borderBottom  = active ? '2px solid var(--acc)' : '2px solid transparent';
+  });
+}
+
+function sdmFileChosen(input){
+  const file = input.files[0];
+  const chosen = document.getElementById('sdm-file-chosen');
+  const nameEl = document.getElementById('sdm-file-name-display');
+  if(file){ nameEl.textContent = file.name + ' (' + (file.size/1024/1024).toFixed(1) + ' MB)'; chosen.style.display='flex'; }
+  else { chosen.style.display='none'; }
+}
+
+function sdmClearFile(){
+  const inp = document.getElementById('sdm-file');
+  inp.value = '';
+  document.getElementById('sdm-file-chosen').style.display = 'none';
+}
+
+async function openSubmitDocsModal(){
+  document.getElementById('sdm-type').value='';
+  document.getElementById('sdm-period').value='';
+  document.getElementById('sdm-description').value='';
+  document.getElementById('sdm-filename').value='';
+  document.getElementById('sdm-fileurl').value='';
+  document.getElementById('sdm-err').textContent='';
+  sdmClearFile();
+  sdmTabSwitch('upload'); // default to upload tab
+  openModal('submit-docs-modal');
+}
+
+async function saveDocSubmission(){
+  const type = document.getElementById('sdm-type').value;
+  const period = document.getElementById('sdm-period').value;
+  const description = document.getElementById('sdm-description').value.trim();
+  const fileurl = document.getElementById('sdm-fileurl').value.trim();
+  const filename = document.getElementById('sdm-filename').value.trim();
+  const fileInput = document.getElementById('sdm-file');
+  const file = fileInput && fileInput.files[0];
+  const errEl = document.getElementById('sdm-err');
+
+  if(!type){ errEl.textContent='Please select a document type.'; return; }
+  if(!description){ errEl.textContent='Please add a brief description.'; return; }
+
+  spin(true);
+  let fileRef = fileurl || filename || null;
+
+  // Attempt actual file upload if a file was chosen
+  if(file){
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path = `${currentUser}/${Date.now()}_${safeName}`;
+    const { data: upData, error: upErr } = await db.storage.from('quota-docs').upload(path, file, { upsert: false });
+    if(upErr){
+      // Storage bucket may not exist yet — fall back to storing the filename as a reference
+      console.warn('Storage upload failed:', upErr.message);
+      fileRef = file.name; // fallback: store filename only
+    } else {
+      const { data: urlData } = db.storage.from('quota-docs').getPublicUrl(path);
+      fileRef = urlData?.publicUrl || file.name;
+    }
+  }
+
+  const payload = {
+    company: currentUser,
+    submission_type: type,
+    description,
+    period_covered: period || null,
+    file_name: fileRef,
+    status: 'pending'
+  };
+  const {error} = await db.from('quota_submissions').insert([payload]);
+  spin(false);
+  if(error){ errEl.textContent = `Failed: ${error.message}`; return; }
+  toast('Submission sent to Everfield ✓');
+  closeModal('submit-docs-modal');
+  if(currentView==='submit-docs') renderSubmitDocsView();
 }
 
 /* ═══════════════════════════════════════

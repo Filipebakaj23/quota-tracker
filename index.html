@@ -291,6 +291,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 .sm-stat-val{font-size:20px;font-weight:800;color:var(--txt);line-height:1}
 .sm-stat-lbl{font-size:11px;color:var(--txt3);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
 
+/* SELLER MODAL — Quota Plan */
+.sm-seg-btn{padding:5px 13px;font-size:12px;font-weight:600;background:none;border:none;cursor:pointer;color:var(--txt2);transition:all .15s}
+.sm-seg-btn.active{background:var(--acc);color:#fff}
+.sm-seg-btn:not(.active):hover{background:var(--border);color:var(--txt)}
+.sm-plan-row{display:grid;grid-template-columns:90px 1fr 90px 90px 64px;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.sm-plan-row:last-child{border-bottom:none}
+.sm-plan-period{font-size:12px;font-weight:700;color:var(--txt)}
+.sm-plan-bar-wrap{background:var(--bg2);border-radius:4px;height:6px;overflow:hidden;min-width:60px}
+.sm-plan-bar{height:6px;border-radius:4px;transition:width .3s ease}
+.sm-plan-num{font-size:12px;font-weight:700;text-align:right;color:var(--txt);font-family:var(--font-display);font-variant-numeric:tabular-nums}
+.sm-plan-pct{font-size:11px;font-weight:700;text-align:right;font-family:var(--font-display)}
+.sm-plan-empty{color:var(--txt3);font-style:italic;font-size:11px}
+.sm-plan-spread{font-size:10px;color:var(--txt3);margin-left:4px}
+
 /* EMPTY STATE */
 .empty-state{text-align:center;padding:60px 20px;color:var(--txt3)}
 .empty-state svg{width:56px;height:56px;margin:0 auto 16px;opacity:.3}
@@ -1303,16 +1317,31 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
       <!-- File attachment options -->
       <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:4px">
         <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em">Attach your file (choose one)</div>
-        <!-- Tab: Link -->
         <div style="display:flex;border-bottom:1px solid var(--border)">
-          <button id="sdm-tab-link" onclick="sdmTabSwitch('link')" style="flex:1;padding:9px;font-size:12px;font-weight:600;background:#fff;border:none;cursor:pointer;border-bottom:2px solid var(--acc);color:var(--acc)">🔗 Paste a link</button>
+          <button id="sdm-tab-upload" onclick="sdmTabSwitch('upload')" style="flex:1;padding:9px;font-size:12px;font-weight:600;background:#fff;border:none;cursor:pointer;border-bottom:2px solid var(--acc);color:var(--acc)">📎 Upload file</button>
+          <button id="sdm-tab-link" onclick="sdmTabSwitch('link')" style="flex:1;padding:9px;font-size:12px;font-weight:600;background:var(--bg);border:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--txt2)">🔗 Paste a link</button>
           <button id="sdm-tab-name" onclick="sdmTabSwitch('name')" style="flex:1;padding:9px;font-size:12px;font-weight:600;background:var(--bg);border:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--txt2)">📄 File name</button>
         </div>
-        <div id="sdm-panel-link" style="padding:12px 14px">
+        <!-- Upload panel (default) -->
+        <div id="sdm-panel-upload" style="padding:14px">
+          <label id="sdm-drop-zone" for="sdm-file" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed var(--border);border-radius:8px;padding:24px 16px;cursor:pointer;transition:border-color .2s,background .2s" onmouseover="this.style.borderColor='var(--acc)';this.style.background='var(--acc-light)'" onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
+            <div style="font-size:28px">📄</div>
+            <div style="font-size:13px;font-weight:600;color:var(--txt)">Click to browse or drag &amp; drop</div>
+            <div style="font-size:11px;color:var(--txt3)">Accepts .xlsx, .xls, .docx, .doc, .pdf, .csv, .pptx, .png, .jpg — max 25 MB</div>
+            <input type="file" id="sdm-file" accept=".xlsx,.xls,.docx,.doc,.pdf,.csv,.pptx,.png,.jpg,.jpeg" style="display:none" onchange="sdmFileChosen(this)">
+          </label>
+          <div id="sdm-file-chosen" style="display:none;margin-top:10px;padding:8px 12px;background:var(--acc-light);border-radius:7px;font-size:12px;color:var(--acc);font-weight:600;display:flex;align-items:center;gap:8px">
+            <span>📎</span><span id="sdm-file-name-display"></span>
+            <button onclick="sdmClearFile()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--txt2);font-size:14px" title="Remove">×</button>
+          </div>
+        </div>
+        <!-- Link panel -->
+        <div id="sdm-panel-link" style="display:none;padding:12px 14px">
           <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;line-height:1.5">Paste a shareable link from Google Drive, SharePoint, Dropbox, OneDrive, or any cloud storage:</div>
           <input type="url" id="sdm-fileurl" placeholder="https://drive.google.com/file/… or https://…" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--txt)">
           <div style="margin-top:8px;font-size:11px;color:var(--txt3)">Make sure the link is set to "Anyone with the link can view"</div>
         </div>
+        <!-- File name panel -->
         <div id="sdm-panel-name" style="display:none;padding:12px 14px">
           <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;line-height:1.5">Type the file name for reference — the Everfield team will contact you to collect the file:</div>
           <input type="text" id="sdm-filename" placeholder="e.g. Q1_quotas_2026.xlsx, Annual_Targets.pdf…" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--txt)">
@@ -1354,7 +1383,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 
 <!-- SELLER PROFILE MODAL -->
 <div class="modal-backdrop" id="seller-modal">
-  <div class="modal modal-lg" style="max-width:720px">
+  <div class="modal modal-lg" style="max-width:760px">
     <div class="modal-head">
       <div>
         <h2 id="sm-title">Seller Profile</h2>
@@ -1365,15 +1394,39 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
     <div class="modal-body" style="padding:0">
       <!-- Summary stats bar -->
       <div id="sm-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--border)"></div>
-      <!-- History table -->
-      <div style="padding:16px 24px 8px;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:13px;font-weight:700;color:var(--txt)">Quota History</div>
-        <button class="btn btn-primary btn-sm" id="sm-add-btn" onclick="addEntryForCurrentSeller()">+ Add Period</button>
+
+      <!-- Quota Plan section -->
+      <div style="padding:16px 24px 12px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+          <div style="font-size:13px;font-weight:700;color:var(--txt)">Quota Plan</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <!-- Year selector -->
+            <div style="display:flex;align-items:center;gap:6px">
+              <button onclick="setSmYear(smYear-1)" style="width:24px;height:24px;border:1px solid var(--border);background:#fff;border-radius:5px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">‹</button>
+              <span id="sm-year-display" style="font-size:13px;font-weight:700;color:var(--txt);min-width:38px;text-align:center">2026</span>
+              <button onclick="setSmYear(smYear+1)" style="width:24px;height:24px;border:1px solid var(--border);background:#fff;border-radius:5px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">›</button>
+            </div>
+            <!-- Period type segmented control -->
+            <div id="sm-period-seg" style="display:flex;gap:0;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;overflow:hidden">
+              <button onclick="setSmPType('Monthly')"   class="sm-seg-btn active" data-pt="Monthly">Monthly</button>
+              <button onclick="setSmPType('Quarterly')" class="sm-seg-btn"        data-pt="Quarterly">Quarterly</button>
+              <button onclick="setSmPType('Yearly')"    class="sm-seg-btn"        data-pt="Yearly">Yearly</button>
+            </div>
+          </div>
+        </div>
+        <div id="sm-plan-content"></div>
+      </div>
+
+      <!-- All entries / history -->
+      <div style="padding:14px 24px 8px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;font-weight:700;color:var(--txt)">All Entries</div>
+        <button class="btn btn-ghost btn-sm" id="sm-add-btn" onclick="addEntryForCurrentSeller()">+ Add Entry</button>
       </div>
       <table class="tbl" id="sm-table" style="margin-bottom:0"></table>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('seller-modal')">Close</button>
+      <button class="btn btn-primary" id="sm-set-quotas-btn" onclick="setQuotasFromProfile()">📊 Set Quotas</button>
     </div>
   </div>
 </div>
@@ -1897,10 +1950,20 @@ function doLogout(){
 
 /* ═══════════════════════════════════════
    SMART QUOTA SPREADING (bi-directional)
-   Rules (no double-counting — one entry per seller per period):
-     Viewing Monthly   → prefer Monthly, fallback Q÷3, fallback Y÷12
-     Viewing Quarterly → prefer Quarterly, fallback aggregate 3 months (×), fallback Y÷4
-     Viewing Yearly    → prefer Yearly, fallback aggregate 4 quarters (×), fallback aggregate 12 months (×)
+
+   RULES:
+   ┌──────────────┬─────────────────────────────────────────────────────────┐
+   │ Quota        │ Spreads in both directions — quota is a target/estimate  │
+   │              │ so dividing or extrapolating is legitimate               │
+   ├──────────────┼─────────────────────────────────────────────────────────┤
+   │ Achieved     │ NEVER extrapolated or multiplied.                        │
+   │              │ Upward   → sum only (what was actually sold)             │
+   │              │ Downward → 0 (we don't know the sub-period breakdown)    │
+   └──────────────┴─────────────────────────────────────────────────────────┘
+
+   Viewing Monthly   → prefer Monthly, fallback Q÷3 (achieved=0), Y÷12 (achieved=0)
+   Viewing Quarterly → prefer Quarterly, fallback sum months (achieved=sum), Y÷4 (achieved=0)
+   Viewing Yearly    → prefer Yearly, fallback sum quarters (achieved=sum), sum months (achieved=sum)
 ═══════════════════════════════════════ */
 function getEffectiveEntries(sourceEntries, targetPeriodStr){
   // Group entries by (company + seller_name) to avoid double-counting
@@ -1911,25 +1974,21 @@ function getEffectiveEntries(sourceEntries, targetPeriodStr){
     groups[k].push(e);
   });
 
-  // Helper: extrapolate sum to full period when some sub-periods may be missing
-  // e.g. 2 out of 3 months present → multiply sum by 3/2 to estimate full quarter
-  function extrapolate(entries, totalSlots){
-    const present = entries.filter(Boolean);
-    if(!present.length) return null;
-    const factor = totalSlots / present.length;
+  // Aggregate sub-period entries upward into a larger period.
+  // quota: extrapolated if some sub-periods missing (×factor)
+  // achieved: sum only — never multiplied (actuals are facts, not estimates)
+  function aggregateUp(presentEntries, totalSlots){
+    if(!presentEntries.length) return null;
+    const factor = totalSlots / presentEntries.length;
     return {
-      quota: Math.round(present.reduce((s,e)=>s+Number(e.quota),0) * factor),
-      achieved: Math.round(present.reduce((s,e)=>s+Number(e.achieved),0) * factor),
-      label: `${present.length}/${totalSlots} ${present.length<totalSlots?'(est.)':''}`.trim()
+      quota:    Math.round(presentEntries.reduce((s,e)=>s+Number(e.quota),   0) * factor),
+      achieved: Math.round(presentEntries.reduce((s,e)=>s+Number(e.achieved),0)),  // NO factor
+      est: presentEntries.length < totalSlots  // flag: quota was extrapolated
     };
   }
 
-  // Quarter helpers: which months belong to a quarter?
-  function monthsInQuarter(q){ // q = 'Q1'..'Q4', returns MONTHS entries
-    const qNum = parseInt(q[1])-1; // 0-based quarter
-    return MONTHS.slice(qNum*3, qNum*3+3);
-  }
-  function quarterNum(q){ return parseInt(q[1]); }
+  // Which months belong to a quarter?
+  function monthsInQuarter(q){ return MONTHS.slice((parseInt(q[1])-1)*3, (parseInt(q[1])-1)*3+3); }
 
   const result = [];
   for(const sellerEntries of Object.values(groups)){
@@ -1938,69 +1997,69 @@ function getEffectiveEntries(sourceEntries, targetPeriodStr){
     if(direct){ result.push(direct); continue; }
 
     const parts = targetPeriodStr.split('|');
-    const year = parts[parts.length-1];
+    const year  = parts[parts.length-1];
 
     if(parts[0]==='Monthly'){
-      // ── Downward only (finer granularity) ──────────────────────────────
-      const monthIdx = MONTHS.indexOf(parts[1]); // 0-11
-      const quarter = 'Q'+Math.ceil((monthIdx+1)/3);
+      // ── Downward only (sub-period of a larger parent) ──────────────────
+      // Achieved is unknown at this granularity → set to 0
+      const monthIdx = MONTHS.indexOf(parts[1]);
+      const quarter  = 'Q'+Math.ceil((monthIdx+1)/3);
 
-      // Quarterly parent → ÷3
       const qEntry = sellerEntries.find(e=>e.period===`Quarterly|${quarter}|${year}`);
       if(qEntry){
-        result.push({...qEntry, quota:Math.round(qEntry.quota/3), achieved:Math.round(qEntry.achieved/3), period:targetPeriodStr, _spread:`from ${quarter} ÷3`});
+        result.push({...qEntry, quota:Math.round(qEntry.quota/3), achieved:0,
+          period:targetPeriodStr, _spread:`quota from ${quarter} ÷3`});
         continue;
       }
-      // Yearly parent → ÷12
       const yEntry = sellerEntries.find(e=>e.period===`Yearly|${year}`);
       if(yEntry){
-        result.push({...yEntry, quota:Math.round(yEntry.quota/12), achieved:Math.round(yEntry.achieved/12), period:targetPeriodStr, _spread:`from ${year} ÷12`});
+        result.push({...yEntry, quota:Math.round(yEntry.quota/12), achieved:0,
+          period:targetPeriodStr, _spread:`quota from ${year} ÷12`});
         continue;
       }
 
     } else if(parts[0]==='Quarterly'){
-      const quarter = parts[1]; // 'Q1'..'Q4'
+      const quarter = parts[1];
 
-      // ── Upward: aggregate from Monthly entries in this quarter ──────────
-      const months = monthsInQuarter(quarter);
-      const monthEntries = months.map(m=>sellerEntries.find(e=>e.period===`Monthly|${m}|${year}`));
-      const agg = extrapolate(monthEntries.filter(Boolean), 3);
+      // ── Upward: aggregate monthly actuals & extrapolate quota ───────────
+      const months     = monthsInQuarter(quarter);
+      const mEntries   = months.map(m=>sellerEntries.find(e=>e.period===`Monthly|${m}|${year}`)).filter(Boolean);
+      const agg        = aggregateUp(mEntries, 3);
       if(agg){
-        const base = sellerEntries.find(e=>e.period===`Monthly|${months[0]}|${year}`) || sellerEntries[0];
+        const base = mEntries[0];
         result.push({...base, quota:agg.quota, achieved:agg.achieved, period:targetPeriodStr,
-          _spread:`from months ×3${agg.label.includes('est.')?'~':''}`});
+          _spread:`quota from months${agg.est?' (est.)':''}`});
         continue;
       }
 
-      // ── Downward: Yearly parent → ÷4 ──────────────────────────────────
+      // ── Downward: Yearly parent, achieved unknown ──────────────────────
       const yEntry = sellerEntries.find(e=>e.period===`Yearly|${year}`);
       if(yEntry){
-        result.push({...yEntry, quota:Math.round(yEntry.quota/4), achieved:Math.round(yEntry.achieved/4), period:targetPeriodStr, _spread:`from ${year} ÷4`});
+        result.push({...yEntry, quota:Math.round(yEntry.quota/4), achieved:0,
+          period:targetPeriodStr, _spread:`quota from ${year} ÷4`});
         continue;
       }
 
     } else if(parts[0]==='Yearly'){
-      // ── Upward: aggregate from Quarterly entries ────────────────────────
-      const qEntries = QUARTERS.map(q=>sellerEntries.find(e=>e.period===`Quarterly|${q}|${year}`));
-      const qAgg = extrapolate(qEntries.filter(Boolean), 4);
+      // ── Upward: aggregate quarterly entries ────────────────────────────
+      const qEntries = QUARTERS.map(q=>sellerEntries.find(e=>e.period===`Quarterly|${q}|${year}`)).filter(Boolean);
+      const qAgg     = aggregateUp(qEntries, 4);
       if(qAgg){
-        const base = qEntries.find(Boolean) || sellerEntries[0];
-        result.push({...base, quota:qAgg.quota, achieved:qAgg.achieved, period:targetPeriodStr,
-          _spread:`from quarters ×4${qAgg.label.includes('est.')?'~':''}`});
+        result.push({...qEntries[0], quota:qAgg.quota, achieved:qAgg.achieved, period:targetPeriodStr,
+          _spread:`quota from quarters${qAgg.est?' (est.)':''}`});
         continue;
       }
 
-      // ── Upward: aggregate from Monthly entries ─────────────────────────
-      const mEntries = MONTHS.map(m=>sellerEntries.find(e=>e.period===`Monthly|${m}|${year}`));
-      const mAgg = extrapolate(mEntries.filter(Boolean), 12);
+      // ── Upward: aggregate monthly entries ─────────────────────────────
+      const mEntries = MONTHS.map(m=>sellerEntries.find(e=>e.period===`Monthly|${m}|${year}`)).filter(Boolean);
+      const mAgg     = aggregateUp(mEntries, 12);
       if(mAgg){
-        const base = mEntries.find(Boolean) || sellerEntries[0];
-        result.push({...base, quota:mAgg.quota, achieved:mAgg.achieved, period:targetPeriodStr,
-          _spread:`from months ×12${mAgg.label.includes('est.')?'~':''}`});
+        result.push({...mEntries[0], quota:mAgg.quota, achieved:mAgg.achieved, period:targetPeriodStr,
+          _spread:`quota from months${mAgg.est?' (est.)':''}`});
         continue;
       }
     }
-    // No entry or spread possible for this seller in this period — skip
+    // No entry or spread found for this seller in this period — skip
   }
   return result;
 }
@@ -2647,20 +2706,40 @@ function renderAccessLog(){
 let sellerModalName = null;
 let sellerModalCompany = null;
 let _modalForceCo = null; // company override when entry modal opens from seller profile (avoids polluting drillCompany)
+let smPType = 'Monthly';
+let smYear  = new Date().getFullYear();
 
 function openSellerProfile(sellerName, company){
   sellerModalName = sellerName;
   sellerModalCompany = company;
+  smPType = 'Monthly';
+  smYear  = parseInt(pYear) || new Date().getFullYear();
+  // reset segment button styles
+  document.querySelectorAll('.sm-seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.pt==='Monthly'));
+  document.getElementById('sm-year-display').textContent = smYear;
+  // Show/hide Set Quotas button (company users or admin)
+  const sqBtn = document.getElementById('sm-set-quotas-btn');
+  if(sqBtn) sqBtn.style.display = (isAdmin() || currentUser===company) ? '' : 'none';
   renderSellerProfile();
   openModal('seller-modal');
+}
+
+function setSmPType(t){
+  smPType = t;
+  document.querySelectorAll('.sm-seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.pt===t));
+  renderSmPlan();
+}
+
+function setSmYear(y){
+  smYear = y;
+  document.getElementById('sm-year-display').textContent = y;
+  renderSmPlan();
 }
 
 function renderSellerProfile(){
   const name = sellerModalName;
   const co = sellerModalCompany;
-  // All entries for this seller, all time, sorted by period descending
-  const source = isAdmin() ? allEntries : allEntries;
-  const sellerEntries = source
+  const sellerEntries = allEntries
     .filter(e => e.seller_name === name && e.company === co)
     .sort((a,b) => b.period.localeCompare(a.period));
 
@@ -2676,22 +2755,28 @@ function renderSellerProfile(){
     `<strong>${co}</strong>${role?' · '+role:''}${quotaType?' · <span class="badge badge-'+(quotaType==='New Name'?'blue':'purple')+'" style="font-size:10px">'+quotaType+'</span>':''}` +
     (isActive ? '' : ' <span class="badge badge-red" style="font-size:10px">Inactive</span>');
 
-  // Stat bar
+  // Stat bar — use only direct (non-spread) entries for accurate summary
   const totalQ = sellerEntries.reduce((s,r)=>s+Number(r.quota),0);
   const totalA = sellerEntries.reduce((s,r)=>s+Number(r.achieved),0);
   const avgAtt = sellerEntries.length ? Math.round(sellerEntries.reduce((s,r)=>s+attPct(r.achieved,r.quota),0)/sellerEntries.length) : 0;
   const best = sellerEntries.reduce((b,r)=>{ const p=attPct(r.achieved,r.quota); return p>b?p:b; }, 0);
   document.getElementById('sm-stats').innerHTML = `
-    <div class="sm-stat"><div class="sm-stat-val">${sellerEntries.length}</div><div class="sm-stat-lbl">Periods Tracked</div></div>
+    <div class="sm-stat"><div class="sm-stat-val">${sellerEntries.length}</div><div class="sm-stat-lbl">Entries</div></div>
     <div class="sm-stat"><div class="sm-stat-val">${fmtCurr(totalQ,rc)}</div><div class="sm-stat-lbl">Total Quota</div></div>
     <div class="sm-stat"><div class="sm-stat-val" style="color:${attColor(avgAtt)}">${avgAtt}%</div><div class="sm-stat-lbl">Avg Attainment</div></div>
     <div class="sm-stat"><div class="sm-stat-val" style="color:${attColor(best)}">${best}%</div><div class="sm-stat-lbl">Best Period</div></div>`;
 
-  // Show/hide add button for non-admin when it's their company
+  // Show/hide add + set quotas buttons
+  const canEdit = isAdmin() || currentUser===co;
   const addBtn = document.getElementById('sm-add-btn');
-  if(addBtn) addBtn.style.display = (isAdmin() || currentUser===co) ? '' : 'none';
+  const sqBtn  = document.getElementById('sm-set-quotas-btn');
+  if(addBtn) addBtn.style.display = canEdit ? '' : 'none';
+  if(sqBtn)  sqBtn.style.display  = canEdit ? '' : 'none';
 
-  // History table
+  // Render quota plan
+  renderSmPlan();
+
+  // All-entries history table
   const rows = sellerEntries.map(r => {
     const p = attPct(r.achieved, r.quota);
     const achCell = r.crm_pull
@@ -2716,7 +2801,68 @@ function renderSellerProfile(){
 
   document.getElementById('sm-table').innerHTML = `
     <thead><tr><th>Period</th><th>Type</th><th style="text-align:right">Quota</th><th style="text-align:right">Achieved</th><th style="text-align:right">Att%</th><th>Status</th><th></th></tr></thead>
-    <tbody>${rows || '<tr class="empty-row"><td colspan="7">No entries yet — click "+ Add Period" to start</td></tr>'}</tbody>`;
+    <tbody>${rows || '<tr class="empty-row"><td colspan="7">No entries yet — click "+ Add Entry" or "Set Quotas" to start</td></tr>'}</tbody>`;
+}
+
+function renderSmPlan(){
+  const name = sellerModalName;
+  const co   = sellerModalCompany;
+  const rc   = (allEntries.find(e=>e.seller_name===name&&e.company===co)?.currency) || coCurrency(co);
+  const year = String(smYear);
+
+  // Build period keys for current view
+  let periodKeys = [];
+  if(smPType==='Monthly')   periodKeys = MONTHS.map(m=>`Monthly|${m}|${year}`);
+  else if(smPType==='Quarterly') periodKeys = QUARTERS.map(q=>`Quarterly|${q}|${year}`);
+  else                      periodKeys = [`Yearly|${year}`];
+
+  // Use spreading to get effective quota for each period
+  const sellerRaw = allEntries.filter(e=>e.seller_name===name && e.company===co);
+
+  // Build rows
+  const planRows = periodKeys.map(pk => {
+    const effective = getEffectiveEntries(sellerRaw, pk);
+    const e = effective[0];
+    const label = smPType==='Monthly'   ? pk.split('|')[1]
+                : smPType==='Quarterly' ? pk.split('|')[1] + ' ' + year
+                :                        year;
+    if(!e || (!e.quota && !e.achieved)){
+      return `<div class="sm-plan-row">
+        <div class="sm-plan-period">${label}</div>
+        <div class="sm-plan-bar-wrap"><div class="sm-plan-bar" style="width:0%;background:var(--border)"></div></div>
+        <div class="sm-plan-num sm-plan-empty">— no quota</div>
+        <div class="sm-plan-num sm-plan-empty">—</div>
+        <div class="sm-plan-pct" style="color:var(--txt3)">—</div>
+      </div>`;
+    }
+    const pct = attPct(e.achieved, e.quota);
+    const barW = Math.min(pct, 100);
+    const barColor = pct>=100?'var(--green)':pct>=70?'var(--amber)':pct>=40?'var(--orange)':'var(--red)';
+    const spreadNote = e._spread ? `<span class="sm-plan-spread" title="${e._spread}">↗ est.</span>` : '';
+    const isReal = !e._spread;
+    return `<div class="sm-plan-row" style="${isReal?'':'opacity:.75'}">
+      <div class="sm-plan-period">${label}${spreadNote}</div>
+      <div class="sm-plan-bar-wrap"><div class="sm-plan-bar" style="width:${barW}%;background:${barColor}"></div></div>
+      <div class="sm-plan-num">${fmtCurr(e.quota,rc)}</div>
+      <div class="sm-plan-num" style="color:var(--txt2)">${e.achieved>0?fmtCurr(e.achieved,rc):'—'}</div>
+      <div class="sm-plan-pct" style="color:${attColor(pct)}">${pct}%</div>
+    </div>`;
+  }).join('');
+
+  const header = `<div class="sm-plan-row" style="border-bottom:2px solid var(--border);padding-bottom:6px;margin-bottom:2px">
+    <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em">Period</div>
+    <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em">Attainment</div>
+    <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;text-align:right">Quota</div>
+    <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;text-align:right">Achieved</div>
+    <div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;text-align:right">Att%</div>
+  </div>`;
+
+  document.getElementById('sm-plan-content').innerHTML = header + planRows;
+}
+
+function setQuotasFromProfile(){
+  closeModal('seller-modal');
+  openBulkEntry(sellerModalName, sellerModalCompany);
 }
 
 function addEntryForCurrentSeller(){
@@ -3395,17 +3541,31 @@ async function reviewSubmission(id, status){
 }
 
 function sdmTabSwitch(tab){
-  const isLink = tab==='link';
-  document.getElementById('sdm-panel-link').style.display = isLink?'':'none';
-  document.getElementById('sdm-panel-name').style.display = isLink?'none':'';
-  const tLink = document.getElementById('sdm-tab-link');
-  const tName = document.getElementById('sdm-tab-name');
-  tLink.style.background = isLink?'#fff':'var(--bg)';
-  tLink.style.color = isLink?'var(--acc)':'var(--txt2)';
-  tLink.style.borderBottom = isLink?'2px solid var(--acc)':'2px solid transparent';
-  tName.style.background = isLink?'var(--bg)':'#fff';
-  tName.style.color = isLink?'var(--txt2)':'var(--acc)';
-  tName.style.borderBottom = isLink?'2px solid transparent':'2px solid var(--acc)';
+  const tabs = ['upload','link','name'];
+  tabs.forEach(t => {
+    const panel = document.getElementById('sdm-panel-'+t);
+    const btn   = document.getElementById('sdm-tab-'+t);
+    if(!panel || !btn) return;
+    const active = t === tab;
+    panel.style.display = active ? '' : 'none';
+    btn.style.background    = active ? '#fff' : 'var(--bg)';
+    btn.style.color         = active ? 'var(--acc)' : 'var(--txt2)';
+    btn.style.borderBottom  = active ? '2px solid var(--acc)' : '2px solid transparent';
+  });
+}
+
+function sdmFileChosen(input){
+  const file = input.files[0];
+  const chosen = document.getElementById('sdm-file-chosen');
+  const nameEl = document.getElementById('sdm-file-name-display');
+  if(file){ nameEl.textContent = file.name + ' (' + (file.size/1024/1024).toFixed(1) + ' MB)'; chosen.style.display='flex'; }
+  else { chosen.style.display='none'; }
+}
+
+function sdmClearFile(){
+  const inp = document.getElementById('sdm-file');
+  inp.value = '';
+  document.getElementById('sdm-file-chosen').style.display = 'none';
 }
 
 async function openSubmitDocsModal(){
@@ -3415,7 +3575,8 @@ async function openSubmitDocsModal(){
   document.getElementById('sdm-filename').value='';
   document.getElementById('sdm-fileurl').value='';
   document.getElementById('sdm-err').textContent='';
-  sdmTabSwitch('link'); // default to link tab
+  sdmClearFile();
+  sdmTabSwitch('upload'); // default to upload tab
   openModal('submit-docs-modal');
 }
 
@@ -3425,11 +3586,31 @@ async function saveDocSubmission(){
   const description = document.getElementById('sdm-description').value.trim();
   const fileurl = document.getElementById('sdm-fileurl').value.trim();
   const filename = document.getElementById('sdm-filename').value.trim();
+  const fileInput = document.getElementById('sdm-file');
+  const file = fileInput && fileInput.files[0];
   const errEl = document.getElementById('sdm-err');
+
   if(!type){ errEl.textContent='Please select a document type.'; return; }
   if(!description){ errEl.textContent='Please add a brief description.'; return; }
-  // Use URL if provided, else filename
-  const fileRef = fileurl || filename || null;
+
+  spin(true);
+  let fileRef = fileurl || filename || null;
+
+  // Attempt actual file upload if a file was chosen
+  if(file){
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path = `${currentUser}/${Date.now()}_${safeName}`;
+    const { data: upData, error: upErr } = await db.storage.from('quota-docs').upload(path, file, { upsert: false });
+    if(upErr){
+      // Storage bucket may not exist yet — fall back to storing the filename as a reference
+      console.warn('Storage upload failed:', upErr.message);
+      fileRef = file.name; // fallback: store filename only
+    } else {
+      const { data: urlData } = db.storage.from('quota-docs').getPublicUrl(path);
+      fileRef = urlData?.publicUrl || file.name;
+    }
+  }
+
   const payload = {
     company: currentUser,
     submission_type: type,
@@ -3438,7 +3619,6 @@ async function saveDocSubmission(){
     file_name: fileRef,
     status: 'pending'
   };
-  spin(true);
   const {error} = await db.from('quota_submissions').insert([payload]);
   spin(false);
   if(error){ errEl.textContent = `Failed: ${error.message}`; return; }

@@ -354,7 +354,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 #header-note-btn{display:none;align-items:center;gap:5px;padding:6px 12px;background:var(--amber-bg);border:1.5px solid var(--amber);border-radius:8px;color:var(--amber);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;font-family:var(--font)}
 #header-note-btn:hover{background:var(--amber);color:#fff;border-color:var(--amber)}
 #header-note-btn.active{background:var(--amber);border-color:var(--amber);color:#fff;box-shadow:0 3px 12px rgba(180,83,9,.35)}
-#comment-mode-banner{display:none;background:var(--amber);color:#fff;font-size:12px;font-weight:600;padding:8px 20px;text-align:center;letter-spacing:.01em;position:relative;z-index:950}
+#comment-mode-banner{display:none;background:var(--amber);color:#fff;font-size:12px;font-weight:600;padding:9px 20px;text-align:center;letter-spacing:.01em;position:fixed;top:62px;left:var(--sb-w);right:0;z-index:49;box-shadow:0 2px 8px rgba(180,83,9,.3)}
 #comment-mode-banner.on{display:block}
 /* FEEDBACK FAB */
 #feedback-fab{display:none;position:fixed;bottom:28px;right:28px;width:52px;height:52px;border-radius:50%;background:var(--acc);color:#fff;border:none;cursor:pointer;box-shadow:0 6px 20px rgba(124,58,237,.42);z-index:800;font-size:22px;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s}
@@ -580,6 +580,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
     </div>
     <!-- Visible to all -->
     <div class="nav-section" style="margin-top:12px">Platform</div>
+    <!-- Admin: Add Note action button in sidebar -->
+    <div class="admin-only" id="sb-note-btn-wrap" style="padding:4px 12px 4px">
+      <button id="sb-note-btn" onclick="toggleCommentMode()" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--amber-bg);border:1.5px solid var(--amber);border-radius:9px;color:var(--amber);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .18s">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span id="sb-note-btn-label">Add Note to Page</span>
+      </button>
+    </div>
     <div class="nav-item" data-view="changelog" onclick="showView('changelog',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <span>What's New</span>
@@ -4828,6 +4835,10 @@ function toggleCommentMode(){
   }
   const banner = document.getElementById('comment-mode-banner');
   if(banner) banner.classList.toggle('on', commentMode);
+  const sbLabel = document.getElementById('sb-note-btn-label');
+  const sbBtn = document.getElementById('sb-note-btn');
+  if(sbLabel) sbLabel.textContent = commentMode ? '✕ Cancel Note Mode' : 'Add Note to Page';
+  if(sbBtn){ sbBtn.style.background = commentMode ? 'var(--amber)' : 'var(--amber-bg)'; sbBtn.style.color = commentMode ? '#fff' : 'var(--amber)'; }
   document.body.style.cursor = commentMode ? 'crosshair' : '';
   if(!commentMode){ cancelInlineComment(); document.body.style.cursor=''; }
 }

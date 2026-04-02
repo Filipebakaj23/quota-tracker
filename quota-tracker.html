@@ -473,18 +473,43 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
       </svg>
       <div style="margin-top:10px;font-size:12px;color:var(--txt3);font-weight:500;letter-spacing:.04em;text-transform:uppercase">Quota Intelligence Platform</div>
     </div>
-    <div class="login-h">Welcome back</div>
-    <div class="login-p">Select your company and sign in to continue</div>
-    <div class="fld">
-      <label>Company</label>
-      <div class="sel-wrap"><select id="l-company"></select></div>
+    <!-- STATE: email input -->
+    <div id="login-step-email">
+      <div class="login-h">Welcome back</div>
+      <div class="login-p">Enter your work email and we'll send you a sign-in link — no password needed.</div>
+      <div class="fld">
+        <label>Work Email</label>
+        <div style="position:relative">
+          <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--txt3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <input type="email" id="l-email" placeholder="you@company.com" autocomplete="email" style="padding-left:38px">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="requestMagicLink()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send sign-in link
+      </button>
+      <div class="login-err" id="l-err"></div>
     </div>
-    <div class="fld">
-      <label>Password</label>
-      <input type="password" id="l-pass" placeholder="Enter your password" autocomplete="current-password">
+    <!-- STATE: magic link sent -->
+    <div id="login-step-sent" style="display:none;text-align:center">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--acc-light),#ddd6fe);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </div>
+      <div class="login-h" style="font-size:22px;margin-bottom:10px">Check your inbox</div>
+      <div class="login-p" style="margin-bottom:8px">We sent a sign-in link to</div>
+      <div style="font-weight:700;color:var(--acc);font-size:14px;margin-bottom:24px" id="l-sent-email"></div>
+      <div style="font-size:12px;color:var(--txt3);line-height:1.6">Click the link in the email to sign in.<br>The link expires after 1 hour.</div>
+      <button class="btn btn-ghost" style="margin-top:20px;width:100%" onclick="document.getElementById('login-step-sent').style.display='none';document.getElementById('login-step-email').style.display='';document.getElementById('l-err').textContent=''">← Use a different email</button>
     </div>
-    <button class="btn btn-primary" onclick="doLogin()">Sign in</button>
-    <div class="login-err" id="l-err"></div>
+    <!-- STATE: access denied -->
+    <div id="login-step-denied" style="display:none;text-align:center">
+      <div style="width:64px;height:64px;background:var(--red-bg);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      </div>
+      <div class="login-h" style="font-size:22px;margin-bottom:10px;color:var(--red)">Access denied</div>
+      <div class="login-p" style="margin-bottom:24px">Your email is not authorised to access this platform. Contact your Everfield admin to request access.</div>
+      <button class="btn btn-ghost" style="width:100%" onclick="handleDeniedBack()">← Try a different email</button>
+    </div>
   </div>
 </div>
 
@@ -571,6 +596,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
     <div class="nav-item admin-only" data-view="passwords" onclick="showView('passwords',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       <span>Passwords</span>
+    </div>
+    <div class="nav-item admin-only" data-view="users" onclick="showView('users',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M16 3.13a4 4 0 0 1 0 7.75" opacity=".5"/><path d="M21 21v-2a4 4 0 0 0-3-3.87" opacity=".5"/></svg>
+      <span>Users</span>
     </div>
     <div class="nav-item admin-only" data-view="export" onclick="showView('export',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -787,6 +816,38 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
     </div>
     <div class="table-card">
       <table class="tbl" id="pw-table"></table>
+    </div>
+  </div>
+
+  <!-- USERS VIEW (admin) -->
+  <div class="view" id="view-users">
+    <div class="sec-header">
+      <div><div class="sec-title">User Management</div><div class="sec-sub">Control who can access the platform and what they can see</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openAddUserModal()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Invite User
+      </button>
+    </div>
+
+    <!-- How-to callout -->
+    <div style="background:var(--acc-light);border:1.5px solid #ddd6fe;border-radius:var(--r);padding:14px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div style="font-size:12px;color:var(--acc2);line-height:1.6">
+        <strong>How it works:</strong> Add a user's email below, assign their role and company, then share the app URL with them. They enter their email on the login screen to receive a magic sign-in link — no password needed.
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-header-title" id="users-count">—</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadUsers()">↺ Refresh</button>
+      </div>
+      <table class="tbl" id="users-table">
+        <thead><tr>
+          <th>Email</th><th>Name</th><th>Role</th><th>Company</th><th>Added</th><th></th>
+        </tr></thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
     </div>
   </div>
 
@@ -1801,6 +1862,62 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
   </div>
 </div>
 
+<!-- ADD USER MODAL -->
+<div class="modal-backdrop" id="add-user-modal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;background:var(--acc-light);border-radius:9px;display:flex;align-items:center;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        </div>
+        <h2>Invite User</h2>
+      </div>
+      <button class="modal-close" onclick="closeModal('add-user-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fld">
+        <label>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Work Email <span style="color:var(--red)">*</span>
+        </label>
+        <input type="email" id="au-email" placeholder="user@company.com">
+      </div>
+      <div class="fld">
+        <label>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Display Name
+        </label>
+        <input type="text" id="au-name" placeholder="e.g. Sarah Jones">
+      </div>
+      <div class="fld">
+        <label>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Role <span style="color:var(--red)">*</span>
+        </label>
+        <div class="sel-wrap"><select id="au-role" onchange="auRoleChange()">
+          <option value="company">Company User</option>
+          <option value="admin">Admin</option>
+        </select></div>
+      </div>
+      <div class="fld" id="au-company-fld">
+        <label>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Company <span style="color:var(--red)">*</span>
+        </label>
+        <div class="sel-wrap"><select id="au-company"></select></div>
+      </div>
+      <div class="login-err" id="au-err" style="text-align:left"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('add-user-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewUser()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Add User
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ADD COMPANY MODAL -->
 <div class="modal-backdrop" id="add-co-modal">
   <div class="modal" style="max-width:460px">
@@ -2088,6 +2205,26 @@ create policy if not exists "i" on custom_companies for insert with check (true)
 create policy if not exists "u" on custom_companies for update using (true);
 create policy if not exists "d" on custom_companies for delete using (true);
 
+-- User profiles (email-based auth)
+create table if not exists user_profiles (
+  email text primary key,
+  role text not null check (role in ('admin','company')),
+  company text,
+  name text,
+  created_at timestamptz default now()
+);
+alter table user_profiles enable row level security;
+create policy if not exists "rp" on user_profiles for select using (auth.role() = 'authenticated');
+create policy if not exists "ip" on user_profiles for insert with check (
+  exists (select 1 from user_profiles where email = auth.email() and role = 'admin')
+);
+create policy if not exists "up" on user_profiles for update using (
+  exists (select 1 from user_profiles where email = auth.email() and role = 'admin')
+);
+create policy if not exists "dp" on user_profiles for delete using (
+  exists (select 1 from user_profiles where email = auth.email() and role = 'admin')
+);
+
 -- Migrations for existing tables (safe to run multiple times)
 alter table quota_entries add column if not exists crm_pull boolean default false;
 alter table quota_entries add column if not exists currency text default 'EUR';
@@ -2141,7 +2278,10 @@ const COMPANIES = [
 /* ═══════════════════════════════════════
    STATE
 ═══════════════════════════════════════ */
-let currentUser = null;
+let currentUser = null;       // company name or '__admin__'
+let currentUserEmail = null;  // authenticated email
+let currentUserName  = null;  // display name from user_profiles
+let currentRole      = null;  // 'admin' | 'company'
 let entries = [];
 let allEntries = [];   // admin only — all entries across companies
 let settings = {};     // {company: {crm_enabled, crm_auto_pull}}
@@ -2149,7 +2289,7 @@ let passwords = {};    // {company: customPassword}
 let loginLogs = [];
 let customCompanies = []; // admin-created companies from DB
 let dbCols = {crm_pull:true, currency:true, role:true, quota_type:true, is_active:true};
-let dbTables = {company_logins:true, company_settings:true, custom_companies:true, company_passwords:true};
+let dbTables = {company_logins:true, company_settings:true, custom_companies:true, company_passwords:true, user_profiles:true};
 let pType = 'Monthly';
 let pMonth = new Date().toLocaleString('en-US',{month:'long'});
 let pQuarter = 'Q' + Math.ceil((new Date().getMonth()+1)/3);
@@ -2315,13 +2455,62 @@ async function init(){
   setBar(10);
   buildPeriodDropdowns();
   updatePeriodStepLabel();
-  document.getElementById('l-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
-  await Promise.all([loadPasswords(), loadSettings(), loadCustomCompanies(), probeDbCols()]);
+  // Email input: Enter key sends magic link
+  document.getElementById('l-email').addEventListener('keydown', e=>{ if(e.key==='Enter') requestMagicLink(); });
+
+  await Promise.all([loadSettings(), loadCustomCompanies(), probeDbCols()]);
   setBar(40);
-  buildLoginDropdown();
-  const saved=sessionStorage.getItem('qtu');
-  if(saved){ await loginAs(saved); }
+
+  // Listen for Supabase Auth state changes (covers magic link callback)
+  db.auth.onAuthStateChange(async (event, session) => {
+    if(event === 'SIGNED_IN' && session?.user){
+      // Hide the "check email" state if visible
+      document.getElementById('login-step-sent').style.display='none';
+      document.getElementById('login-step-email').style.display='';
+      await handleAuthSignIn(session.user);
+    } else if(event === 'SIGNED_OUT'){
+      currentUser=null; currentUserEmail=null; currentUserName=null; currentRole=null;
+      drillCompany=null; entries=[]; allEntries=[];
+      document.getElementById('app').style.display='none';
+      document.getElementById('login-screen').style.display='flex';
+    }
+  });
+
+  // Check for an existing session (returning user)
+  const { data: { session } } = await db.auth.getSession();
+  if(session?.user){
+    await handleAuthSignIn(session.user);
+  }
   setBar(100);
+}
+
+async function handleAuthSignIn(user){
+  // Look up user profile
+  const { data: profile, error } = await db.from('user_profiles').select('*').eq('email', user.email).maybeSingle();
+  if(error || !profile){
+    // Not in user_profiles — access denied
+    await db.auth.signOut();
+    showLoginStep('denied');
+    return;
+  }
+  currentUserEmail = user.email;
+  currentUserName  = profile.name || user.email;
+  currentRole      = profile.role;
+  const co = profile.role === 'admin' ? '__admin__' : profile.company;
+  await loginAs(co);
+}
+
+function showLoginStep(step){
+  // step: 'email' | 'sent' | 'denied'
+  document.getElementById('login-step-email').style.display  = step==='email'  ? '' : 'none';
+  document.getElementById('login-step-sent').style.display   = step==='sent'   ? '' : 'none';
+  document.getElementById('login-step-denied').style.display = step==='denied' ? '' : 'none';
+}
+
+function handleDeniedBack(){
+  showLoginStep('email');
+  document.getElementById('l-err').textContent='';
+  document.getElementById('l-email').value='';
 }
 
 async function probeDbCols(){
@@ -2332,7 +2521,7 @@ async function probeDbCols(){
     dbCols[col] = !error || error.code !== 'PGRST204';
   }
   // Probe supporting tables
-  const tbls = ['company_logins','company_settings','custom_companies'];
+  const tbls = ['company_logins','company_settings','custom_companies','user_profiles'];
   for(const t of tbls){
     const {error} = await db.from(t).select('*').limit(0);
     dbTables[t] = !error || error.code !== 'PGRST205';
@@ -2352,29 +2541,27 @@ function showDbSetupBanner(show){
   if(el) el.style.display = (show && isAdmin()) ? 'flex' : 'none';
 }
 
-function buildLoginDropdown(){
-  const sel=document.getElementById('l-company');
-  sel.innerHTML='<option value="">Select company…</option>' +
-    allCompanies().map(c=>`<option value="${c.name}">${c.name}</option>`).join('') +
-    '<option value="__admin__">Everfield (Admin)</option>';
-}
-
-async function doLogin(){
-  const co=document.getElementById('l-company').value;
-  const pw=document.getElementById('l-pass').value;
-  const err=document.getElementById('l-err');
-  if(!co){err.textContent='Please select a company.';return;}
-  if(!pw){err.textContent='Please enter a password.';return;}
-  const expected = co==='__admin__' ? ADMIN_PASS : getPw(co);
-  if(pw!==expected){err.textContent='Incorrect password.';return;}
+async function requestMagicLink(){
+  const email = document.getElementById('l-email').value.trim();
+  const err   = document.getElementById('l-err');
+  if(!email){ err.textContent='Please enter your email address.'; return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent='Please enter a valid email address.'; return; }
   err.textContent='';
-  await loginAs(co);
+  spin(true);
+  const redirectTo = window.location.href.split('#')[0]; // strip any existing hash
+  const { error } = await db.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: redirectTo, shouldCreateUser: true }
+  });
+  spin(false);
+  if(error){ err.textContent = error.message; return; }
+  document.getElementById('l-sent-email').textContent = email;
+  showLoginStep('sent');
 }
 
 async function loginAs(co){
   spin(true);
   currentUser=co;
-  sessionStorage.setItem('qtu',co);
   // Log access (non-admin)
   if(co!=='__admin__' && dbTables.company_logins){
     const {error:logErr} = await db.from('company_logins').insert([{company:co,logged_at:new Date().toISOString()}]);
@@ -2394,9 +2581,22 @@ async function loginAs(co){
   document.getElementById('sb-admin-label').style.display=isAd?'':'none';
   document.getElementById('add-btn').style.display='';
   document.getElementById('sellers-add-btn').style.display='';
-  const avatar=co==='__admin__'?'EF':co.substring(0,2).toUpperCase();
-  document.getElementById('sb-avatar').textContent=avatar;
-  document.getElementById('sb-uname').textContent=co==='__admin__'?'Everfield Admin':co;
+  // Sidebar user info — prefer display name, fall back to email
+  const displayName = currentUserName || (co==='__admin__' ? 'Everfield Admin' : co);
+  const avatarStr   = displayName.substring(0,2).toUpperCase();
+  document.getElementById('sb-avatar').textContent=avatarStr;
+  document.getElementById('sb-uname').textContent=displayName;
+  if(currentUserEmail){
+    // Show email as a subtitle under the name
+    let emailEl = document.getElementById('sb-email');
+    if(!emailEl){
+      emailEl = document.createElement('div');
+      emailEl.id='sb-email';
+      emailEl.style.cssText='font-size:10px;color:rgba(255,255,255,.3);margin-top:1px;font-weight:400;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      document.getElementById('sb-uname').after(emailEl);
+    }
+    emailEl.textContent = currentUserEmail;
+  }
   // Populate export company dropdown
   const excSel=document.getElementById('export-company');
   excSel.innerHTML='<option value="">All companies</option>'+allCompanies().map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
@@ -2423,12 +2623,13 @@ async function loginAs(co){
   }
 }
 
-function doLogout(){
-  currentUser=null; drillCompany=null; entries=[]; allEntries=[];
-  sessionStorage.removeItem('qtu');
-  document.getElementById('app').style.display='none';
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('l-pass').value='';
+async function doLogout(){
+  currentUser=null; currentUserEmail=null; currentUserName=null; currentRole=null;
+  drillCompany=null; entries=[]; allEntries=[];
+  await db.auth.signOut();
+  // onAuthStateChange will handle hiding the app + showing login
+  showLoginStep('email');
+  document.getElementById('l-email').value='';
   document.getElementById('l-err').textContent='';
 }
 
@@ -2764,7 +2965,7 @@ function showView(view, el){
   if(el) el.classList.add('active');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
-  const titles={dashboard:'Dashboard',sellers:'Sellers',portfolio:'Portfolio Overview','crm-settings':'CRM Settings','access-log':'Access Log',companies:'Companies',passwords:'Passwords',export:'Export Data',submissions:'Doc Submissions','submit-docs':'Submit Documents','getting-started':'Getting Started',changelog:"What's New",feedback:'Feedback'};
+  const titles={dashboard:'Dashboard',sellers:'Sellers',portfolio:'Portfolio Overview','crm-settings':'CRM Settings','access-log':'Access Log',companies:'Companies',passwords:'Passwords',users:'User Management',export:'Export Data',submissions:'Doc Submissions','submit-docs':'Submit Documents','getting-started':'Getting Started',changelog:"What's New",feedback:'Feedback'};
   document.getElementById('c-title').textContent=titles[view]||view;
   renderCurrentView();
   // Re-render pins so only pins matching the new view are shown
@@ -2779,6 +2980,7 @@ function renderCurrentView(){
   else if(currentView==='access-log') loadAccessLog();
   else if(currentView==='companies') renderCompanies();
   else if(currentView==='passwords') renderPasswords();
+  else if(currentView==='users') loadUsers();
   else if(currentView==='export') renderExport();
   else if(currentView==='submissions') loadSubmissions();
   else if(currentView==='submit-docs') renderSubmitDocsView();
@@ -3695,6 +3897,103 @@ async function savePw(){
   await savePassword(co,pw);
   closeModal('pw-modal'); renderPasswords();
   spin(false);
+}
+
+/* ═══════════════════════════════════════
+   USER MANAGEMENT (admin)
+═══════════════════════════════════════ */
+let allUsers = [];
+
+async function loadUsers(){
+  const {data, error} = await db.from('user_profiles').select('*').order('created_at', {ascending: false});
+  if(error){ toast('Failed to load users: '+error.message, 'error'); return; }
+  allUsers = data || [];
+  renderUsers();
+}
+
+function renderUsers(){
+  const tbody = document.getElementById('users-tbody');
+  const countEl = document.getElementById('users-count');
+  if(!tbody) return;
+  countEl.textContent = allUsers.length + ' user' + (allUsers.length!==1?'s':'');
+  if(!allUsers.length){
+    tbody.innerHTML='<tr class="empty-row"><td colspan="6">No users yet — invite someone to get started.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allUsers.map(u=>`
+    <tr>
+      <td>
+        <div style="font-weight:600;color:var(--txt)">${u.email}</div>
+      </td>
+      <td style="color:var(--txt2)">${u.name||'—'}</td>
+      <td>
+        <span class="badge ${u.role==='admin'?'badge-purple':'badge-blue'}">
+          ${u.role==='admin'
+            ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Admin'
+            : '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Company'}
+        </span>
+      </td>
+      <td style="color:var(--txt2)">${u.company||'—'}</td>
+      <td style="color:var(--txt3);font-size:12px">${u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—'}</td>
+      <td>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteUser('${u.email}')" title="Remove user" style="width:auto;padding:5px 10px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Remove
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+function openAddUserModal(){
+  document.getElementById('au-email').value='';
+  document.getElementById('au-name').value='';
+  document.getElementById('au-role').value='company';
+  document.getElementById('au-err').textContent='';
+  // Populate company dropdown
+  const sel = document.getElementById('au-company');
+  sel.innerHTML = allCompanies().map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  auRoleChange();
+  openModal('add-user-modal');
+}
+
+function auRoleChange(){
+  const role = document.getElementById('au-role').value;
+  const fld  = document.getElementById('au-company-fld');
+  if(fld) fld.style.display = role==='admin' ? 'none' : '';
+}
+
+async function saveNewUser(){
+  const email   = document.getElementById('au-email').value.trim().toLowerCase();
+  const name    = document.getElementById('au-name').value.trim();
+  const role    = document.getElementById('au-role').value;
+  const company = role==='company' ? document.getElementById('au-company').value : null;
+  const errEl   = document.getElementById('au-err');
+  errEl.textContent='';
+  if(!email){ errEl.textContent='Email is required.'; return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ errEl.textContent='Please enter a valid email address.'; return; }
+  if(role==='company' && !company){ errEl.textContent='Please select a company.'; return; }
+  // Check for duplicate
+  if(allUsers.find(u=>u.email===email)){ errEl.textContent='A user with this email already exists.'; return; }
+  spin(true);
+  const row = {email, role, created_at: new Date().toISOString()};
+  if(name) row.name = name;
+  if(company) row.company = company;
+  const {error} = await db.from('user_profiles').insert([row]);
+  spin(false);
+  if(error){ errEl.textContent='Save failed: '+error.message; return; }
+  closeModal('add-user-modal');
+  toast('✓ User added — they can now sign in with a magic link');
+  await loadUsers();
+}
+
+async function deleteUser(email){
+  if(!confirm(`Remove ${email} from the platform?\n\nThey will immediately lose access.`)) return;
+  spin(true);
+  const {error} = await db.from('user_profiles').delete().eq('email', email);
+  spin(false);
+  if(error){ toast('Failed to remove user: '+error.message, 'error'); return; }
+  toast('User removed');
+  await loadUsers();
 }
 
 /* ═══════════════════════════════════════

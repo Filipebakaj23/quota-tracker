@@ -2016,13 +2016,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 </div>
 
 <script>
-/* ═══════════════════════════════════════
-   CONFIG
-═══════════════════════════════════════ */
-const SUPABASE_URL  = 'https://nbspfxdbtfjelprofkfi.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ic3BmeGRidGZqZWxwcm9ma2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMDEzODEsImV4cCI6MjA4OTU3NzM4MX0.u2iOuMV3HRVhBkkm4Wx_Ip3VhO8R5Y52cvD6HrUS-Dw';
+/* ╔═══════════════════════════════════════════════════════════════╗
+   ║              ⚙️  CONFIGURATION — EDIT HERE                    ║
+   ║  To switch Supabase databases, update the two lines below.   ║
+   ║  Find both values in: Supabase → Project Settings → API      ║
+   ╚═══════════════════════════════════════════════════════════════╝ */
+
+const SUPABASE_URL  = 'https://nbspfxdbtfjelprofkfi.supabase.co';   // ← Project URL
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ic3BmeGRidGZqZWxwcm9ma2ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMDEzODEsImV4cCI6MjA4OTU3NzM4MX0.u2iOuMV3HRVhBkkm4Wx_Ip3VhO8R5Y52cvD6HrUS-Dw'; // ← anon/public key
+
+const ADMIN_PASS    = 'everfield-admin-2026';                        // ← admin password
+
+/* ─── do not edit below this line ─────────────────────────────── */
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-const ADMIN_PASS = 'everfield-admin-2026';
 
 const SETUP_SQL = `-- Main entries table
 create table if not exists quota_entries (
